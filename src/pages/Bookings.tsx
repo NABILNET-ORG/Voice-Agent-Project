@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Badge } from '../components/ui/badge';
+import { BookingFormModal } from '../components/BookingFormModal';
 import { supabase } from '../lib/supabase';
 import { formatDate, formatTime, formatCurrency } from '../lib/utils';
 
@@ -23,6 +24,7 @@ export function Bookings() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showNewBookingModal, setShowNewBookingModal] = useState(false);
 
   useEffect(() => {
     fetchBookings();
@@ -76,7 +78,7 @@ export function Bookings() {
             Manage your appointments and orders
           </p>
         </div>
-        <Button>
+        <Button onClick={() => setShowNewBookingModal(true)}>
           <Plus className="h-4 w-4 mr-2" />
           New Booking
         </Button>
@@ -197,6 +199,13 @@ export function Bookings() {
           )}
         </CardContent>
       </Card>
+
+      {/* New Booking Modal */}
+      <BookingFormModal
+        open={showNewBookingModal}
+        onOpenChange={setShowNewBookingModal}
+        onSuccess={fetchBookings}
+      />
     </div>
   );
 }
