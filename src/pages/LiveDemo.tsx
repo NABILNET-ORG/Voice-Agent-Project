@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Mic, MicOff, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 
 type ConnectionStatus = 'ready' | 'connecting' | 'listening' | 'processing' | 'error';
@@ -9,7 +8,7 @@ type ConnectionStatus = 'ready' | 'connecting' | 'listening' | 'processing' | 'e
 export function LiveDemo() {
   const [isActive, setIsActive] = useState(false);
   const [status, setStatus] = useState<ConnectionStatus>('ready');
-  const [transcript, setTranscript] = useState<Array<{ role: string; text: string }>>([]);
+  const [transcript] = useState<Array<{ role: string; text: string }>>([]);
 
   const handleStartCall = () => {
     setIsActive(true);

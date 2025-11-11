@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { User, Mail, Phone, Globe } from 'lucide-react';
+import { User } from 'lucide-react';
 
 export function Account() {
   return (

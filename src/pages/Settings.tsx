@@ -8,9 +8,24 @@ import { Textarea } from '../components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { supabase } from '../lib/supabase';
 
+interface BusinessConfig {
+  id: string;
+  business_name: string;
+  business_type: string;
+  business_description: string | null;
+  phone_number: string | null;
+  address: string | null;
+  currency: string;
+  ai_voice: string;
+  ai_voice_personality: string;
+  ai_system_instructions: string;
+  greeting_template: string;
+  confirmation_template: string;
+}
+
 export function Settings() {
   const [loading, setLoading] = useState(false);
-  const [config, setConfig] = useState<any>(null);
+  const [config, setConfig] = useState<BusinessConfig | null>(null);
 
   useEffect(() => {
     fetchConfig();
@@ -24,7 +39,7 @@ export function Settings() {
         .single();
 
       if (error) throw error;
-      setConfig(data);
+      setConfig(data as BusinessConfig);
     } catch (error) {
       console.error('Error fetching config:', error);
     }
@@ -37,7 +52,7 @@ export function Settings() {
     try {
       const { error } = await supabase
         .from('business_config')
-        .update(config)
+        .update(config as never)
         .eq('id', config.id);
 
       if (error) throw error;
