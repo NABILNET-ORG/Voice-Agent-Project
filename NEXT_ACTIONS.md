@@ -1,49 +1,53 @@
 # Next Actions - Universal AI Booking System
 
 **Last Updated:** 2025-11-11
-**Current Phase:** Week 2 - Configuration & Management
+**Current Phase:** Phase 6 Complete - Testing & Remaining Features
 
 ---
 
-## 🔥 Immediate Actions (Required Before Testing)
+## 🔥 Immediate Actions
 
-### 1. Deploy Edge Functions via Supabase Dashboard
+### 1. Deploy and Test WebRTC Live Demo
 **Priority:** CRITICAL
-**Time:** 15 minutes
-
-Deploy these functions manually:
-
-1. **get-user-by-phone** (new)
-   - Path: `supabase/functions/get-user-by-phone/index.ts`
-   - Purpose: Lookup users by phone number
-
-2. **create-booking-manual** (new)
-   - Path: `supabase/functions/create-booking-manual/index.ts`
-   - Purpose: Create bookings from dashboard
-
-3. **twilio-voice** (updated)
-   - Path: `supabase/functions/twilio-voice/index.ts`
-   - Purpose: Handle calls with logging
-
-**How:** Supabase Dashboard → Edge Functions → Create/Update → Copy code → Deploy
-
----
-
-### 2. Test Core Functionality
-**Priority:** HIGH
 **Time:** 30 minutes
 
-- [ ] Login/Signup flow
-- [ ] Create manual booking via "New Booking" button
-- [ ] Make test phone call to Twilio number
-- [ ] Verify call appears in Call History page
-- [ ] Check call_logs table has complete data
+#### Deployment Steps:
+1. **Deploy realtime-session Edge Function**
+   - Go to Supabase Dashboard → Edge Functions
+   - Deploy `realtime-session` function
+   - Verify OPENAI_API_KEY is set in environment variables
+
+2. **Test Live Demo**
+   - Navigate to Live Demo page
+   - Click microphone button
+   - Allow browser microphone permissions
+   - Speak naturally to test conversation
+   - Verify transcript appears in real-time
+   - Verify AI responds with voice
+   - Test error handling by denying microphone access
+
+3. **Verify Business Config Integration**
+   - Check Settings → AI Assistant tab
+   - Ensure ai_system_instructions is populated
+   - Test that AI follows custom instructions in Live Demo
 
 ---
 
-## 🎯 Week 2 Development Tasks
+### 2. Deploy Other Edge Functions (If Not Already Done)
+**Priority:** HIGH
+**Time:** 15 minutes
 
-### Phase 3: Services Editor (Mon-Tue)
+Deploy if not already in production:
+1. `get-user-by-phone` - User lookup for calls
+2. `create-booking-manual` - Manual booking creation
+3. `twilio-voice` - Call logging and tracking
+
+---
+
+## 🎯 Remaining Development Tasks
+
+### Phase 3: Services Editor
+**Status:** Deferred (placeholder exists)
 **Effort:** 2 days
 **Goal:** Allow users to configure available services
 
@@ -52,13 +56,13 @@ Deploy these functions manually:
   - CRUD interface for services
   - Name, description, duration, price fields
   - Save to `business_config.services` JSONB
-
-- [ ] Update Settings page to include ServicesEditor
+- [ ] Update Settings page to replace placeholder
 - [ ] Test services appear in booking form dropdown
 
 ---
 
-### Phase 4: Business Hours Editor (Wed-Thu)
+### Phase 4: Business Hours Editor
+**Status:** Deferred (placeholder exists)
 **Effort:** 2 days
 **Goal:** Allow users to set business hours
 
@@ -68,13 +72,13 @@ Deploy these functions manually:
   - Open/close times
   - Closed days checkbox
   - Save to `business_config.business_hours` JSONB
-
-- [ ] Update Settings page to include BusinessHoursEditor
+- [ ] Update Settings page to replace placeholder
 - [ ] Test hours affect availability checks
 
 ---
 
-### Phase 5: Booking Management (Fri)
+### Phase 5: Booking Management
+**Status:** Not Started
 **Effort:** 1 day
 **Goal:** Edit and cancel existing bookings
 
@@ -82,12 +86,10 @@ Deploy these functions manually:
 - [ ] Create `supabase/functions/update-booking/index.ts`
   - Accept booking updates
   - Send update notifications
-
 - [ ] Create `supabase/functions/cancel-booking/index.ts`
   - Change status to 'cancelled'
   - Send cancellation notifications
   - Delete calendar event if synced
-
 - [ ] Update Bookings page:
   - Make rows clickable
   - Show booking details modal
@@ -95,60 +97,79 @@ Deploy these functions manually:
 
 ---
 
-## 📅 Week 3+ Roadmap
+## 📅 Future Enhancements
 
-### Week 3: Integrations
-- Google Calendar OAuth flow
-- Calendar event sync improvements
-- Live Demo WebRTC (start)
+### Google Calendar OAuth
+- Full OAuth flow implementation
+- Token refresh handling
+- Multi-calendar support
 
-### Week 4: Live Demo & Polish
-- Complete WebRTC implementation
-- Analytics dashboard with real data
-- Account settings page
+### Analytics Improvements
+- Real-time booking metrics
+- Call analytics dashboard
+- Revenue tracking
 
-### Week 5: Production Hardening
-- Security enhancements
-- Error handling
-- Testing & documentation
+### Production Optimization
+- Code splitting for bundle size
+- Performance monitoring
+- Error tracking integration
 
 ---
 
 ## 🐛 Known Technical Debt
 
-1. **Bundle Size:** 566 kB is large
-   - Consider code splitting
-   - Lazy load routes
+1. **Bundle Size:** 571 kB is large
+   - Consider code splitting routes
+   - Lazy load heavy components
+   - Tree-shake unused dependencies
 
-2. **Missing TypeScript Types:**
-   - Add types for all Supabase queries
-   - Create shared interfaces
+2. **TypeScript Improvements:**
+   - Add proper types for Supabase queries
+   - Create shared interfaces for API responses
+   - Remove type assertions where possible
 
 3. **Error Handling:**
-   - Add error boundaries
+   - Add React error boundaries
    - Improve user-facing error messages
+   - Add retry logic for failed API calls
 
 4. **Accessibility:**
-   - Add ARIA labels
-   - Keyboard navigation
-   - Screen reader support
+   - Add ARIA labels to interactive elements
+   - Improve keyboard navigation
+   - Test with screen readers
+
+5. **WebRTC Production Readiness:**
+   - Add connection quality monitoring
+   - Implement reconnection logic
+   - Add bandwidth adaptation
+   - Test across different browsers
 
 ---
 
 ## 📝 Documentation Needs
 
-- [ ] API documentation for edge functions
-- [ ] User guide for dashboard
+- [ ] WebRTC setup and troubleshooting guide
+- [ ] API documentation for all edge functions
+- [ ] User guide for dashboard features
 - [ ] Twilio webhook configuration guide
 - [ ] Environment variables reference
 - [ ] Database schema documentation
 
 ---
 
-## 🎯 Success Criteria (Week 2)
+## 🎯 Current Project Status
 
-- ✅ Users can configure services from UI
-- ✅ Users can set business hours from UI
-- ✅ Users can edit/cancel bookings from dashboard
-- ✅ All changes save correctly to database
-- ✅ AI uses configured services/hours in conversations
+### Completed:
+- ✅ Authentication system (login, signup, protected routes)
+- ✅ User-call association and logging
+- ✅ Manual booking creation from dashboard
+- ✅ WebRTC Live Demo with OpenAI Realtime API
+- ✅ Real-time voice conversation with transcripts
+- ✅ Audio visualization and error handling
+
+### Pending:
+- ⏸️ Services configuration UI (placeholder exists)
+- ⏸️ Business hours configuration UI (placeholder exists)
+- ⏸️ Booking edit/cancel functionality
+- ⏸️ Google Calendar OAuth flow
+- ⏸️ Analytics with real data
