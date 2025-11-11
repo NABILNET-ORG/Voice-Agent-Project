@@ -6,11 +6,14 @@ import {
   BarChart3,
   User,
   Mic2,
+  LogOut,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { useAuth } from '../../contexts/AuthContext';
+import { Button } from '../ui/button';
 
 const navigation = [
-  { name: 'Live Demo', href: '/', icon: Mic2 },
+  { name: 'Live Demo', href: '/demo', icon: Mic2 },
   { name: 'Bookings', href: '/bookings', icon: Calendar },
   { name: 'Call History', href: '/calls', icon: Phone },
   { name: 'Business Settings', href: '/settings', icon: Settings },
@@ -20,6 +23,7 @@ const navigation = [
 
 export function Sidebar() {
   const location = useLocation();
+  const { user, signOut } = useAuth();
 
   return (
     <div className="flex h-screen w-64 flex-col bg-sidebar border-r border-muted">
@@ -58,16 +62,29 @@ export function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="border-t border-muted p-4">
+      <div className="border-t border-muted p-4 space-y-3">
         <div className="flex items-center gap-3">
           <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
             <User className="h-4 w-4 text-muted-foreground" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">User</p>
-            <p className="text-xs text-muted-foreground truncate">user@example.com</p>
+            <p className="text-sm font-medium text-foreground truncate">
+              {user?.user_metadata?.full_name || 'User'}
+            </p>
+            <p className="text-xs text-muted-foreground truncate">
+              {user?.email || 'Loading...'}
+            </p>
           </div>
         </div>
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full"
+          onClick={() => signOut()}
+        >
+          <LogOut className="h-4 w-4 mr-2" />
+          Sign Out
+        </Button>
       </div>
     </div>
   );
