@@ -1,25 +1,17 @@
-import { useState } from 'react';
-import { Mic, MicOff, Loader2 } from 'lucide-react';
+import { Mic, MicOff, Loader2, AlertCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
-
-type ConnectionStatus = 'ready' | 'connecting' | 'listening' | 'processing' | 'error';
+import { useRealtimeAPI } from '../hooks/useRealtimeAPI';
 
 export function LiveDemo() {
-  const [isActive, setIsActive] = useState(false);
-  const [status, setStatus] = useState<ConnectionStatus>('ready');
-  const [transcript] = useState<Array<{ role: string; text: string }>>([]);
+  const { status, transcript, error, connect, disconnect, isConnected } = useRealtimeAPI();
 
-  const handleStartCall = () => {
-    setIsActive(true);
-    setStatus('connecting');
-    // TODO: Implement WebRTC connection to OpenAI Realtime API
-    setTimeout(() => setStatus('listening'), 1000);
+  const handleStartCall = async () => {
+    await connect();
   };
 
   const handleEndCall = () => {
-    setIsActive(false);
-    setStatus('ready');
+    disconnect();
   };
 
   const getStatusText = () => {
@@ -66,6 +58,18 @@ export function LiveDemo() {
         </p>
       </div>
 
+      {/* Error Alert */}
+      {error && (
+        <Card className="max-w-2xl mx-auto border-destructive">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2 text-destructive">
+              <AlertCircle className="h-5 w-5" />
+              <p className="font-medium">{error}</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Main Demo Card */}
       <Card className="max-w-2xl mx-auto">
         <CardHeader className="text-center">
@@ -75,6 +79,8 @@ export function LiveDemo() {
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center space-y-6">
+          {/* Hidden audio element for remote audio */}
+          <audio id="remote-audio" autoPlay style={{ display: 'none' }} />
           {/* Status Badge */}
           <Badge variant={getStatusVariant()} className="text-sm px-4 py-1">
             {getStatusText()}
@@ -82,17 +88,17 @@ export function LiveDemo() {
 
           {/* Microphone Button */}
           <button
-            onClick={isActive ? handleEndCall : handleStartCall}
+            onClick={isConnected ? handleEndCall : handleStartCall}
             className={`h-32 w-32 rounded-full flex items-center justify-center transition-all ${
-              isActive
-                ? 'bg-destructive hover:bg-destructive/90 animate-pulse-glow'
+              isConnected
+                ? 'bg-destructive hover:bg-destructive/90 animate-pulse'
                 : 'bg-primary hover:bg-primary/90'
             }`}
             disabled={status === 'connecting'}
           >
             {status === 'connecting' ? (
               <Loader2 className="h-12 w-12 text-primary-foreground animate-spin" />
-            ) : isActive ? (
+            ) : isConnected ? (
               <MicOff className="h-12 w-12 text-white" />
             ) : (
               <Mic className="h-12 w-12 text-primary-foreground" />
@@ -100,13 +106,18 @@ export function LiveDemo() {
           </button>
 
           {/* Audio Visualizer */}
-          {isActive && status === 'listening' && (
-            <div className="flex items-center gap-1 h-12">
-              {[...Array(5)].map((_, i) => (
+          {isConnected && (
+            <div className="flex items-center justify-center gap-1 h-16">
+              {[...Array(7)].map((_, i) => (
                 <div
                   key={i}
-                  className="w-2 bg-primary rounded-full audio-bar"
-                  style={{ height: '20%' }}
+                  className={`w-1.5 bg-primary rounded-full transition-all ${
+                    status === 'listening' ? 'animate-sound-wave' : ''
+                  }`}
+                  style={{
+                    height: status === 'listening' ? '40%' : '10%',
+                    animationDelay: `${i * 0.1}s`,
+                  }}
                 />
               ))}
             </div>
@@ -114,23 +125,31 @@ export function LiveDemo() {
 
           {/* Transcript */}
           {transcript.length > 0 && (
-            <div className="w-full mt-6 space-y-2 max-h-64 overflow-y-auto">
-              <h3 className="font-semibold text-sm">Conversation:</h3>
-              {transcript.map((msg, i) => (
-                <div
-                  key={i}
-                  className={`p-3 rounded-lg text-sm ${
-                    msg.role === 'user'
-                      ? 'bg-primary/20 ml-8'
-                      : 'bg-muted mr-8'
-                  }`}
-                >
-                  <span className="font-medium">
-                    {msg.role === 'user' ? 'You' : 'AI'}:
-                  </span>{' '}
-                  {msg.text}
-                </div>
-              ))}
+            <div className="w-full mt-6 space-y-3 max-h-96 overflow-y-auto p-4 bg-muted/30 rounded-lg">
+              <h3 className="font-semibold text-sm mb-2 sticky top-0 bg-background/95 backdrop-blur py-2">Conversation:</h3>
+              <div className="space-y-2">
+                {transcript.map((msg, i) => (
+                  <div
+                    key={i}
+                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div
+                      className={`max-w-[80%] p-3 rounded-lg text-sm ${
+                        msg.role === 'user'
+                          ? 'bg-primary text-primary-foreground'
+                          : msg.role === 'assistant'
+                          ? 'bg-muted'
+                          : 'bg-accent text-accent-foreground'
+                      }`}
+                    >
+                      <div className="font-medium text-xs mb-1 opacity-70">
+                        {msg.role === 'user' ? 'You' : msg.role === 'assistant' ? 'AI Assistant' : 'System'}
+                      </div>
+                      <div>{msg.text}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </CardContent>
