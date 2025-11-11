@@ -2,9 +2,73 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
+const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+// Store active calls for call logging
+const activeCalls = new Map<string, {
+  userId: string | null;
+  callLogId: string | null;
+  transcript: Array<{ role: string; content: string }>;
+  startedAt: string;
+}>();
 
 serve(async (req) => {
   const url = new URL(req.url);
+
+  // Handle /status endpoint - receives call status updates from Twilio
+  if (url.pathname.endsWith('/status')) {
+    try {
+      const formData = await req.formData();
+      const callSid = formData.get('CallSid') as string;
+      const callStatus = formData.get('CallStatus') as string;
+
+      console.log('Call status update:', callSid, callStatus);
+
+      // Only process completed calls
+      if (callStatus === 'completed' || callStatus === 'failed' || callStatus === 'busy' || callStatus === 'no-answer') {
+        const callInfo = activeCalls.get(callSid);
+
+        if (callInfo && callInfo.callLogId) {
+          const endedAt = new Date().toISOString();
+          const startedAt = new Date(callInfo.startedAt);
+          const durationSeconds = Math.floor((new Date(endedAt).getTime() - startedAt.getTime()) / 1000);
+
+          // Determine outcome
+          let outcome = 'completed';
+          if (callStatus === 'failed') outcome = 'failed';
+          else if (callStatus === 'busy') outcome = 'busy';
+          else if (callStatus === 'no-answer') outcome = 'no_answer';
+
+          // Update call log
+          const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+          const { error: updateError } = await supabase
+            .from('call_logs')
+            .update({
+              ended_at: endedAt,
+              duration_seconds: durationSeconds,
+              outcome: outcome,
+              transcript: callInfo.transcript,
+            })
+            .eq('id', callInfo.callLogId);
+
+          if (updateError) {
+            console.error('Error updating call log:', updateError);
+          } else {
+            console.log('Call log updated:', callInfo.callLogId);
+          }
+
+          // Clean up active calls
+          activeCalls.delete(callSid);
+        }
+      }
+
+      return new Response('OK', { status: 200 });
+    } catch (error) {
+      console.error('Error handling status callback:', error);
+      return new Response('Error', { status: 500 });
+    }
+  }
 
   // Handle /twiml endpoint - returns TwiML to connect call to Realtime API
   if (url.pathname.endsWith('/twiml')) {
@@ -14,6 +78,78 @@ serve(async (req) => {
       if (!OPENAI_API_KEY) {
         throw new Error('OPENAI_API_KEY not configured');
       }
+
+      // Parse form data from Twilio
+      const formData = await req.formData();
+      const callSid = formData.get('CallSid') as string;
+      const fromNumber = formData.get('From') as string;
+
+      console.log('Call from:', fromNumber, 'SID:', callSid);
+
+      // Look up user by phone number
+      let userId: string | null = null;
+      let userName: string | null = null;
+
+      try {
+        const userLookup = await fetch(`${SUPABASE_URL}/functions/v1/get-user-by-phone`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+          },
+          body: JSON.stringify({ phoneNumber: fromNumber }),
+        });
+
+        if (userLookup.ok) {
+          const userData = await userLookup.json();
+          if (userData.success && userData.user_id) {
+            userId = userData.user_id;
+            userName = userData.full_name;
+            console.log('User identified:', userName, userId);
+          } else {
+            console.log('No user found for phone:', fromNumber);
+          }
+        }
+      } catch (lookupError) {
+        console.error('Error looking up user:', lookupError);
+        // Continue anyway - we'll handle unknown callers
+      }
+
+      // Create call log entry
+      let callLogId: string | null = null;
+      if (userId) {
+        try {
+          const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+          const { data: callLog, error: logError } = await supabase
+            .from('call_logs')
+            .insert({
+              user_id: userId,
+              call_sid: callSid,
+              customer_phone: fromNumber,
+              started_at: new Date().toISOString(),
+              outcome: 'in_progress',
+            })
+            .select()
+            .single();
+
+          if (logError) {
+            console.error('Error creating call log:', logError);
+          } else {
+            callLogId = callLog.id;
+            console.log('Call log created:', callLogId);
+          }
+        } catch (logCreateError) {
+          console.error('Error creating call log:', logCreateError);
+        }
+      }
+
+      // Store call info for later updates
+      activeCalls.set(callSid, {
+        userId,
+        callLogId,
+        transcript: [],
+        startedAt: new Date().toISOString(),
+      });
 
       // Create ephemeral token for this call
       const sessionResponse = await fetch('https://api.openai.com/v1/realtime/sessions', {
@@ -40,9 +176,12 @@ serve(async (req) => {
       }
 
       // Return TwiML to connect to OpenAI Realtime API
+      // Include status callback so we get notified when call ends
+      const statusCallbackUrl = `${SUPABASE_URL}/functions/v1/twilio-voice/status`;
+
       const twiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Connect>
+  <Connect action="${statusCallbackUrl}">
     <Stream url="wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17">
       <Parameter name="authorization" value="Bearer ${ephemeralToken}" />
       <Parameter name="temperature" value="0.7" />
