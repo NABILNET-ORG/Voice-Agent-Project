@@ -5,6 +5,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Badge } from '../components/ui/badge';
 import { BookingFormModal } from '../components/BookingFormModal';
+import { BookingDetailsModal } from '../components/BookingDetailsModal';
 import { supabase } from '../lib/supabase';
 import { formatDate, formatTime, formatCurrency } from '../lib/utils';
 
@@ -25,6 +26,8 @@ export function Bookings() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showNewBookingModal, setShowNewBookingModal] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   useEffect(() => {
     fetchBookings();
@@ -67,6 +70,11 @@ export function Bookings() {
       booking.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       booking.customer_phone.includes(searchTerm)
   );
+
+  const handleBookingClick = (booking: Booking) => {
+    setSelectedBooking(booking);
+    setShowDetailsModal(true);
+  };
 
   return (
     <div className="space-y-6">
@@ -174,6 +182,7 @@ export function Bookings() {
                     <tr
                       key={booking.id}
                       className="border-b border-muted hover:bg-muted/50 cursor-pointer"
+                      onClick={() => handleBookingClick(booking)}
                     >
                       <td className="py-3">{booking.customer_name}</td>
                       <td className="py-3">{booking.customer_phone}</td>
@@ -204,6 +213,14 @@ export function Bookings() {
       <BookingFormModal
         open={showNewBookingModal}
         onOpenChange={setShowNewBookingModal}
+        onSuccess={fetchBookings}
+      />
+
+      {/* Booking Details Modal */}
+      <BookingDetailsModal
+        booking={selectedBooking}
+        open={showDetailsModal}
+        onOpenChange={setShowDetailsModal}
         onSuccess={fetchBookings}
       />
     </div>

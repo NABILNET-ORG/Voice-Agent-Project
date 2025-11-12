@@ -8,6 +8,7 @@ import { Textarea } from '../components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { supabase } from '../lib/supabase';
 import { ServicesEditor } from '../components/ServicesEditor';
+import { BusinessHoursEditor } from '../components/BusinessHoursEditor';
 
 interface BusinessConfig {
   id: string;
@@ -249,19 +250,7 @@ export function Settings() {
         </TabsContent>
 
         <TabsContent value="hours">
-          <Card>
-            <CardHeader>
-              <CardTitle>Business Hours & Availability</CardTitle>
-              <CardDescription>
-                Set your operating hours (Coming soon)
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Hours configuration interface will be available here
-              </p>
-            </CardContent>
-          </Card>
+          <BusinessHoursEditor />
         </TabsContent>
 
         <TabsContent value="integrations">
