@@ -1,9 +1,17 @@
 import { useEffect, useState } from 'react';
-import { Phone, Clock } from 'lucide-react';
+import { Phone, Clock, Download } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
+import { Button } from '../components/ui/button';
+import { TranscriptViewerModal } from '../components/TranscriptViewerModal';
 import { supabase } from '../lib/supabase';
 import { formatDate } from '../lib/utils';
+
+interface TranscriptMessage {
+  role: 'user' | 'assistant' | 'system';
+  text: string;
+  timestamp?: string;
+}
 
 interface CallLog {
   id: string;
@@ -13,11 +21,14 @@ interface CallLog {
   duration_seconds: number;
   outcome: string;
   booking_type: string;
+  transcript?: TranscriptMessage[];
 }
 
 export function CallHistory() {
   const [calls, setCalls] = useState<CallLog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCall, setSelectedCall] = useState<CallLog | null>(null);
+  const [showTranscriptModal, setShowTranscriptModal] = useState(false);
 
   useEffect(() => {
     fetchCalls();
@@ -60,14 +71,52 @@ export function CallHistory() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const handleCallClick = (call: CallLog) => {
+    setSelectedCall(call);
+    setShowTranscriptModal(true);
+  };
+
+  const exportToCSV = () => {
+    const headers = ['Customer Name', 'Phone', 'Date/Time', 'Duration (sec)', 'Outcome', 'Type'];
+    const csvData = calls.map(c => [
+      c.customer_name || 'Unknown',
+      c.customer_phone || '-',
+      c.started_at,
+      c.duration_seconds?.toString() || '0',
+      c.outcome,
+      c.booking_type || '-'
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...csvData.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `call_history_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Call History</h1>
-        <p className="text-muted-foreground mt-2">
-          View all incoming calls and conversations
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Call History</h1>
+          <p className="text-muted-foreground mt-2">
+            View all incoming calls and conversations
+          </p>
+        </div>
+        <Button variant="outline" size="sm" onClick={exportToCSV}>
+          <Download className="h-4 w-4 mr-2" />
+          Export CSV
+        </Button>
       </div>
 
       {/* Stats */}
@@ -157,6 +206,7 @@ export function CallHistory() {
                     <tr
                       key={call.id}
                       className="border-b border-muted hover:bg-muted/50 cursor-pointer"
+                      onClick={() => handleCallClick(call)}
                     >
                       <td className="py-3">{call.customer_name || 'Unknown'}</td>
                       <td className="py-3">{call.customer_phone || '-'}</td>
@@ -176,6 +226,13 @@ export function CallHistory() {
           )}
         </CardContent>
       </Card>
+
+      {/* Transcript Viewer Modal */}
+      <TranscriptViewerModal
+        call={selectedCall}
+        open={showTranscriptModal}
+        onOpenChange={setShowTranscriptModal}
+      />
     </div>
   );
 }
