@@ -7,6 +7,7 @@ import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { supabase } from '../lib/supabase';
+import { ServicesEditor } from '../components/ServicesEditor';
 
 interface BusinessConfig {
   id: string;
@@ -242,21 +243,9 @@ export function Settings() {
           </Card>
         </TabsContent>
 
-        {/* Other tabs - simplified placeholders */}
+        {/* Services Tab */}
         <TabsContent value="services">
-          <Card>
-            <CardHeader>
-              <CardTitle>Services & Products</CardTitle>
-              <CardDescription>
-                Configure your offerings (Coming soon)
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Service management interface will be available here
-              </p>
-            </CardContent>
-          </Card>
+          <ServicesEditor />
         </TabsContent>
 
         <TabsContent value="hours">
