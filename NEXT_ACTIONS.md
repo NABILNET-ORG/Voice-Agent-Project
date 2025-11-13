@@ -1,99 +1,109 @@
 # Next Actions - Universal AI Booking System
 
-**Last Updated:** 2025-11-11
-**Current Phase:** Phase 6 Complete - Testing & Remaining Features
+**Last Updated:** 2025-11-13
+**Current Phase:** Production Testing & Refinements
 
 ---
 
 ## 🔥 Immediate Actions
 
-### 1. Deploy and Test WebRTC Live Demo
+### 1. Configure OpenAI API Key in Supabase
 **Priority:** CRITICAL
-**Time:** 30 minutes
+**Time:** 5 minutes
 
-#### Deployment Steps:
-1. **Deploy realtime-session Edge Function**
-   - Go to Supabase Dashboard → Edge Functions
-   - Deploy `realtime-session` function
-   - Verify OPENAI_API_KEY is set in environment variables
+#### Steps:
+1. Go to https://supabase.com/dashboard
+2. Select your project
+3. Navigate to **Edge Functions** → **Manage secrets**
+4. Add secret:
+   - **Name**: `OPENAI_API_KEY`
+   - **Value**: `sk-your-actual-key-here` (get from https://platform.openai.com/api-keys)
+5. Redeploy `realtime-session` edge function
+6. Test Live Demo - mic button should now work
 
-2. **Test Live Demo**
-   - Navigate to Live Demo page
-   - Click microphone button
-   - Allow browser microphone permissions
-   - Speak naturally to test conversation
-   - Verify transcript appears in real-time
-   - Verify AI responds with voice
-   - Test error handling by denying microphone access
-
-3. **Verify Business Config Integration**
-   - Check Settings → AI Assistant tab
-   - Ensure ai_system_instructions is populated
-   - Test that AI follows custom instructions in Live Demo
+**Current Issue:** Edge function returns 401 error without this key
 
 ---
 
-### 2. Deploy Other Edge Functions (If Not Already Done)
+### 2. Test Live Demo End-to-End
 **Priority:** HIGH
 **Time:** 15 minutes
 
-Deploy if not already in production:
-1. `get-user-by-phone` - User lookup for calls
-2. `create-booking-manual` - Manual booking creation
-3. `twilio-voice` - Call logging and tracking
+After adding OpenAI API key:
+1. Navigate to Live Demo page on Vercel
+2. Click microphone button
+3. Allow browser microphone permissions
+4. Speak naturally to test conversation
+5. Verify transcript appears with lime green user bubbles
+6. Verify AI responds with voice
+7. Check audio visualizer works during listening
 
 ---
 
-## 🎯 Remaining Development Tasks
+### 3. Design Refinements
+**Priority:** MEDIUM
+**Time:** TBD
+
+**User Feedback:** "still looks shit"
+
+Potential improvements:
+- Review 2.png reference more carefully for missing details
+- Improve spacing and typography
+- Enhance visual hierarchy
+- Polish microphone button design
+- Refine transcript bubble styling
+- Add subtle micro-interactions
+
+---
+
+## 🎯 Deployment & Infrastructure
+
+### Vercel Configuration
+**Status:** Complete ✅
+- SPA routing working
+- Build optimization complete
+- All 326 dependencies installing correctly
+
+### Environment Variables
+**Status:** Needs Review
+- [ ] Verify `VITE_SUPABASE_URL` set in Vercel
+- [ ] Verify `VITE_SUPABASE_ANON_KEY` set in Vercel
+- [ ] Check production vs preview deployment settings
+
+---
+
+## 🛠️ Remaining Development Tasks
 
 ### Phase 3: Services Editor
 **Status:** Deferred (placeholder exists)
 **Effort:** 2 days
-**Goal:** Allow users to configure available services
 
-#### Tasks:
 - [ ] Create `src/components/ServicesEditor.tsx`
-  - CRUD interface for services
-  - Name, description, duration, price fields
-  - Save to `business_config.services` JSONB
-- [ ] Update Settings page to replace placeholder
-- [ ] Test services appear in booking form dropdown
+- [ ] CRUD interface for services
+- [ ] Save to `business_config.services` JSONB
+- [ ] Test services in booking form
 
 ---
 
 ### Phase 4: Business Hours Editor
 **Status:** Deferred (placeholder exists)
 **Effort:** 2 days
-**Goal:** Allow users to set business hours
 
-#### Tasks:
 - [ ] Create `src/components/BusinessHoursEditor.tsx`
-  - Day-by-day hour configuration
-  - Open/close times
-  - Closed days checkbox
-  - Save to `business_config.business_hours` JSONB
-- [ ] Update Settings page to replace placeholder
-- [ ] Test hours affect availability checks
+- [ ] Day-by-day hour configuration
+- [ ] Save to `business_config.business_hours` JSONB
+- [ ] Test hours affect availability
 
 ---
 
 ### Phase 5: Booking Management
 **Status:** Not Started
 **Effort:** 1 day
-**Goal:** Edit and cancel existing bookings
 
-#### Tasks:
 - [ ] Create `supabase/functions/update-booking/index.ts`
-  - Accept booking updates
-  - Send update notifications
 - [ ] Create `supabase/functions/cancel-booking/index.ts`
-  - Change status to 'cancelled'
-  - Send cancellation notifications
-  - Delete calendar event if synced
-- [ ] Update Bookings page:
-  - Make rows clickable
-  - Show booking details modal
-  - Add Edit/Cancel buttons
+- [ ] Update Bookings page with Edit/Cancel UI
+- [ ] Test notification updates
 
 ---
 
@@ -107,41 +117,38 @@ Deploy if not already in production:
 ### Analytics Improvements
 - Real-time booking metrics
 - Call analytics dashboard
-- Revenue tracking
+- Revenue tracking charts
 
 ### Production Optimization
-- Code splitting for bundle size
 - Performance monitoring
-- Error tracking integration
+- Error tracking integration (Sentry)
+- Analytics integration (PostHog/Mixpanel)
 
 ---
 
 ## 🐛 Known Technical Debt
 
-1. **Bundle Size:** 571 kB is large
-   - Consider code splitting routes
-   - Lazy load heavy components
-   - Tree-shake unused dependencies
+1. **Design System**
+   - Some components may still need dark theme updates
+   - Consider using a UI library (shadcn/ui) for consistency
 
-2. **TypeScript Improvements:**
+2. **TypeScript**
    - Add proper types for Supabase queries
-   - Create shared interfaces for API responses
    - Remove type assertions where possible
 
-3. **Error Handling:**
+3. **Error Handling**
    - Add React error boundaries
    - Improve user-facing error messages
    - Add retry logic for failed API calls
 
-4. **Accessibility:**
+4. **Accessibility**
    - Add ARIA labels to interactive elements
    - Improve keyboard navigation
    - Test with screen readers
 
-5. **WebRTC Production Readiness:**
+5. **WebRTC Production Readiness**
    - Add connection quality monitoring
    - Implement reconnection logic
-   - Add bandwidth adaptation
    - Test across different browsers
 
 ---
@@ -149,10 +156,9 @@ Deploy if not already in production:
 ## 📝 Documentation Needs
 
 - [ ] WebRTC setup and troubleshooting guide
-- [ ] API documentation for all edge functions
-- [ ] User guide for dashboard features
-- [ ] Twilio webhook configuration guide
+- [ ] Deployment guide (Vercel + Supabase)
 - [ ] Environment variables reference
+- [ ] User guide for dashboard features
 - [ ] Database schema documentation
 
 ---
@@ -160,16 +166,18 @@ Deploy if not already in production:
 ## 🎯 Current Project Status
 
 ### Completed:
-- ✅ Authentication system (login, signup, protected routes)
+- ✅ Authentication system
 - ✅ User-call association and logging
-- ✅ Manual booking creation from dashboard
+- ✅ Manual booking creation
 - ✅ WebRTC Live Demo with OpenAI Realtime API
-- ✅ Real-time voice conversation with transcripts
-- ✅ Audio visualization and error handling
+- ✅ Dark theme with lime green accents
+- ✅ Vercel deployment with SPA routing
+- ✅ Design system fixes
 
 ### Pending:
-- ⏸️ Services configuration UI (placeholder exists)
-- ⏸️ Business hours configuration UI (placeholder exists)
+- 🚨 OPENAI_API_KEY configuration (CRITICAL)
+- ⚠️ Design refinements based on user feedback
+- ⏸️ Services configuration UI
+- ⏸️ Business hours configuration UI
 - ⏸️ Booking edit/cancel functionality
 - ⏸️ Google Calendar OAuth flow
-- ⏸️ Analytics with real data

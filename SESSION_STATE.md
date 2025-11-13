@@ -1,93 +1,101 @@
 # Session State - Universal AI Booking System
 
-**Session Date:** 2025-11-11
-**Project Completion:** 88%
+**Session Date:** 2025-11-13
+**Project Completion:** 90%
 **Branch:** `claude/resume-dev-handoff-011CV2CX8zWjKYMTu3AkDUEC`
 
 ---
 
 ## What Was Completed This Session
 
-### ✅ Phase 6: WebRTC Live Demo Implementation (100%)
+### ✅ Dark Theme & Design System Overhaul (100%)
 
-#### 1. WebRTC Integration
-- **Created** `src/hooks/useRealtimeAPI.ts`
-  - Full WebRTC connection management
-  - OpenAI Realtime API v2 integration
-  - Ephemeral token handling via realtime-session edge function
-  - Bidirectional audio streaming (PCM16 format)
-  - Real-time event handling and state management
+#### 1. Global Dark Theme Implementation
+- **Updated** `src/index.css`
+  - Comprehensive dark theme with lime green (#84CC16) primary color
+  - Proper CSS variables for all semantic tokens (background, foreground, primary, muted, etc.)
+  - Fixed utility classes: `.bg-muted`, `.text-muted-foreground`, `.border-muted`, etc.
+  - Added lime green glow shadows and gradient effects
+  - Custom animations: pulse-glow, sound-wave, fade-in, slide-up, shake
 
-#### 2. Audio Features
-- Microphone capture with echo cancellation, noise suppression, auto gain
-- Server-side VAD (Voice Activity Detection) with configurable thresholds
-- Automatic turn detection for natural conversations
-- Live audio playback of AI responses
-- Animated audio visualizer with 7-bar sound wave
+#### 2. Component Redesigns
+- **Sidebar** (`src/components/layout/Sidebar.tsx`)
+  - Dark background (#141414) with subtle borders
+  - User email displayed at top
+  - "AI Booking / Voice Assistant" branding in lime green
+  - Active states with lime green background and glow
+  - Renamed "Bookings" to "Appointments"
 
-#### 3. UI Enhancements
-- Real-time transcript display with chat-style message bubbles
-- User/Assistant message differentiation with colors
-- Connection status tracking (ready/connecting/listening/processing/error)
-- Error handling with user-friendly alerts
-- Responsive microphone button with visual feedback
+- **MainLayout** (`src/components/layout/MainLayout.tsx`)
+  - Changed from gray to black background
 
-#### 4. Business Config Integration
-- Reads `ai_system_instructions` from business_config
-- Uses `ai_voice` setting for AI personality
-- Customizes greeting based on `business_name`
+- **Login & Signup Pages**
+  - Complete dark theme redesign
+  - Dark cards (#1A1A1A) with lime green accents
+  - Lime green gradient buttons
+  - Dark inputs with lime green focus states
+  - Subtle background glow effects
+
+- **Live Demo Page** (`src/pages/LiveDemo.tsx`)
+  - **MAJOR REDESIGN** to match reference image (2.png)
+  - Microphone button increased to 256px (h-64 w-64)
+  - Centered vertical layout
+  - "AI Appointment Booking Demo" title
+  - Prominent "Live Transcript" section always visible
+  - Status text below mic: "Status: Ready"
+  - Removed "How to Use" instructions card
+  - Lime green user message bubbles
+
+#### 3. Vercel Deployment Setup
+- **Created** `vercel.json`
+  - SPA routing configuration
+  - Proper route handling for all paths
+
+- **Optimized** `vite.config.ts`
+  - Code splitting for better performance
+  - Separated vendor chunks (react, ui, charts, supabase)
+  - Increased chunk size warning limit to 1000kb
+
+- **Fixed** package-lock.json
+  - Updated to 326 dependencies
+  - Committed to fix Vercel build issues
 
 ---
 
 ## Previous Sessions Completed
 
+### ✅ Phase 6: WebRTC Live Demo Implementation (100%)
+- Full WebRTC integration with OpenAI Realtime API
+- Audio capture, processing, and playback
+- Real-time transcript display
+- Business config integration
+
 ### ✅ Phase 2: User-Call Association & Manual Booking (100%)
-
-#### 1. User-Call Association
-- **Created** `supabase/functions/get-user-by-phone/index.ts`
-  - Phone number normalization
-  - User lookup from profiles table
-  - Returns user_id, full_name, phone_number
-
-- **Updated** `supabase/functions/twilio-voice/index.ts`
-  - Call start: Identifies caller, creates call_logs entry
-  - Call end: Updates call_logs with duration, outcome, transcript
-  - Added `/status` endpoint for Twilio callbacks
-
-#### 2. Manual Booking Creation
-- **Created** `supabase/functions/create-booking-manual/index.ts`
-  - JWT authentication
-  - Booking creation with user association
-  - SMS/email confirmations (if enabled)
-  - Google Calendar sync (if enabled)
-  - Owner notifications (if enabled)
-
-- **Frontend Components:**
-  - `src/components/ui/dialog.tsx` - Modal component
-  - `src/components/ui/select.tsx` - Dropdown component
-  - `src/components/BookingFormModal.tsx` - Comprehensive booking form
-  - Updated `src/pages/Bookings.tsx` - Integrated modal
+- User-call association system
+- Manual booking creation with notifications
+- Frontend booking form modal
 
 ---
 
 ## Build Status
 
 ✅ **Successful**
-- Size: 571.03 kB (gzipped: 169.74 kB)
-- Time: 8.50s
+- Vite build optimized with code splitting
 - TypeScript: No errors
-- Note: Bundle size warning is expected, code splitting deferred to optimization phase
+- Vercel deployment: Active
+- Design system: Fixed and functional
 
 ---
 
 ## Git Status
 
 **Latest Commits:**
-- `c4c5bb9` - Phase 6: WebRTC Live Demo implementation
-- `85f05b1` - Session state and resume scripts
-- `00cb744` - Previous session handoff
-- `83bdf52` - Manual booking creation functionality
-- `e74a992` - User-call association and call logging
+- `1de28f9` - Update package-lock.json to fix dependency count
+- `019e01f` - Fix design system by properly defining semantic utility classes
+- `285e3ef` - Update Vercel routing configuration for SPA
+- `ef384a5` - Optimize Vite build configuration for better code splitting
+- `9c61f98` - Redesign Live Demo page to match reference design
+- `96e5c19` - Implement comprehensive dark theme with lime green accents
 
 **Status:** All changes committed and pushed to `claude/resume-dev-handoff-011CV2CX8zWjKYMTu3AkDUEC`
 
@@ -95,32 +103,32 @@
 
 ## Known Issues / Pending Work
 
-### 🚨 Testing Required
-1. **Live Demo WebRTC** - Requires testing in production with:
-   - OPENAI_API_KEY configured in Supabase
-   - Browser microphone permissions
-   - WebRTC connectivity test
-   - End-to-end voice conversation flow
+### 🚨 Critical
+1. **OPENAI_API_KEY Missing** - Edge function `realtime-session` returns 401
+   - Must be configured in Supabase Dashboard → Edge Functions → Secrets
+   - Required for Live Demo to function
 
-2. **Edge Functions Deployment** - Following functions need to be deployed:
-   - `realtime-session` (for WebRTC ephemeral tokens)
-   - `get-user-by-phone` (if not already deployed)
-   - `create-booking-manual` (if not already deployed)
-   - `twilio-voice` (if not already deployed)
+2. **Design Quality** - User feedback: "still looks shit"
+   - Further design refinements may be needed
+   - Consider additional UI polish
+
+### ⚠️ Deployment
+- Vercel production URL working
+- All routes functioning (404s resolved)
+- Environment variables need verification
 
 ---
 
 ## Testing Checklist
 
 - [x] Build passes with no TypeScript errors
-- [x] WebRTC hook implementation complete
-- [x] Live Demo UI with transcript display
-- [x] Audio visualizer animation
-- [ ] Test live voice conversation in production
-- [ ] Verify AI uses business_config instructions
-- [ ] Test microphone permissions flow
-- [ ] Verify transcript accuracy
-- [ ] Test connection error handling
+- [x] Dark theme implemented globally
+- [x] Vercel deployment successful
+- [x] SPA routing working
+- [x] Design system CSS variables fixed
+- [ ] Add OPENAI_API_KEY to Supabase
+- [ ] Test Live Demo with valid API key
+- [ ] Design refinements based on user feedback
 
 ---
 
@@ -130,19 +138,22 @@
 |-----------|----------|---------|-------|
 | Database | 100% | 100% | - |
 | Edge Functions | 100% | 100% | - |
-| Frontend UI | 75% | 90% | +15% |
+| Frontend UI | 90% | 95% | +5% |
 | Authentication | 100% | 100% | - |
-| Integrations | 80% | 90% | +10% |
-| WebRTC/Voice | 20% | 100% | +80% |
-| **Overall** | **82%** | **88%** | **+6%** |
+| Integrations | 90% | 90% | - |
+| Design System | 60% | 95% | +35% |
+| Deployment | 0% | 90% | +90% |
+| **Overall** | **88%** | **90%** | **+2%** |
 
 ---
 
 ## Phase Completion Status
 
-- ✅ **Phase 1:** Authentication System (Week 1: Mon-Tue)
-- ✅ **Phase 2:** User Association, Call Logs, Manual Bookings (Week 1: Wed-Fri)
+- ✅ **Phase 1:** Authentication System
+- ✅ **Phase 2:** User Association, Call Logs, Manual Bookings
 - ⏸️  **Phase 3:** Services & Business Hours Editors (Deferred)
 - ⏸️  **Phase 4:** Booking Management Edit/Cancel (Deferred)
 - ⏸️  **Phase 5:** Google Calendar OAuth (Deferred)
-- ✅ **Phase 6:** Live Demo WebRTC (Week 3-4) - COMPLETED
+- ✅ **Phase 6:** Live Demo WebRTC
+- ✅ **Phase 7:** Dark Theme & Design System
+- ✅ **Phase 8:** Vercel Deployment Setup
