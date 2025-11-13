@@ -6,24 +6,20 @@
 
 @layer base {
   :root {
-    /* Modern SaaS Color System */
-    --color-background: 250 250 250;
-    --color-foreground: 10 10 10;
-    --color-primary: 99 102 241;
-    --color-primary-foreground: 255 255 255;
-    --color-secondary: 100 116 139;
-    --color-accent: 236 72 153;
+    /* Dark Theme Color System */
+    --color-background: 0 0 0;
+    --color-foreground: 255 255 255;
+    --color-primary: 132 204 22; /* Lime Green */
+    --color-primary-foreground: 0 0 0;
+    --color-secondary: 64 64 64;
+    --color-accent: 132 204 22;
     --color-success: 34 197 94;
     --color-warning: 251 146 60;
     --color-error: 239 68 68;
-    --color-muted: 241 245 249;
-    --color-border: 226 232 240;
-
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+    --color-muted: 115 115 115;
+    --color-border: 38 38 38;
+    --color-card: 26 26 26;
+    --color-sidebar: 20 20 20;
   }
 
   * {
@@ -35,8 +31,8 @@
   }
 
   body {
-    background-color: white;
-    color: rgb(17 24 39);
+    background-color: #000000;
+    color: #FFFFFF;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
     font-feature-settings: 'cv11', 'ss01';
     -webkit-font-smoothing: antialiased;
@@ -46,7 +42,7 @@
 
   h1, h2, h3, h4, h5, h6 {
     font-weight: 700;
-    color: rgb(17 24 39);
+    color: #FFFFFF;
     letter-spacing: -0.02em;
     line-height: 1.2;
   }
@@ -68,43 +64,60 @@
   }
 }
 
-/* Custom Utility Classes */
-.glass {
-  backdrop-filter: blur(24px);
-  background-color: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(226, 232, 240, 0.5);
+/* Lime Green Primary Theme */
+.bg-primary {
+  background-color: #84CC16;
 }
 
-.glass-dark {
-  backdrop-filter: blur(24px);
-  background-color: rgba(17, 24, 39, 0.8);
-  border: 1px solid rgba(31, 41, 55, 0.5);
+.text-primary {
+  color: #84CC16;
+}
+
+.border-primary {
+  border-color: #84CC16;
+}
+
+/* Dark Theme Backgrounds */
+.bg-dark {
+  background-color: #000000;
+}
+
+.bg-dark-card {
+  background-color: #1A1A1A;
+}
+
+.bg-dark-sidebar {
+  background-color: #141414;
+}
+
+.bg-dark-hover {
+  background-color: #202020;
 }
 
 /* Gradient Backgrounds */
-.bg-gradient-primary {
-  background: linear-gradient(135deg, rgb(99 102 241) 0%, rgb(139 92 246) 100%);
+.bg-gradient-lime {
+  background: linear-gradient(135deg, #84CC16 0%, #65A30D 100%);
 }
 
-.bg-gradient-success {
-  background: linear-gradient(135deg, rgb(34 197 94) 0%, rgb(16 185 129) 100%);
+.bg-gradient-lime-hover {
+  background: linear-gradient(135deg, #65A30D 0%, #84CC16 100%);
 }
 
-.bg-gradient-accent {
-  background: linear-gradient(135deg, rgb(236 72 153) 0%, rgb(219 39 119) 100%);
+/* Shadows with Lime Green Glow */
+.shadow-lime-sm {
+  box-shadow: 0 2px 8px 0 rgba(132, 204, 22, 0.1);
 }
 
-/* Modern Shadows */
-.shadow-soft {
-  box-shadow: 0 2px 8px 0 rgb(0 0 0 / 0.04), 0 1px 2px 0 rgb(0 0 0 / 0.06);
+.shadow-lime-md {
+  box-shadow: 0 4px 12px 0 rgba(132, 204, 22, 0.2);
 }
 
-.shadow-glow-primary {
-  box-shadow: 0 0 0 1px rgb(99 102 241 / 0.1), 0 8px 24px rgb(99 102 241 / 0.15);
+.shadow-lime-lg {
+  box-shadow: 0 8px 24px 0 rgba(132, 204, 22, 0.3);
 }
 
-.shadow-glow-success {
-  box-shadow: 0 0 0 1px rgb(34 197 94 / 0.1), 0 8px 24px rgb(34 197 94 / 0.15);
+.shadow-lime-glow {
+  box-shadow: 0 0 0 1px rgba(132, 204, 22, 0.2), 0 8px 32px rgba(132, 204, 22, 0.25);
 }
 
 /* Hover Effects */
@@ -114,7 +127,14 @@
 
 .hover-lift:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+}
+
+.hover-scale {
+  transition: transform 0.2s ease-in-out;
+}
+
+.hover-scale:hover {
+  transform: scale(1.02);
 }
 
 /* Pulse Glow Animation */

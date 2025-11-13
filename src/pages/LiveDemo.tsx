@@ -103,17 +103,17 @@ export function LiveDemo() {
             {/* Glow rings */}
             {isConnected && (
               <>
-                <div className="absolute inset-0 rounded-full bg-[#84CC16]/20 blur-xl animate-pulse" />
-                <div className="absolute inset-[-20px] rounded-full bg-[#84CC16]/10 blur-2xl animate-pulse" style={{ animationDelay: '0.5s' }} />
+                <div className="absolute inset-0 rounded-full bg-[#84CC16]/20 blur-2xl animate-pulse" />
+                <div className="absolute inset-[-30px] rounded-full bg-[#84CC16]/10 blur-3xl animate-pulse" style={{ animationDelay: '0.5s' }} />
               </>
             )}
 
             <button
               onClick={isConnected ? handleEndCall : handleStartCall}
-              className={`relative h-40 w-40 rounded-full flex items-center justify-center transition-all duration-300 transform hover:scale-105 active:scale-95 ${
+              className={`relative h-48 w-48 rounded-full flex items-center justify-center transition-all duration-300 transform hover:scale-105 active:scale-95 ${
                 isConnected
-                  ? 'bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-lg shadow-red-500/50 animate-pulse-slow'
-                  : 'bg-gradient-to-br from-[#84CC16] to-[#65A30D] hover:from-[#65A30D] hover:to-[#84CC16] shadow-lg shadow-[#84CC16]/30'
+                  ? 'bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-2xl shadow-red-500/50 animate-pulse-slow'
+                  : 'bg-gradient-to-br from-[#84CC16] to-[#65A30D] hover:from-[#65A30D] hover:to-[#84CC16] shadow-2xl shadow-[#84CC16]/40'
               }`}
               disabled={status === 'connecting'}
             >
@@ -121,11 +121,11 @@ export function LiveDemo() {
               <div className="absolute inset-2 rounded-full bg-gradient-to-br from-white/10 to-transparent" />
 
               {status === 'connecting' ? (
-                <Loader2 className="h-16 w-16 text-white animate-spin" />
+                <Loader2 className="h-20 w-20 text-white animate-spin" />
               ) : isConnected ? (
-                <MicOff className="h-16 w-16 text-white drop-shadow-lg" />
+                <MicOff className="h-20 w-20 text-white drop-shadow-lg" />
               ) : (
-                <Mic className="h-16 w-16 text-white drop-shadow-lg" />
+                <Mic className="h-20 w-20 text-white drop-shadow-lg" />
               )}
             </button>
           </div>

@@ -26,22 +26,22 @@ export function Sidebar() {
   const { user, signOut } = useAuth();
 
   return (
-    <div className="flex h-screen w-72 flex-col bg-white border-r border-gray-200">
+    <div className="flex h-screen w-64 flex-col bg-[#141414] border-r border-[#262626]">
+      {/* User Email at Top */}
+      <div className="px-4 py-4 border-b border-[#262626]">
+        <p className="text-xs text-gray-400 truncate">
+          {user?.email || 'Loading...'}
+        </p>
+      </div>
+
       {/* Logo */}
-      <div className="flex h-20 items-center px-6 border-b border-gray-200">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-lg">
-            <Mic2 className="h-6 w-6 text-white" />
-          </div>
-          <div>
-            <span className="text-xl font-bold text-gray-900">VoiceAI</span>
-            <p className="text-xs text-gray-500">Booking Platform</p>
-          </div>
-        </div>
+      <div className="px-4 py-6">
+        <h1 className="text-xl font-bold text-[#84CC16]">AI Booking</h1>
+        <p className="text-sm text-gray-400 mt-1">Voice Assistant</p>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
+      <nav className="flex-1 px-3 space-y-1 overflow-y-auto">
         {navigation.map((item) => {
           const isActive = location.pathname === item.href;
           const Icon = item.icon;
@@ -51,10 +51,10 @@ export function Sidebar() {
               key={item.name}
               to={item.href}
               className={cn(
-                'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-200',
+                'flex items-center gap-3 px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200',
                 isActive
-                  ? 'bg-gradient-primary text-white shadow-glow-primary'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  ? 'bg-[#84CC16] text-black shadow-lime-glow'
+                  : 'text-gray-300 hover:bg-[#202020] hover:text-white'
               )}
             >
               <Icon className="h-5 w-5 flex-shrink-0" />
@@ -65,31 +65,16 @@ export function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="border-t border-gray-200 p-4">
-        <div className="mb-3 p-3 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="h-10 w-10 rounded-full bg-gradient-primary flex items-center justify-center text-white font-bold shadow-soft">
-              {user?.user_metadata?.full_name?.charAt(0)?.toUpperCase() || 'U'}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900 truncate">
-                {user?.user_metadata?.full_name || 'User'}
-              </p>
-              <p className="text-xs text-gray-500 truncate">
-                {user?.email || 'Loading...'}
-              </p>
-            </div>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full bg-white border-gray-300 hover:bg-gray-50 text-gray-700 font-medium"
-            onClick={() => signOut()}
-          >
-            <LogOut className="h-4 w-4 mr-2" />
-            Sign Out
-          </Button>
-        </div>
+      <div className="border-t border-[#262626] p-4">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start text-gray-400 hover:text-white hover:bg-[#202020]"
+          onClick={() => signOut()}
+        >
+          <LogOut className="h-4 w-4 mr-2" />
+          Sign Out
+        </Button>
       </div>
     </div>
   );
