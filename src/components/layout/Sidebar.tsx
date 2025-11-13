@@ -14,7 +14,7 @@ import { Button } from '../ui/button';
 
 const navigation = [
   { name: 'Live Demo', href: '/demo', icon: Mic2 },
-  { name: 'Bookings', href: '/bookings', icon: Calendar },
+  { name: 'Appointments', href: '/bookings', icon: Calendar },
   { name: 'Call History', href: '/calls', icon: Phone },
   { name: 'Business Settings', href: '/settings', icon: Settings },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },

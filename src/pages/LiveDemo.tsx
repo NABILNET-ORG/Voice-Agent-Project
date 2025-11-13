@@ -1,6 +1,4 @@
 import { Mic, MicOff, Loader2, AlertCircle } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { Badge } from '../components/ui/badge';
 import { useRealtimeAPI } from '../hooks/useRealtimeAPI';
 
 export function LiveDemo() {
@@ -31,190 +29,128 @@ export function LiveDemo() {
     }
   };
 
-  const getStatusVariant = () => {
-    switch (status) {
-      case 'ready':
-        return 'default';
-      case 'connecting':
-        return 'warning';
-      case 'listening':
-        return 'success';
-      case 'processing':
-        return 'info';
-      case 'error':
-        return 'danger';
-      default:
-        return 'default';
-    }
-  };
-
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="flex flex-col items-center justify-start min-h-screen py-12 px-4 animate-fade-in">
       {/* Header */}
-      <div className="text-center">
-        <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
-          AI Voice Assistant Demo
+      <div className="text-center mb-12">
+        <h1 className="text-5xl font-bold tracking-tight text-white mb-4">
+          AI Appointment Booking Demo
         </h1>
-        <p className="text-muted-foreground mt-3 text-lg">
-          Experience real-time AI conversations with voice booking capabilities
+        <p className="text-gray-400 text-lg">
+          Test the voice assistant by clicking the microphone button below
         </p>
       </div>
 
       {/* Error Alert */}
       {error && (
-        <Card className="max-w-3xl mx-auto border-red-500/50 bg-red-500/5 backdrop-blur-sm animate-shake">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3 text-red-400">
-              <AlertCircle className="h-6 w-6 flex-shrink-0" />
-              <p className="font-medium">{error}</p>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="w-full max-w-4xl mb-8 p-4 rounded-lg bg-red-500/10 border border-red-500/50 animate-shake">
+          <div className="flex items-center gap-3 text-red-400">
+            <AlertCircle className="h-6 w-6 flex-shrink-0" />
+            <p className="font-medium">{error}</p>
+          </div>
+        </div>
       )}
 
-      {/* Main Demo Card */}
-      <Card className="max-w-3xl mx-auto bg-[#1A1A1A]/80 backdrop-blur-xl border-[#2A2A2A] shadow-2xl">
-        <CardHeader className="text-center pb-8">
-          <CardTitle className="text-2xl">Live Voice Demo</CardTitle>
-          <CardDescription className="text-base mt-2">
-            Click the microphone to start a natural conversation with your AI assistant
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col items-center space-y-8 pb-12">
-          {/* Hidden audio element for remote audio */}
-          <audio id="remote-audio" autoPlay style={{ display: 'none' }} />
+      {/* Hidden audio element for remote audio */}
+      <audio id="remote-audio" autoPlay style={{ display: 'none' }} />
 
-          {/* Status Badge */}
-          <Badge
-            variant={getStatusVariant()}
-            className={`text-sm px-6 py-2 font-semibold tracking-wide transition-all ${
-              status === 'listening' ? 'bg-[#84CC16] text-black' :
-              status === 'connecting' ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50' :
-              status === 'processing' ? 'bg-blue-500/20 text-blue-400 border-blue-500/50' :
-              status === 'error' ? 'bg-red-500/20 text-red-400 border-red-500/50' :
-              'bg-gray-500/20 text-gray-400 border-gray-500/50'
-            }`}
-          >
+      {/* HUGE Microphone Button with Glow Effect */}
+      <div className="relative mb-8">
+        {/* Glow rings */}
+        {isConnected && (
+          <>
+            <div className="absolute inset-0 rounded-full bg-[#84CC16]/30 blur-3xl animate-pulse" />
+            <div className="absolute inset-[-40px] rounded-full bg-[#84CC16]/20 blur-[80px] animate-pulse" style={{ animationDelay: '0.5s' }} />
+          </>
+        )}
+
+        <button
+          onClick={isConnected ? handleEndCall : handleStartCall}
+          className={`relative h-64 w-64 rounded-full flex items-center justify-center transition-all duration-300 transform hover:scale-105 active:scale-95 ${
+            isConnected
+              ? 'bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-2xl shadow-red-500/50 animate-pulse-slow'
+              : 'bg-gradient-to-br from-[#84CC16] to-[#65A30D] hover:from-[#65A30D] hover:to-[#84CC16] shadow-2xl shadow-[#84CC16]/50'
+          }`}
+          disabled={status === 'connecting'}
+        >
+          {/* Inner glow */}
+          <div className="absolute inset-2 rounded-full bg-gradient-to-br from-white/20 to-transparent" />
+
+          {status === 'connecting' ? (
+            <Loader2 className="h-28 w-28 text-white animate-spin" />
+          ) : isConnected ? (
+            <MicOff className="h-28 w-28 text-white drop-shadow-2xl" />
+          ) : (
+            <Mic className="h-28 w-28 text-white drop-shadow-2xl" />
+          )}
+        </button>
+      </div>
+
+      {/* Status Text */}
+      <div className="mb-12 text-center">
+        <p className="text-gray-400 text-lg">
+          Status: <span className={`font-semibold ${
+            status === 'listening' ? 'text-[#84CC16]' :
+            status === 'connecting' ? 'text-yellow-400' :
+            status === 'processing' ? 'text-blue-400' :
+            status === 'error' ? 'text-red-400' :
+            'text-gray-300'
+          }`}>
             {getStatusText()}
-          </Badge>
+          </span>
+        </p>
+      </div>
 
-          {/* Microphone Button with Glow Effect */}
-          <div className="relative">
-            {/* Glow rings */}
-            {isConnected && (
-              <>
-                <div className="absolute inset-0 rounded-full bg-[#84CC16]/20 blur-2xl animate-pulse" />
-                <div className="absolute inset-[-30px] rounded-full bg-[#84CC16]/10 blur-3xl animate-pulse" style={{ animationDelay: '0.5s' }} />
-              </>
-            )}
+      {/* Audio Visualizer */}
+      {isConnected && status === 'listening' && (
+        <div className="flex items-center justify-center gap-2 h-16 px-8 mb-8 rounded-full bg-[#0A0A0A]/50 border border-[#2A2A2A]">
+          {[...Array(9)].map((_, i) => (
+            <div
+              key={i}
+              className="w-2 bg-gradient-to-t from-[#84CC16] to-[#65A30D] rounded-full animate-sound-wave"
+              style={{
+                height: `${30 + (i % 3) * 10}%`,
+                animationDelay: `${i * 0.15}s`,
+              }}
+            />
+          ))}
+        </div>
+      )}
 
-            <button
-              onClick={isConnected ? handleEndCall : handleStartCall}
-              className={`relative h-48 w-48 rounded-full flex items-center justify-center transition-all duration-300 transform hover:scale-105 active:scale-95 ${
-                isConnected
-                  ? 'bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-2xl shadow-red-500/50 animate-pulse-slow'
-                  : 'bg-gradient-to-br from-[#84CC16] to-[#65A30D] hover:from-[#65A30D] hover:to-[#84CC16] shadow-2xl shadow-[#84CC16]/40'
-              }`}
-              disabled={status === 'connecting'}
-            >
-              {/* Inner glow */}
-              <div className="absolute inset-2 rounded-full bg-gradient-to-br from-white/10 to-transparent" />
+      {/* Live Transcript Section - Always visible */}
+      <div className="w-full max-w-4xl">
+        <div className="bg-[#1A1A1A] rounded-2xl border border-[#262626] p-8 min-h-[400px]">
+          <h2 className="text-2xl font-bold text-white mb-6">Live Transcript</h2>
 
-              {status === 'connecting' ? (
-                <Loader2 className="h-20 w-20 text-white animate-spin" />
-              ) : isConnected ? (
-                <MicOff className="h-20 w-20 text-white drop-shadow-lg" />
-              ) : (
-                <Mic className="h-20 w-20 text-white drop-shadow-lg" />
-              )}
-            </button>
-          </div>
-
-          {/* Enhanced Audio Visualizer */}
-          {isConnected && (
-            <div className="flex items-center justify-center gap-2 h-20 px-8 py-4 rounded-full bg-[#0A0A0A]/50 border border-[#2A2A2A]">
-              {[...Array(9)].map((_, i) => (
+          {transcript.length === 0 ? (
+            <div className="flex items-center justify-center h-64 text-gray-500">
+              <p className="text-lg">Click the microphone to start a conversation...</p>
+            </div>
+          ) : (
+            <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
+              {transcript.map((msg, i) => (
                 <div
                   key={i}
-                  className={`w-2 bg-gradient-to-t from-[#84CC16] to-[#65A30D] rounded-full transition-all duration-200 ${
-                    status === 'listening' ? 'animate-sound-wave' : ''
-                  }`}
-                  style={{
-                    height: status === 'listening' ? `${30 + (i % 3) * 10}%` : '15%',
-                    animationDelay: `${i * 0.15}s`,
-                  }}
-                />
+                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-slide-up`}
+                  style={{ animationDelay: `${i * 0.1}s` }}
+                >
+                  <div
+                    className={`max-w-[80%] p-5 rounded-2xl text-base shadow-xl ${
+                      msg.role === 'user'
+                        ? 'bg-[#84CC16] text-black rounded-br-sm'
+                        : msg.role === 'assistant'
+                        ? 'bg-[#2A2A2A] border border-[#3A3A3A] text-white rounded-bl-sm'
+                        : 'bg-blue-500/10 border border-blue-500/30 text-blue-300 rounded-lg'
+                    }`}
+                  >
+                    <div className="leading-relaxed">{msg.text}</div>
+                  </div>
+                </div>
               ))}
             </div>
           )}
-
-          {/* Enhanced Transcript */}
-          {transcript.length > 0 && (
-            <div className="w-full mt-8 space-y-4 max-h-[28rem] overflow-y-auto p-6 bg-[#0A0A0A]/60 rounded-xl border border-[#2A2A2A] backdrop-blur-sm">
-              <h3 className="font-bold text-base mb-4 sticky top-0 bg-[#0A0A0A] backdrop-blur-sm py-3 border-b border-[#2A2A2A] z-10">
-                Live Conversation
-              </h3>
-              <div className="space-y-4">
-                {transcript.map((msg, i) => (
-                  <div
-                    key={i}
-                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-slide-up`}
-                    style={{ animationDelay: `${i * 0.1}s` }}
-                  >
-                    <div
-                      className={`max-w-[85%] p-4 rounded-2xl text-sm shadow-lg ${
-                        msg.role === 'user'
-                          ? 'bg-gradient-to-br from-[#84CC16] to-[#65A30D] text-black rounded-br-sm'
-                          : msg.role === 'assistant'
-                          ? 'bg-[#1A1A1A] border border-[#2A2A2A] text-gray-200 rounded-bl-sm'
-                          : 'bg-blue-500/10 border border-blue-500/30 text-blue-300 rounded-lg'
-                      }`}
-                    >
-                      <div className={`font-bold text-xs mb-2 ${
-                        msg.role === 'user' ? 'text-black/70' : 'text-[#84CC16]'
-                      }`}>
-                        {msg.role === 'user' ? '👤 You' : msg.role === 'assistant' ? '🤖 AI Assistant' : '⚙️ System'}
-                      </div>
-                      <div className="leading-relaxed">{msg.text}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Enhanced Instructions */}
-      <Card className="max-w-3xl mx-auto bg-gradient-to-br from-[#1A1A1A] to-[#0A0A0A] border-[#2A2A2A]">
-        <CardHeader>
-          <CardTitle className="text-xl flex items-center gap-2">
-            <span className="text-2xl">💡</span> How to Use
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div className="flex items-start gap-3 p-4 rounded-lg bg-[#1A1A1A]/50 border border-[#2A2A2A]">
-            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#84CC16] text-black flex items-center justify-center font-bold text-xs">1</span>
-            <p className="text-gray-300">Click the microphone button to start the session</p>
-          </div>
-          <div className="flex items-start gap-3 p-4 rounded-lg bg-[#1A1A1A]/50 border border-[#2A2A2A]">
-            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#84CC16] text-black flex items-center justify-center font-bold text-xs">2</span>
-            <p className="text-gray-300">Allow microphone access when prompted by your browser</p>
-          </div>
-          <div className="flex items-start gap-3 p-4 rounded-lg bg-[#1A1A1A]/50 border border-[#2A2A2A]">
-            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#84CC16] text-black flex items-center justify-center font-bold text-xs">3</span>
-            <p className="text-gray-300">Speak naturally to book appointments or place orders</p>
-          </div>
-          <div className="flex items-start gap-3 p-4 rounded-lg bg-[#1A1A1A]/50 border border-[#2A2A2A]">
-            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#84CC16] text-black flex items-center justify-center font-bold text-xs">4</span>
-            <p className="text-gray-300">AI checks availability and confirms your booking</p>
-          </div>
-          <div className="flex items-start gap-3 p-4 rounded-lg bg-[#1A1A1A]/50 border border-[#2A2A2A] md:col-span-2">
-            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#84CC16] text-black flex items-center justify-center font-bold text-xs">5</span>
-            <p className="text-gray-300">Click the button again to end the conversation session</p>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

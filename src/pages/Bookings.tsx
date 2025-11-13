@@ -113,14 +113,14 @@ export function Bookings() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Bookings</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Appointments</h1>
           <p className="text-muted-foreground mt-2">
             Manage your appointments and orders
           </p>
         </div>
         <Button onClick={() => setShowNewBookingModal(true)}>
           <Plus className="h-4 w-4 mr-2" />
-          New Booking
+          New Appointment
         </Button>
       </div>
 
