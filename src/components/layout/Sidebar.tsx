@@ -10,11 +10,10 @@ import {
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useAuth } from '../../contexts/AuthContext';
-import { Button } from '../ui/button';
 
 const navigation = [
   { name: 'Live Demo', href: '/demo', icon: Mic2 },
-  { name: 'Bookings', href: '/bookings', icon: Calendar },
+  { name: 'Appointments', href: '/bookings', icon: Calendar },
   { name: 'Call History', href: '/calls', icon: Phone },
   { name: 'Business Settings', href: '/settings', icon: Settings },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
@@ -26,15 +25,18 @@ export function Sidebar() {
   const { user, signOut } = useAuth();
 
   return (
-    <div className="flex h-screen w-64 flex-col bg-sidebar border-r border-muted">
-      {/* Logo */}
-      <div className="flex h-16 items-center justify-center border-b border-muted">
-        <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-            <Mic2 className="h-5 w-5 text-primary-foreground" />
-          </div>
-          <span className="text-xl font-bold text-foreground">AI Booking</span>
-        </div>
+    <div className="flex h-screen w-64 flex-col bg-sidebar">
+      {/* Logo & Branding */}
+      <div className="px-6 py-6 border-b border-muted">
+        <h1 className="text-2xl font-bold text-primary">AI Booking</h1>
+        <p className="text-sm text-muted-foreground mt-1">Voice Assistant</p>
+      </div>
+
+      {/* User Email */}
+      <div className="px-6 py-4 border-b border-muted">
+        <p className="text-sm text-muted-foreground truncate">
+          {user?.email || 'Loading...'}
+        </p>
       </div>
 
       {/* Navigation */}
@@ -48,10 +50,10 @@ export function Sidebar() {
               key={item.name}
               to={item.href}
               className={cn(
-                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
                 isActive
                   ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  : 'text-foreground hover:bg-muted'
               )}
             >
               <Icon className="h-5 w-5" />
@@ -61,30 +63,15 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Footer */}
-      <div className="border-t border-muted p-4 space-y-3">
-        <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
-            <User className="h-4 w-4 text-muted-foreground" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">
-              {user?.user_metadata?.full_name || 'User'}
-            </p>
-            <p className="text-xs text-muted-foreground truncate">
-              {user?.email || 'Loading...'}
-            </p>
-          </div>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full"
+      {/* Sign Out */}
+      <div className="p-4">
+        <button
           onClick={() => signOut()}
+          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
-          <LogOut className="h-4 w-4 mr-2" />
+          <LogOut className="h-4 w-4" />
           Sign Out
-        </Button>
+        </button>
       </div>
     </div>
   );
