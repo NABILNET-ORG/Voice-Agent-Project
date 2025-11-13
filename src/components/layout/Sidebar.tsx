@@ -10,7 +10,6 @@ import {
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useAuth } from '../../contexts/AuthContext';
-import { Button } from '../ui/button';
 
 const navigation = [
   { name: 'Live Demo', href: '/demo', icon: Mic2 },
@@ -26,22 +25,22 @@ export function Sidebar() {
   const { user, signOut } = useAuth();
 
   return (
-    <div className="flex h-screen w-64 flex-col bg-[#141414] border-r border-[#262626]">
-      {/* User Email at Top */}
-      <div className="px-4 py-4 border-b border-[#262626]">
-        <p className="text-xs text-gray-400 truncate">
+    <div className="flex h-screen w-64 flex-col bg-sidebar">
+      {/* Logo & Branding */}
+      <div className="px-6 py-6 border-b border-muted">
+        <h1 className="text-2xl font-bold text-primary">AI Booking</h1>
+        <p className="text-sm text-muted-foreground mt-1">Voice Assistant</p>
+      </div>
+
+      {/* User Email */}
+      <div className="px-6 py-4 border-b border-muted">
+        <p className="text-sm text-muted-foreground truncate">
           {user?.email || 'Loading...'}
         </p>
       </div>
 
-      {/* Logo */}
-      <div className="px-4 py-6">
-        <h1 className="text-xl font-bold text-[#84CC16]">AI Booking</h1>
-        <p className="text-sm text-gray-400 mt-1">Voice Assistant</p>
-      </div>
-
       {/* Navigation */}
-      <nav className="flex-1 px-3 space-y-1 overflow-y-auto">
+      <nav className="flex-1 space-y-1 px-3 py-4">
         {navigation.map((item) => {
           const isActive = location.pathname === item.href;
           const Icon = item.icon;
@@ -51,30 +50,28 @@ export function Sidebar() {
               key={item.name}
               to={item.href}
               className={cn(
-                'flex items-center gap-3 px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200',
+                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
                 isActive
-                  ? 'bg-[#84CC16] text-black shadow-lime-glow'
-                  : 'text-gray-300 hover:bg-[#202020] hover:text-white'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-foreground hover:bg-muted'
               )}
             >
-              <Icon className="h-5 w-5 flex-shrink-0" />
-              <span>{item.name}</span>
+              <Icon className="h-5 w-5" />
+              {item.name}
             </Link>
           );
         })}
       </nav>
 
-      {/* Footer */}
-      <div className="border-t border-[#262626] p-4">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full justify-start text-gray-400 hover:text-white hover:bg-[#202020]"
+      {/* Sign Out */}
+      <div className="p-4">
+        <button
           onClick={() => signOut()}
+          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
-          <LogOut className="h-4 w-4 mr-2" />
+          <LogOut className="h-4 w-4" />
           Sign Out
-        </Button>
+        </button>
       </div>
     </div>
   );
