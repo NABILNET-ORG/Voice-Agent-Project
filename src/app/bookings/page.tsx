@@ -34,9 +34,6 @@ export default function Bookings() {
     if (user?.id) {
       loadBookings();
       loadStats();
-    } else {
-      loadBookings('00000000-0000-0000-0000-000000000000');
-      loadStats('00000000-0000-0000-0000-000000000000');
     }
   }, [user]);
 
