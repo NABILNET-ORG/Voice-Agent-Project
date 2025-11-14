@@ -41,10 +41,28 @@ export default function IntegrationsManagement() {
   const [testResults, setTestResults] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [businessConfig, setBusinessConfig] = useState<any>(null);
+  const [statusMessage, setStatusMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
 
   useEffect(() => {
     if (user?.id) {
       loadIntegrations();
+    }
+
+    // Check for success/error messages in URL
+    const params = new URLSearchParams(window.location.search);
+    const success = params.get('success');
+    const error = params.get('error');
+
+    if (success === 'google_calendar_connected') {
+      setStatusMessage({ type: 'success', text: 'Google Calendar connected successfully!' });
+      setTimeout(() => setStatusMessage(null), 5000);
+      // Clean URL
+      window.history.replaceState({}, '', '/settings/integrations');
+    } else if (error) {
+      setStatusMessage({ type: 'error', text: `Connection failed: ${error}` });
+      setTimeout(() => setStatusMessage(null), 5000);
+      // Clean URL
+      window.history.replaceState({}, '', '/settings/integrations');
     }
   }, [user]);
 
@@ -201,6 +219,13 @@ export default function IntegrationsManagement() {
   };
 
   const handleConnect = (integration: Integration) => {
+    // For Google Calendar, initiate OAuth flow
+    if (integration.id === 'google-calendar') {
+      window.location.href = `/api/auth/google?user_id=${user!.id}`;
+      return;
+    }
+
+    // For other integrations, open config dialog
     setSelectedIntegration(integration);
     setIsConfigDialogOpen(true);
   };
@@ -327,6 +352,24 @@ export default function IntegrationsManagement() {
           </Button>
         </div>
       </div>
+
+      {/* Status Message */}
+      {statusMessage && (
+        <Card className={statusMessage.type === 'success' ? 'bg-green-500/10 border-green-500' : 'bg-red-500/10 border-red-500'}>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2">
+              {statusMessage.type === 'success' ? (
+                <CheckCircle className="h-5 w-5 text-green-500" />
+              ) : (
+                <AlertCircle className="h-5 w-5 text-red-500" />
+              )}
+              <p className={statusMessage.type === 'success' ? 'text-green-400' : 'text-red-400'}>
+                {statusMessage.text}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
