@@ -44,16 +44,14 @@ export default function IntegrationsManagement() {
   const [statusMessage, setStatusMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
 
   useEffect(() => {
-    if (user?.id) {
-      loadIntegrations();
-    }
-
-    // Check for success/error messages in URL
+    // Check for success/error messages in URL first
     const params = new URLSearchParams(window.location.search);
     const googleOAuthSuccess = params.get('google_oauth_success');
     const error = params.get('error');
 
-    if (googleOAuthSuccess === 'true' && user?.id) {
+    console.log('Integrations page loaded, checking URL params:', { googleOAuthSuccess, error, hasUser: !!user?.id });
+
+    if (googleOAuthSuccess === 'true') {
       // Extract tokens from URL
       const accessToken = params.get('access_token');
       const refreshToken = params.get('refresh_token');
@@ -62,6 +60,7 @@ export default function IntegrationsManagement() {
 
       // Save tokens via authenticated API endpoint
       if (accessToken && userId) {
+        console.log('Calling save-tokens API...');
         fetch('/api/integrations/google/save-tokens', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -98,6 +97,11 @@ export default function IntegrationsManagement() {
       setTimeout(() => setStatusMessage(null), 5000);
       // Clean URL
       window.history.replaceState({}, '', '/settings/integrations');
+    }
+
+    // Load integrations data
+    if (user?.id) {
+      loadIntegrations();
     }
   }, [user]);
 
