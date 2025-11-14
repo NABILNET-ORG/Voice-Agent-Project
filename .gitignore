@@ -6,11 +6,24 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+dev.log
+server.log
 
 node_modules
 dist
 dist-ssr
 *.local
+
+# Next.js
+.next
+out
+
+# Backups
+backup_*
+
+# Database
+db/*.db
+*.db
 
 # Editor directories and files
 .vscode/*
@@ -22,3 +35,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment variables
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local

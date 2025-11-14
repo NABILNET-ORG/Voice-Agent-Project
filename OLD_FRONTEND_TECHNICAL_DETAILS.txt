@@ -1,0 +1,149 @@
+TECHNICAL DEEP DIVE - OLD FRONTEND INTEGRATION
+
+1. SUPABASE CLIENT INITIALIZATION
+File: lib/supabase.ts
+- Uses createClient<Database>(url, anonKey)
+- Type-safe with auto-generated Database type
+- Exposes singleton `supabase` instance
+- All requests authenticated with JWT from auth
+
+2. DATABASE QUERIES PATTERN
+Standard pattern used throughout:
+  const { data, error } = await supabase
+    .from('table_name')
+    .select('columns')
+    .order('column', { ascending: true/false })
+    .filter('column', 'eq', value)
+    .single() // for single records
+
+3. EDGE FUNCTIONS CALLED
+a) create-booking-manual
+   Endpoint: POST {VITE_SUPABASE_URL}/functions/v1/create-booking-manual
+   Auth: Bearer {session.access_token}
+   Body: {
+     customerName, customerPhone, customerEmail,
+     serviceOrItem, bookingType, date, time,
+     durationMinutes, basePrice, totalAmount,
+     deliveryAddress, notes
+   }
+   Response: { success: boolean, error?: string }
+   Used in: BookingFormModal.tsx
+
+b) realtime-session
+   Method: supabase.functions.invoke('realtime-session')
+   Body: { model: 'gpt-4o-realtime-preview-2024-12-17' }
+   Response: { client_secret: { value: string } }
+   Used in: useRealtimeAPI.ts
+
+4. VOICE INTEGRATION (OpenAI Realtime)
+Steps:
+1. Get business config for AI settings
+2. Request microphone (echoCancellation, noiseSuppression, autoGainControl)
+3. Get ephemeral token from realtime-session edge function
+4. Create RTCPeerConnection
+5. Add audio tracks and data channel
+6. Send session config (instructions, voice, formats, turn_detection)
+7. WebRTC SDP exchange with OpenAI endpoint
+8. Handle events: conversation, transcription, response, voice activity
+
+Status states: ready -> connecting -> listening -> processing -> error
+
+Audio format: PCM16
+Transcription model: Whisper-1
+OpenAI model: gpt-4o-realtime-preview-2024-12-17
+
+5. AUTHENTICATION FLOW
+- supabase.auth.signUp(email, password, data: {full_name})
+- supabase.auth.signInWithPassword(email, password)
+- supabase.auth.signOut()
+- Session stored in browser localStorage by Supabase
+- All requests: Authorization: Bearer {access_token}
+
+6. BOOKING CREATION
+- Fetch available services from business_config.services
+- User fills BookingFormModal
+- Submit to create-booking-manual edge function
+- Edge function creates record, returns success
+- Frontend refreshes bookings list via fetchBookings()
+
+7. CALL LOGGING
+- Call logs stored in call_logs table
+- transcript field: JSON array of {role, text, timestamp}
+- outcome: booked, no-booking, missed, ordered
+- call_sid: Twilio identifier
+- recording_url, recording_duration: Server-managed
+
+8. ANALYTICS DATA PROCESSING
+- All aggregation client-side (no backend analytics)
+- Fetch all bookings, compute client-side:
+  - Group by date for revenue
+  - Group by day-of-week for bookings
+  - Count by service for popularity
+  - Create hour/day matrix for heatmap
+
+9. BUSINESS CONFIGURATION
+Single record in business_config per user:
+- AI: voice, personality, instructions, templates
+- Hours: business_hours JSON, is_24_7, breaks
+- Rules: buffer, advance_days, same_day, max_per_day
+- Services: services JSON array
+- Notifications: email, SMS, reminders, triggers
+- Calendar: Google Calendar ID, sync settings
+- Delivery: zones, fees, radius
+- Payment: methods, deposits, requirements
+
+10. PROTECTED ROUTES
+- ProtectedRoute component checks session.user
+- Redirects to /login if not authenticated
+- Wraps MainLayout with navigation
+
+11. STATE MANAGEMENT
+- AuthContext with useAuth hook for auth
+- useRealtimeAPI hook for WebRTC voice
+- Component-level useState for UI state
+- No Redux/Zustand
+- No real-time subscriptions (no supabase.channel)
+
+12. UI COMPONENTS
+- Radix UI for accessible primitives
+- Tailwind CSS for styling
+- Recharts for data visualization
+- Lucide icons
+- Custom modals: BookingFormModal, BookingDetailsModal, TranscriptViewerModal
+
+13. MISSING FEATURES
+- No pagination (loads all records)
+- No offline support
+- No caching
+- No error boundaries
+- No input validation framework
+- Google Calendar sync not in frontend
+- Manual booking only, no auto-booking from calls
+
+14. FILES TO EXAMINE
+Key implementation files:
+- lib/supabase.ts - Client setup
+- contexts/AuthContext.tsx - Auth logic
+- hooks/useRealtimeAPI.ts - Voice API
+- components/BookingFormModal.tsx - Booking creation
+- pages/Bookings.tsx - Booking list
+- pages/CallHistory.tsx - Call logs
+- pages/Analytics.tsx - Analytics dashboard
+- pages/Settings.tsx - Configuration
+- types/database.ts - TypeScript types
+
+15. API CALL SUMMARY
+Queries (read):
+- profiles.select(*)
+- business_config.select(*)
+- bookings.select(*)
+- call_logs.select(*)
+
+Mutations (write):
+- business_config.update(config)
+- create-booking-manual function call
+
+External APIs:
+- OpenAI Realtime (WebRTC)
+- Twilio (implied - call recording)
+- Google Calendar OAuth (server-side)

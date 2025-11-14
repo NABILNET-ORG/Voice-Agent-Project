@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { supabase } from '../lib/supabase';
 
 interface Message {
   role: 'user' | 'assistant' | 'system';
@@ -28,12 +27,6 @@ export function useRealtimeAPI() {
       setError(null);
       setTranscript([]);
 
-      // Get user's business config for AI instructions
-      const { data: config } = await supabase
-        .from('business_config')
-        .select('ai_system_instructions, ai_voice, business_name')
-        .single() as { data: { ai_system_instructions: string; ai_voice: string; business_name: string } | null };
-
       // Request microphone access
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
@@ -44,13 +37,23 @@ export function useRealtimeAPI() {
       });
       audioStreamRef.current = stream;
 
-      // Get ephemeral token from our edge function
-      const { data, error: sessionError } = await supabase.functions.invoke('realtime-session', {
-        body: { model: 'gpt-4o-realtime-preview-2024-12-17' }
+      // Get ephemeral token from our API route
+      const response = await fetch('/api', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ model: 'gpt-4o-realtime-preview-2024-12-17' })
       });
 
-      if (sessionError) throw new Error('Failed to create session: ' + sessionError.message);
-      if (!data?.client_secret?.value) throw new Error('No session token received');
+      if (!response.ok) {
+        throw new Error('Failed to create session');
+      }
+
+      const data = await response.json();
+      if (!data?.client_secret?.value) {
+        throw new Error('No session token received');
+      }
 
       const EPHEMERAL_KEY = data.client_secret.value;
 
@@ -69,7 +72,7 @@ export function useRealtimeAPI() {
         const audioElement = document.getElementById('remote-audio') as HTMLAudioElement;
         if (audioElement) {
           audioElement.srcObject = remoteStream;
-          audioElement.play();
+          audioElement.play().catch(err => console.error('Audio playback error:', err));
         }
       };
 
@@ -80,15 +83,15 @@ export function useRealtimeAPI() {
       dc.onopen = () => {
         console.log('Data channel opened');
         setStatus('listening');
+        addMessage('system', 'Connected to AI Booking Agent');
 
         // Send session configuration
         const sessionUpdate = {
           type: 'session.update',
           session: {
             modalities: ['text', 'audio'],
-            instructions: config?.ai_system_instructions ||
-              `You are a helpful AI assistant for ${config?.business_name || 'our business'}. Help customers book appointments and answer questions.`,
-            voice: config?.ai_voice || 'alloy',
+            instructions: 'You are a helpful AI assistant for a booking system. Help customers book appointments and answer questions about services.',
+            voice: 'alloy',
             input_audio_format: 'pcm16',
             output_audio_format: 'pcm16',
             input_audio_transcription: {
@@ -120,6 +123,10 @@ export function useRealtimeAPI() {
         setStatus('error');
       };
 
+      dc.onclose = () => {
+        console.log('Data channel closed');
+      };
+
       // Create and set local offer
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
@@ -137,7 +144,8 @@ export function useRealtimeAPI() {
       });
 
       if (!sdpResponse.ok) {
-        throw new Error(`SDP exchange failed: ${sdpResponse.status}`);
+        const errorText = await sdpResponse.text();
+        throw new Error(`SDP exchange failed: ${sdpResponse.status} - ${errorText}`);
       }
 
       const answerSdp = await sdpResponse.text();
@@ -247,7 +255,8 @@ export function useRealtimeAPI() {
     }
 
     setStatus('ready');
-  }, []);
+    addMessage('system', 'Disconnected from AI Booking Agent');
+  }, [addMessage]);
 
   // Cleanup on unmount
   useEffect(() => {
