@@ -16,37 +16,35 @@ export async function middleware(req: NextRequest) {
           return req.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => req.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({
-            request: req,
-          })
-          cookiesToSet.forEach(({ name, value, options }) =>
+          cookiesToSet.forEach(({ name, value, options }) => {
             supabaseResponse.cookies.set(name, value, options)
-          )
+          })
         },
       },
     }
   )
 
+  // IMPORTANT: Refresh session to ensure cookies are up to date
   const {
-    data: { session },
-  } = await supabase.auth.getSession()
+    data: { user },
+  } = await supabase.auth.getUser()
 
   const isAuthPage = req.nextUrl.pathname.startsWith('/login') ||
                      req.nextUrl.pathname.startsWith('/signup')
   const isProtectedPage = !isAuthPage &&
                            req.nextUrl.pathname !== '/' &&
-                           !req.nextUrl.pathname.startsWith('/api')
+                           !req.nextUrl.pathname.startsWith('/api') &&
+                           !req.nextUrl.pathname.startsWith('/_next')
 
-  // Redirect to login if accessing protected page without session
-  if (!session && isProtectedPage) {
+  // Redirect to login if accessing protected page without user
+  if (!user && isProtectedPage) {
     const redirectUrl = new URL('/login', req.url)
     redirectUrl.searchParams.set('redirectTo', req.nextUrl.pathname)
     return NextResponse.redirect(redirectUrl)
   }
 
-  // Redirect to bookings if accessing auth page with active session
-  if (session && isAuthPage) {
+  // Redirect to bookings if accessing auth page with active user
+  if (user && isAuthPage) {
     return NextResponse.redirect(new URL('/bookings', req.url))
   }
 
