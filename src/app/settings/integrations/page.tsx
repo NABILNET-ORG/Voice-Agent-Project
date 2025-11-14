@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Link, ExternalLink, CheckCircle, XCircle, AlertCircle, Settings, RefreshCw, Trash2, Plus, TestTube, Download, Upload } from "lucide-react";
+import { Link, ExternalLink, CheckCircle, XCircle, AlertCircle, Settings, RefreshCw, Trash2, Plus, TestTube, Download, Upload, Loader2 } from "lucide-react";
+import { businessConfigApi } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -32,33 +34,42 @@ interface Integration {
 }
 
 export default function IntegrationsManagement() {
+  const { user } = useAuth();
   const [integrations, setIntegrations] = useState<Integration[]>([]);
   const [selectedIntegration, setSelectedIntegration] = useState<Integration | null>(null);
   const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false);
   const [testResults, setTestResults] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
+  const [businessConfig, setBusinessConfig] = useState<any>(null);
 
   useEffect(() => {
-    // Generate mock integrations data
-    const mockIntegrations: Integration[] = [
+    if (user?.id) {
+      loadIntegrations();
+    }
+  }, [user]);
+
+  const loadIntegrations = async () => {
+    try {
+      setLoading(true);
+      const config = await businessConfigApi.get(user!.id);
+      setBusinessConfig(config);
+
+      // Build integrations list with real status from database
+      const availableIntegrations: Integration[] = [
       {
         id: "google-calendar",
         name: "Google Calendar",
         description: "Sync bookings with your Google Calendar",
         category: "calendar",
-        status: "connected",
+        status: config.google_calendar_sync_enabled ? "connected" : "disconnected",
         icon: "📅",
-        connectedAt: new Date("2024-01-15"),
-        lastSync: new Date(),
+        connectedAt: config.google_calendar_sync_enabled ? new Date(config.updated_at) : undefined,
+        lastSync: config.google_calendar_sync_enabled ? new Date() : undefined,
         settings: {
-          calendarId: "primary",
-          syncFrequency: "realtime",
-          createEvents: true,
-          sendReminders: true
-        },
-        usage: {
-          calls: 245,
-          data: "2.3 MB",
-          lastUsed: new Date()
+          calendarId: config.google_calendar_id || "primary",
+          syncFrequency: config.calendar_sync_frequency || "realtime",
+          createEvents: config.google_calendar_sync_enabled,
+          sendReminders: config.set_event_reminder
         }
       },
       {
@@ -165,9 +176,14 @@ export default function IntegrationsManagement() {
         }
       }
     ];
-    
-    setIntegrations(mockIntegrations);
-  }, []);
+
+      setIntegrations(availableIntegrations);
+    } catch (error) {
+      console.error('Error loading integrations:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getStatusBadge = (status: string) => {
     const variants = {
@@ -190,12 +206,25 @@ export default function IntegrationsManagement() {
   };
 
   const handleDisconnect = async (integrationId: string) => {
-    // Simulate disconnect
-    setIntegrations(prev => prev.map(integration => 
-      integration.id === integrationId 
-        ? { ...integration, status: "disconnected" as const, connectedAt: undefined }
-        : integration
-    ));
+    try {
+      // Update database based on integration type
+      if (integrationId === 'google-calendar') {
+        await businessConfigApi.update(user!.id, {
+          google_calendar_sync_enabled: false
+        });
+      }
+
+      // Update local state
+      setIntegrations(prev => prev.map(integration =>
+        integration.id === integrationId
+          ? { ...integration, status: "disconnected" as const, connectedAt: undefined }
+          : integration
+      ));
+
+      await loadIntegrations();
+    } catch (error) {
+      console.error('Error disconnecting integration:', error);
+    }
   };
 
   const handleTest = async (integrationId: string) => {
@@ -219,14 +248,32 @@ export default function IntegrationsManagement() {
     }, 2000);
   };
 
-  const handleSaveConfig = (integration: Integration, settings: Record<string, any>) => {
-    setIntegrations(prev => prev.map(int => 
-      int.id === integration.id 
-        ? { ...int, status: "connected" as const, settings, connectedAt: new Date(), lastSync: new Date() }
-        : int
-    ));
-    setIsConfigDialogOpen(false);
-    setSelectedIntegration(null);
+  const handleSaveConfig = async (integration: Integration, settings: Record<string, any>) => {
+    try {
+      // Save to database based on integration type
+      if (integration.id === 'google-calendar') {
+        await businessConfigApi.update(user!.id, {
+          google_calendar_sync_enabled: true,
+          google_calendar_id: settings.calendarId,
+          calendar_sync_frequency: settings.syncFrequency,
+          set_event_reminder: settings.sendReminders
+        });
+      }
+
+      // Update local state
+      setIntegrations(prev => prev.map(int =>
+        int.id === integration.id
+          ? { ...int, status: "connected" as const, settings, connectedAt: new Date(), lastSync: new Date() }
+          : int
+      ));
+
+      setIsConfigDialogOpen(false);
+      setSelectedIntegration(null);
+
+      await loadIntegrations();
+    } catch (error) {
+      console.error('Error saving integration config:', error);
+    }
   };
 
   const categories = [
@@ -251,6 +298,16 @@ export default function IntegrationsManagement() {
     error: integrations.filter(int => int.status === "error").length,
     pending: integrations.filter(int => int.status === "pending").length
   };
+
+  if (loading) {
+    return (
+      <div className="flex-1 space-y-6 p-6">
+        <div className="flex justify-center items-center py-24">
+          <Loader2 className="h-12 w-12 animate-spin text-gray-400" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 space-y-6 p-6">
