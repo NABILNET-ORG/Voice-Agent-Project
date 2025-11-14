@@ -6,14 +6,17 @@ export async function POST(request: Request) {
   try {
     const { accessToken, refreshToken, expiresIn, userId } = await request.json();
 
+    console.log('Save tokens API called:', { userId, has_access: !!accessToken, has_refresh: !!refreshToken });
+
     if (!accessToken || !userId) {
+      console.error('Missing required fields');
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
       );
     }
 
-    const cookieStore = await cookies();
+    const cookieStore = cookies();
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -42,7 +45,7 @@ export async function POST(request: Request) {
     }
 
     // Store tokens in profiles table (RLS allows users to update their own profile)
-    const { error: profileError } = await supabase
+    const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .update({
         google_calendar_access_token: accessToken,
@@ -51,7 +54,10 @@ export async function POST(request: Request) {
           Date.now() + expiresIn * 1000
         ).toISOString(),
       })
-      .eq('id', userId);
+      .eq('id', userId)
+      .select();
+
+    console.log('Profile update result:', { success: !profileError, updated: profileData?.length });
 
     if (profileError) {
       console.error('Profile update error:', profileError);
@@ -62,12 +68,15 @@ export async function POST(request: Request) {
     }
 
     // Enable Google Calendar sync in business_config
-    const { error: configError } = await supabase
+    const { data: configData, error: configError } = await supabase
       .from('business_config')
       .update({
         google_calendar_sync_enabled: true,
       })
-      .eq('user_id', userId);
+      .eq('user_id', userId)
+      .select();
+
+    console.log('Config update result:', { success: !configError, updated: configData?.length });
 
     if (configError) {
       console.error('Config update error:', configError);
@@ -77,6 +86,7 @@ export async function POST(request: Request) {
       );
     }
 
+    console.log('✅ Google Calendar connected successfully for user:', userId);
     return NextResponse.json({ success: true });
   } catch (err: any) {
     console.error('Save tokens error:', err);
