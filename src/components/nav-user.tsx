@@ -1,6 +1,7 @@
 "use client";
 
-import { ChevronUp } from "lucide-react";
+import { ChevronUp, LogOut, User } from "lucide-react";
+import { useRouter } from "next/navigation";
 import {
   SidebarMenu,
   SidebarMenuButton,
@@ -8,6 +9,7 @@ import {
 } from "@/components/ui/sidebar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth } from "@/hooks/useAuth";
 
 export function NavUser({
   user,
@@ -18,6 +20,18 @@ export function NavUser({
     avatar: string;
   };
 }) {
+  const router = useRouter();
+  const { signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    window.location.href = '/login';
+  };
+
+  const handleAccountSettings = () => {
+    router.push('/account');
+  };
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -29,7 +43,9 @@ export function NavUser({
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage src="/avatars/default.svg" alt={user.name} />
-                <AvatarFallback className="rounded-lg bg-[#84CC16] text-black">JD</AvatarFallback>
+                <AvatarFallback className="rounded-lg bg-[#84CC16] text-black">
+                  {user.name.substring(0, 2).toUpperCase()}
+                </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold text-white">{user.name}</span>
@@ -44,10 +60,18 @@ export function NavUser({
             align="end"
             sideOffset={4}
           >
-            <DropdownMenuItem className="text-gray-300 hover:text-white hover:bg-gray-800">
+            <DropdownMenuItem
+              onClick={handleAccountSettings}
+              className="text-gray-300 hover:text-white hover:bg-gray-800 cursor-pointer"
+            >
+              <User className="mr-2 h-4 w-4" />
               <span>Account Settings</span>
             </DropdownMenuItem>
-            <DropdownMenuItem className="text-gray-300 hover:text-white hover:bg-gray-800">
+            <DropdownMenuItem
+              onClick={handleSignOut}
+              className="text-red-400 hover:text-red-300 hover:bg-gray-800 cursor-pointer"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
               <span>Sign out</span>
             </DropdownMenuItem>
           </DropdownMenuContent>

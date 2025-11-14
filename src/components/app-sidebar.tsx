@@ -64,8 +64,7 @@ const navMain = [
       url: "/account",
       icon: User,
     },
-  ],
-];
+  ];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();

@@ -191,8 +191,6 @@ export default function BusinessSettings() {
   useEffect(() => {
     if (user?.id) {
       loadConfig();
-    } else {
-      loadConfig('00000000-0000-0000-0000-000000000000');
     }
   }, [user]);
 
@@ -364,10 +362,12 @@ export default function BusinessSettings() {
   const saveSettings = async () => {
     try {
       setIsLoading(true);
-      const id = user?.id || '00000000-0000-0000-0000-000000000000';
+      if (!user?.id) {
+        throw new Error('User not authenticated');
+      }
 
       // Map local config to database config
-      await businessConfigApi.update(id, {
+      await businessConfigApi.update(user.id, {
         business_name: config.businessName,
         business_type: config.businessType,
         business_category: config.businessCategory,
