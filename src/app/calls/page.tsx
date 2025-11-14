@@ -35,9 +35,6 @@ export default function CallHistory() {
     if (user?.id) {
       loadCalls();
       loadStats();
-    } else {
-      loadCalls('00000000-0000-0000-0000-000000000000');
-      loadStats('00000000-0000-0000-0000-000000000000');
     }
   }, [user]);
 

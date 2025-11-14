@@ -29,8 +29,6 @@ export default function Analytics() {
   useEffect(() => {
     if (user?.id) {
       loadAnalytics();
-    } else {
-      loadAnalytics('00000000-0000-0000-0000-000000000000');
     }
   }, [user, timeRange]);
 

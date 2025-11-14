@@ -6,14 +6,9 @@ import { NavProjects } from "@/components/nav-projects";
 import { NavUser } from "@/components/nav-user";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 
-const data = {
-  user: {
-    name: "John Doe",
-    email: "john@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  navMain: [
+const navMain = [
     {
       title: "Live Demo",
       url: "/",
@@ -70,13 +65,21 @@ const data = {
       icon: User,
     },
   ],
-};
+];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
-  
+  const { user } = useAuth();
+
+  // Prepare user data for sidebar
+  const userData = {
+    name: user?.user_metadata?.name || user?.email?.split('@')[0] || "User",
+    email: user?.email || "",
+    avatar: user?.user_metadata?.avatar_url || "/avatars/shadcn.jpg",
+  };
+
   // Update active state based on current path
-  const navMainWithActiveState = data.navMain.map(item => ({
+  const navMainWithActiveState = navMain.map(item => ({
     ...item,
     isActive: pathname === item.url || item.items?.some(subItem => pathname === subItem.url)
   }));
@@ -102,7 +105,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={navMainWithActiveState} />
       </SidebarContent>
       <SidebarFooter className="bg-[#1A1A1A]">
-        <NavUser user={data.user} />
+        <NavUser user={userData} />
       </SidebarFooter>
     </Sidebar>
   );
