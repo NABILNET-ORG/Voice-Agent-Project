@@ -31,9 +31,8 @@ export default function LoginPage() {
       if (error) throw error;
 
       if (data.session) {
-        // Successfully logged in
-        router.push("/bookings");
-        router.refresh();
+        // Successfully logged in - use hard redirect to ensure cookies are propagated
+        window.location.href = "/bookings";
       }
     } catch (err: any) {
       console.error("Login error:", err);

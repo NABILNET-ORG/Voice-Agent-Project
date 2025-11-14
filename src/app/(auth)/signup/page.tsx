@@ -106,15 +106,14 @@ export default function SignupPage() {
 
         // Check if email confirmation is required
         if (authData.session) {
-          // Auto-confirmed, redirect to dashboard
+          // Auto-confirmed, redirect to dashboard with hard redirect
           setTimeout(() => {
-            router.push("/settings");
-            router.refresh();
+            window.location.href = "/settings";
           }, 2000);
         } else {
           // Email confirmation required
           setTimeout(() => {
-            router.push("/login");
+            window.location.href = "/login";
           }, 3000);
         }
       }
