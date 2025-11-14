@@ -29,23 +29,37 @@ export async function middleware(req: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const isAuthPage = req.nextUrl.pathname.startsWith('/login') ||
-                     req.nextUrl.pathname.startsWith('/signup')
-  const isProtectedPage = !isAuthPage &&
-                           req.nextUrl.pathname !== '/' &&
-                           !req.nextUrl.pathname.startsWith('/api') &&
-                           !req.nextUrl.pathname.startsWith('/_next')
+  const pathname = req.nextUrl.pathname
+
+  // Define public pages that don't require authentication
+  const publicPages = [
+    '/',
+    '/login',
+    '/signup',
+    '/forgot-password',
+  ]
+
+  const isPublicPage = publicPages.some(page => pathname === page || pathname.startsWith(page + '/'))
+  const isApiRoute = pathname.startsWith('/api')
+  const isNextInternal = pathname.startsWith('/_next')
+
+  // Protected pages require authentication
+  const isProtectedPage = !isPublicPage && !isApiRoute && !isNextInternal
 
   // Redirect to login if accessing protected page without user
   if (!user && isProtectedPage) {
     const redirectUrl = new URL('/login', req.url)
-    redirectUrl.searchParams.set('redirectTo', req.nextUrl.pathname)
+    redirectUrl.searchParams.set('redirectTo', pathname)
     return NextResponse.redirect(redirectUrl)
   }
 
   // Redirect to bookings if accessing auth page with active user
+  const isAuthPage = pathname === '/login' || pathname === '/signup'
   if (user && isAuthPage) {
-    return NextResponse.redirect(new URL('/bookings', req.url))
+    // Check for redirect parameter
+    const redirectTo = req.nextUrl.searchParams.get('redirectTo')
+    const redirectPath = redirectTo && redirectTo !== '/login' ? redirectTo : '/bookings'
+    return NextResponse.redirect(new URL(redirectPath, req.url))
   }
 
   return supabaseResponse
