@@ -461,3 +461,132 @@ export const analyticsApi = {
     }))
   },
 }
+
+// Knowledge Base API
+export interface KnowledgeSource {
+  id: string
+  user_id: string
+  source_type: string
+  url: string | null
+  title: string
+  content: string | null
+  summary: string | null
+  metadata: any
+  priority: number
+  is_active: boolean
+  auto_update: boolean
+  last_fetched_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export const knowledgeApi = {
+  // Get all knowledge sources for user
+  async getAll(userId: string) {
+    const { data, error } = await supabase
+      .from('knowledge_sources')
+      .select('*')
+      .eq('user_id', userId)
+      .order('priority', { ascending: false })
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    return data as KnowledgeSource[]
+  },
+
+  // Get active knowledge sources
+  async getActive(userId: string) {
+    const { data, error } = await supabase
+      .from('knowledge_sources')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('is_active', true)
+      .order('priority', { ascending: false })
+
+    if (error) throw error
+    return data as KnowledgeSource[]
+  },
+
+  // Create knowledge source
+  async create(source: Partial<KnowledgeSource>) {
+    const { data, error } = await supabase
+      .from('knowledge_sources')
+      .insert(source)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data as KnowledgeSource
+  },
+
+  // Update knowledge source
+  async update(id: string, updates: Partial<KnowledgeSource>) {
+    const { data, error} = await supabase
+      .from('knowledge_sources')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data as KnowledgeSource
+  },
+
+  // Delete knowledge source
+  async delete(id: string) {
+    const { error } = await supabase
+      .from('knowledge_sources')
+      .delete()
+      .eq('id', id)
+
+    if (error) throw error
+  },
+
+  // Fetch website
+  async fetchWebsite(url: string, method: 'smart_crawl' | 'single_page', options?: any) {
+    const response = await fetch('/api/knowledge/fetch-website', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url, method, options })
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Failed to fetch website')
+    }
+
+    return await response.json()
+  },
+
+  // Summarize content
+  async summarize(content: string, maxTokens = 500) {
+    const response = await fetch('/api/knowledge/summarize', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content, maxTokens })
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Failed to summarize')
+    }
+
+    return await response.json()
+  },
+
+  // Build AI context from active sources
+  async buildAIContext(userId: string) {
+    const sources = await this.getActive(userId)
+
+    const context = sources
+      .map(source => {
+        const content = source.summary || source.content || ''
+        return `### ${source.title}\n${content}\n\n`
+      })
+      .join('')
+
+    const totalTokens = Math.ceil(context.split(/\s+/).length / 0.75)
+
+    return { context, totalTokens, sourceCount: sources.length }
+  }
+}

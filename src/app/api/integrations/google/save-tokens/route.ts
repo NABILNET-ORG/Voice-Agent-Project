@@ -16,7 +16,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -37,9 +37,18 @@ export async function POST(request: Request) {
     // Verify the user is authenticated
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
+    console.log('Auth check:', {
+      authError: authError?.message,
+      hasUser: !!user,
+      sessionUserId: user?.id,
+      requestUserId: userId,
+      match: user?.id === userId
+    });
+
     if (authError || !user || user.id !== userId) {
+      console.error('Unauthorized:', { authError, hasUser: !!user, userMatch: user?.id === userId });
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'Unauthorized', details: authError?.message || 'User mismatch' },
         { status: 401 }
       );
     }

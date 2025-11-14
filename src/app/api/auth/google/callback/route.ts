@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { createClient } from '@supabase/supabase-js';
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
@@ -62,16 +61,91 @@ export async function GET(request: Request) {
       expires_in: tokens.expires_in
     });
 
-    // Create a redirect URL with token data embedded
-    // The frontend will save these using an authenticated API call
-    const redirectUrl = new URL('/settings/integrations', request.url);
-    redirectUrl.searchParams.set('google_oauth_success', 'true');
-    redirectUrl.searchParams.set('access_token', tokens.access_token);
-    redirectUrl.searchParams.set('refresh_token', tokens.refresh_token || '');
-    redirectUrl.searchParams.set('expires_in', tokens.expires_in.toString());
-    redirectUrl.searchParams.set('user_id', state);
+    // Use Supabase with service role key to bypass RLS
+    const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || '').trim();
+    const supabaseKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '').trim();
 
-    return NextResponse.redirect(redirectUrl);
+    console.log('Supabase config:', {
+      url: supabaseUrl,
+      keyType: process.env.SUPABASE_SERVICE_ROLE_KEY ? 'SERVICE_ROLE' : 'ANON',
+      keyLength: supabaseKey.length,
+      keyStart: supabaseKey.substring(0, 20),
+      urlLength: supabaseUrl.length
+    });
+
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error('Supabase URL or key is missing');
+    }
+
+    // Use direct REST API instead of Supabase client to avoid key issues
+    const restUrl = `${supabaseUrl}/rest/v1`;
+
+    // Update profiles table using REST API
+    const profileUrl = `${restUrl}/profiles?id=eq.${state}`;
+    console.log('Making PATCH request to:', profileUrl);
+
+    const profileResponse = await fetch(profileUrl, {
+      method: 'PATCH',
+      headers: {
+        'apikey': supabaseKey,
+        'Authorization': `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        google_calendar_access_token: tokens.access_token,
+        google_calendar_refresh_token: tokens.refresh_token,
+        google_calendar_token_expiry: new Date(
+          Date.now() + tokens.expires_in * 1000
+        ).toISOString(),
+      })
+    });
+
+    console.log('Profile update response:', {
+      status: profileResponse.status,
+      ok: profileResponse.ok
+    });
+
+    if (!profileResponse.ok) {
+      const error = await profileResponse.text();
+      console.error('Profile update failed:', error);
+      return NextResponse.redirect(
+        new URL(`/settings/integrations?error=db_update_failed&message=${encodeURIComponent(error)}`, request.url)
+      );
+    }
+
+    const profileData = await profileResponse.json();
+    console.log('Profile updated successfully:', profileData);
+
+    // Enable Google Calendar sync in business_config
+    const configResponse = await fetch(`${restUrl}/business_config?user_id=eq.${state}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': supabaseKey,
+        'Authorization': `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify({
+        google_calendar_sync_enabled: true,
+      })
+    });
+
+    console.log('Config update response:', {
+      status: configResponse.status,
+      ok: configResponse.ok
+    });
+
+    if (configResponse.ok) {
+      const configData = await configResponse.json();
+      console.log('Config updated successfully:', configData);
+    }
+
+    // Redirect back WITHOUT tokens in URL to preserve session
+    return NextResponse.redirect(
+      new URL('/settings/integrations?success=google_calendar_connected', request.url)
+    );
   } catch (err: any) {
     console.error('Google OAuth error:', err);
     return NextResponse.redirect(

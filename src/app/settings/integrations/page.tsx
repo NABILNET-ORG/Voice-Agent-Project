@@ -42,64 +42,36 @@ export default function IntegrationsManagement() {
   const [loading, setLoading] = useState(true);
   const [businessConfig, setBusinessConfig] = useState<any>(null);
   const [statusMessage, setStatusMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
-
+  // Check URL params once on mount
   useEffect(() => {
-    // Check for success/error messages in URL first
     const params = new URLSearchParams(window.location.search);
-    const googleOAuthSuccess = params.get('google_oauth_success');
+    const success = params.get('success');
     const error = params.get('error');
 
-    console.log('Integrations page loaded, checking URL params:', { googleOAuthSuccess, error, hasUser: !!user?.id });
+    console.log('Integrations page loaded, checking URL params:', { success, error });
 
-    if (googleOAuthSuccess === 'true') {
-      // Extract tokens from URL
-      const accessToken = params.get('access_token');
-      const refreshToken = params.get('refresh_token');
-      const expiresIn = params.get('expires_in');
-      const userId = params.get('user_id');
-
-      // Save tokens via authenticated API endpoint
-      if (accessToken && userId) {
-        console.log('Calling save-tokens API...');
-        fetch('/api/integrations/google/save-tokens', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            accessToken,
-            refreshToken,
-            expiresIn: parseInt(expiresIn || '3600'),
-            userId
-          })
-        })
-          .then(res => res.json())
-          .then(data => {
-            if (data.success) {
-              setStatusMessage({ type: 'success', text: 'Google Calendar connected successfully!' });
-              setTimeout(() => setStatusMessage(null), 5000);
-              // Reload integrations to show updated status
-              setTimeout(() => loadIntegrations(), 500);
-            } else {
-              setStatusMessage({ type: 'error', text: `Failed to save connection: ${data.error}` });
-              setTimeout(() => setStatusMessage(null), 5000);
-            }
-          })
-          .catch(err => {
-            setStatusMessage({ type: 'error', text: `Failed to save connection: ${err.message}` });
-            setTimeout(() => setStatusMessage(null), 5000);
-          });
-
-        // Clean URL immediately
-        window.history.replaceState({}, '', '/settings/integrations');
+    if (success === 'google_calendar_connected') {
+      setStatusMessage({ type: 'success', text: 'Google Calendar connected successfully!' });
+      // Clean URL
+      window.history.replaceState({}, '', '/settings/integrations');
+      // Reload integrations immediately to show new status
+      if (user?.id) {
+        loadIntegrations();
       }
+      // Clear success message after delay
+      setTimeout(() => {
+        setStatusMessage(null);
+      }, 5000);
     } else if (error) {
       const message = params.get('message') || error;
       setStatusMessage({ type: 'error', text: `Connection failed: ${message}` });
       setTimeout(() => setStatusMessage(null), 5000);
-      // Clean URL
       window.history.replaceState({}, '', '/settings/integrations');
     }
+  }, [user]);
 
-    // Load integrations data
+  // Load integrations data when user is ready
+  useEffect(() => {
     if (user?.id) {
       loadIntegrations();
     }
@@ -258,13 +230,21 @@ export default function IntegrationsManagement() {
   };
 
   const handleConnect = (integration: Integration) => {
-    // For Google Calendar, initiate OAuth flow
-    if (integration.id === 'google-calendar') {
-      window.location.href = `/api/auth/google?user_id=${user!.id}`;
+    // Verify user is logged in
+    if (!user?.id) {
+      setStatusMessage({ type: 'error', text: 'Please log in first to connect integrations' });
+      setTimeout(() => setStatusMessage(null), 3000);
       return;
     }
 
-    // For other integrations, open config dialog
+    // For Google Calendar, initiate OAuth flow if not connected
+    if (integration.id === 'google-calendar' && integration.status !== 'connected') {
+      console.log('Initiating Google OAuth for user:', user.id);
+      window.location.href = `/api/auth/google?user_id=${user.id}`;
+      return;
+    }
+
+    // For connected integrations or other integrations, open config dialog
     setSelectedIntegration(integration);
     setIsConfigDialogOpen(true);
   };
@@ -317,17 +297,19 @@ export default function IntegrationsManagement() {
       // Save to database based on integration type
       if (integration.id === 'google-calendar') {
         await businessConfigApi.update(user!.id, {
-          google_calendar_sync_enabled: true,
           google_calendar_id: settings.calendarId,
           calendar_sync_frequency: settings.syncFrequency,
           set_event_reminder: settings.sendReminders
         });
+
+        setStatusMessage({ type: 'success', text: 'Google Calendar settings updated successfully!' });
+        setTimeout(() => setStatusMessage(null), 3000);
       }
 
       // Update local state
       setIntegrations(prev => prev.map(int =>
         int.id === integration.id
-          ? { ...int, status: "connected" as const, settings, connectedAt: new Date(), lastSync: new Date() }
+          ? { ...int, settings, lastSync: new Date() }
           : int
       ));
 
@@ -337,6 +319,8 @@ export default function IntegrationsManagement() {
       await loadIntegrations();
     } catch (error) {
       console.error('Error saving integration config:', error);
+      setStatusMessage({ type: 'error', text: 'Failed to save settings' });
+      setTimeout(() => setStatusMessage(null), 3000);
     }
   };
 
@@ -368,6 +352,21 @@ export default function IntegrationsManagement() {
       <div className="flex-1 space-y-6 p-6">
         <div className="flex justify-center items-center py-24">
           <Loader2 className="h-12 w-12 animate-spin text-gray-400" />
+          <p className="text-gray-400 ml-4">Loading integrations...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user?.id) {
+    return (
+      <div className="flex-1 space-y-6 p-6">
+        <div className="flex justify-center items-center py-24 flex-col">
+          <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
+          <p className="text-gray-400">Please log in to manage integrations</p>
+          <Button className="mt-4 bg-[#84CC16] text-black" onClick={() => window.location.href = '/login'}>
+            Go to Login
+          </Button>
         </div>
       </div>
     );

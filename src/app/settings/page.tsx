@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { businessConfigApi, type BusinessConfig as DBBusinessConfig } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
+import { KnowledgeBaseManager } from "@/components/KnowledgeBaseManager";
 import { Save, RotateCcw, TestTube, Upload, Download, Plus, Trash2, Check, X, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -1145,6 +1146,43 @@ export default function BusinessSettings() {
               <CardTitle className="text-white">AI Assistant Configuration</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* AI Model Selection */}
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-4">AI Model Provider</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-gray-300">Provider</Label>
+                    <Select defaultValue="openai">
+                      <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#1A1A1A] border-gray-700">
+                        <SelectItem value="openai">OpenAI</SelectItem>
+                        <SelectItem value="gemini">Google Gemini</SelectItem>
+                        <SelectItem value="openrouter">OpenRouter</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-gray-300">Model</Label>
+                    <Select defaultValue="gpt-4o-realtime">
+                      <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#1A1A1A] border-gray-700">
+                        <SelectItem value="gpt-4o-realtime">GPT-4o Realtime</SelectItem>
+                        <SelectItem value="gemini-2.0-flash">Gemini 2.0 Flash (Coming Soon)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <p className="text-gray-500 text-sm mt-2">
+                  Note: Currently only OpenAI Realtime API is supported. Gemini and OpenRouter support coming soon.
+                </p>
+              </div>
+
+              <Separator className="bg-gray-800" />
+
               {/* Voice & Personality */}
               <div>
                 <h3 className="text-lg font-semibold text-white mb-4">Voice & Personality</h3>
@@ -1337,6 +1375,17 @@ export default function BusinessSettings() {
                   />
                   <Label htmlFor="enableCallRecording" className="text-gray-300">Enable Call Recording</Label>
                 </div>
+              </div>
+
+              <Separator className="bg-gray-800" />
+
+              {/* Knowledge Base */}
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-4">Knowledge Base</h3>
+                <p className="text-gray-400 text-sm mb-4">
+                  Add websites and documents to provide context to your AI assistant. The AI will use this information to answer questions accurately.
+                </p>
+                {user?.id && <KnowledgeBaseManager userId={user.id} />}
               </div>
             </CardContent>
           </Card>
