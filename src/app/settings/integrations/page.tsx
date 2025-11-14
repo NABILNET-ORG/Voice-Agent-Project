@@ -50,17 +50,47 @@ export default function IntegrationsManagement() {
 
     // Check for success/error messages in URL
     const params = new URLSearchParams(window.location.search);
-    const success = params.get('success');
+    const googleOAuthSuccess = params.get('google_oauth_success');
     const error = params.get('error');
 
-    if (success === 'google_calendar_connected') {
-      setStatusMessage({ type: 'success', text: 'Google Calendar connected successfully!' });
-      setTimeout(() => setStatusMessage(null), 5000);
-      // Clean URL and reload data
-      window.history.replaceState({}, '', '/settings/integrations');
-      // Reload integrations to show updated status
-      if (user?.id) {
-        setTimeout(() => loadIntegrations(), 500);
+    if (googleOAuthSuccess === 'true' && user?.id) {
+      // Extract tokens from URL
+      const accessToken = params.get('access_token');
+      const refreshToken = params.get('refresh_token');
+      const expiresIn = params.get('expires_in');
+      const userId = params.get('user_id');
+
+      // Save tokens via authenticated API endpoint
+      if (accessToken && userId) {
+        fetch('/api/integrations/google/save-tokens', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            accessToken,
+            refreshToken,
+            expiresIn: parseInt(expiresIn || '3600'),
+            userId
+          })
+        })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              setStatusMessage({ type: 'success', text: 'Google Calendar connected successfully!' });
+              setTimeout(() => setStatusMessage(null), 5000);
+              // Reload integrations to show updated status
+              setTimeout(() => loadIntegrations(), 500);
+            } else {
+              setStatusMessage({ type: 'error', text: `Failed to save connection: ${data.error}` });
+              setTimeout(() => setStatusMessage(null), 5000);
+            }
+          })
+          .catch(err => {
+            setStatusMessage({ type: 'error', text: `Failed to save connection: ${err.message}` });
+            setTimeout(() => setStatusMessage(null), 5000);
+          });
+
+        // Clean URL immediately
+        window.history.replaceState({}, '', '/settings/integrations');
       }
     } else if (error) {
       const message = params.get('message') || error;

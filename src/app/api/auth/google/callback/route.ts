@@ -58,59 +58,20 @@ export async function GET(request: Request) {
     const tokens = await tokenResponse.json();
     console.log('Tokens received:', {
       access_token: tokens.access_token?.substring(0, 20),
-      has_refresh: !!tokens.refresh_token
+      has_refresh: !!tokens.refresh_token,
+      expires_in: tokens.expires_in
     });
 
-    // Initialize Supabase admin client for server-side operations
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+    // Create a redirect URL with token data embedded
+    // The frontend will save these using an authenticated API call
+    const redirectUrl = new URL('/settings/integrations', request.url);
+    redirectUrl.searchParams.set('google_oauth_success', 'true');
+    redirectUrl.searchParams.set('access_token', tokens.access_token);
+    redirectUrl.searchParams.set('refresh_token', tokens.refresh_token || '');
+    redirectUrl.searchParams.set('expires_in', tokens.expires_in.toString());
+    redirectUrl.searchParams.set('user_id', state);
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
-    });
-
-    // Store tokens in profiles table
-    const { data: profileData, error: updateError } = await supabase
-      .from('profiles')
-      .update({
-        google_calendar_access_token: tokens.access_token,
-        google_calendar_refresh_token: tokens.refresh_token,
-        google_calendar_token_expiry: new Date(
-          Date.now() + tokens.expires_in * 1000
-        ).toISOString(),
-      })
-      .eq('id', state)
-      .select();
-
-    console.log('Profile update result:', { success: !updateError, data: profileData });
-
-    if (updateError) {
-      console.error('Profile update error:', updateError);
-      throw updateError;
-    }
-
-    // Also enable Google Calendar sync in business_config
-    const { data: configData, error: configError } = await supabase
-      .from('business_config')
-      .update({
-        google_calendar_sync_enabled: true,
-      })
-      .eq('user_id', state)
-      .select();
-
-    console.log('Config update result:', { success: !configError, data: configData });
-
-    if (configError) {
-      console.error('Config update error:', configError);
-    }
-
-    // Redirect back to integrations page with success
-    return NextResponse.redirect(
-      new URL('/settings/integrations?success=google_calendar_connected', request.url)
-    );
+    return NextResponse.redirect(redirectUrl);
   } catch (err: any) {
     console.error('Google OAuth error:', err);
     return NextResponse.redirect(
