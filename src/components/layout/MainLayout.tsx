@@ -7,10 +7,14 @@ interface MainLayoutProps {
 
 export function MainLayout({ children }: MainLayoutProps) {
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-screen bg-black overflow-hidden">
       <Sidebar />
       <main className="flex-1 overflow-auto">
-        <div className="container mx-auto p-6">{children}</div>
+        <div className="container mx-auto px-8 py-8 max-w-[1600px]">
+          <div className="animate-fade-in">
+            {children}
+          </div>
+        </div>
       </main>
     </div>
   );

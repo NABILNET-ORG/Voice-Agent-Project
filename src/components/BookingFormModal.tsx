@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -20,6 +20,14 @@ import {
 import { supabase } from '../lib/supabase';
 import { Loader2 } from 'lucide-react';
 
+interface Service {
+  id: string;
+  name: string;
+  description: string;
+  duration: number;
+  price: number;
+}
+
 interface BookingFormModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -33,12 +41,14 @@ export function BookingFormModal({
 }: BookingFormModalProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [services, setServices] = useState<Service[]>([]);
 
   // Form state
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
   const [serviceOrItem, setServiceOrItem] = useState('');
+  const [selectedServiceId, setSelectedServiceId] = useState('');
   const [bookingType, setBookingType] = useState<'appointment' | 'delivery'>('appointment');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
@@ -47,11 +57,56 @@ export function BookingFormModal({
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [notes, setNotes] = useState('');
 
+  // Fetch services on component mount
+  useEffect(() => {
+    if (open) {
+      fetchServices();
+    }
+  }, [open]);
+
+  const fetchServices = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('business_config')
+        .select('services')
+        .single() as { data: { services: Service[] } | null; error: any };
+
+      if (error) throw error;
+
+      const servicesArray = data?.services || [];
+      setServices(servicesArray);
+    } catch (error) {
+      console.error('Error fetching services:', error);
+    }
+  };
+
+  const handleServiceSelect = (serviceId: string) => {
+    setSelectedServiceId(serviceId);
+
+    if (serviceId === 'custom') {
+      // Allow custom service
+      setServiceOrItem('');
+      setDurationMinutes('60');
+      setBasePrice('');
+    } else {
+      // Auto-fill service details
+      const service = services.find(s => s.id === serviceId);
+      if (service) {
+        setServiceOrItem(service.name);
+        setDurationMinutes(service.duration.toString());
+        if (service.price > 0) {
+          setBasePrice(service.price.toString());
+        }
+      }
+    }
+  };
+
   const resetForm = () => {
     setCustomerName('');
     setCustomerPhone('');
     setCustomerEmail('');
     setServiceOrItem('');
+    setSelectedServiceId('');
     setBookingType('appointment');
     setDate('');
     setTime('');
@@ -205,18 +260,65 @@ export function BookingFormModal({
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="serviceOrItem">
-                Service/Item <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="serviceOrItem"
-                value={serviceOrItem}
-                onChange={(e) => setServiceOrItem(e.target.value)}
-                placeholder="Haircut, Plumbing Repair, Pizza Delivery, etc."
-                required
-              />
-            </div>
+            {/* Service Selection */}
+            {services.length > 0 ? (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="service">
+                    Service <span className="text-destructive">*</span>
+                  </Label>
+                  <Select
+                    value={selectedServiceId}
+                    onValueChange={handleServiceSelect}
+                  >
+                    <SelectTrigger id="service">
+                      <SelectValue placeholder="Select a service..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {services.map((service) => (
+                        <SelectItem key={service.id} value={service.id}>
+                          {service.name} - {service.duration}min
+                          {service.price > 0 && ` - $${service.price.toFixed(2)}`}
+                        </SelectItem>
+                      ))}
+                      <SelectItem value="custom">Custom Service</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Show custom input if "Custom Service" is selected */}
+                {selectedServiceId === 'custom' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="customService">
+                      Service Name <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="customService"
+                      value={serviceOrItem}
+                      onChange={(e) => setServiceOrItem(e.target.value)}
+                      placeholder="Enter service name..."
+                      required
+                    />
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="space-y-2">
+                <Label htmlFor="serviceOrItem">
+                  Service/Item <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="serviceOrItem"
+                  value={serviceOrItem}
+                  onChange={(e) => setServiceOrItem(e.target.value)}
+                  placeholder="Haircut, Plumbing Repair, Pizza Delivery, etc."
+                  required
+                />
+                <p className="text-xs text-muted-foreground">
+                  💡 Configure services in Settings → Services tab for a better experience
+                </p>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
