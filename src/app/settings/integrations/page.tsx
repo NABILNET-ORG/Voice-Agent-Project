@@ -56,10 +56,15 @@ export default function IntegrationsManagement() {
     if (success === 'google_calendar_connected') {
       setStatusMessage({ type: 'success', text: 'Google Calendar connected successfully!' });
       setTimeout(() => setStatusMessage(null), 5000);
-      // Clean URL
+      // Clean URL and reload data
       window.history.replaceState({}, '', '/settings/integrations');
+      // Reload integrations to show updated status
+      if (user?.id) {
+        setTimeout(() => loadIntegrations(), 500);
+      }
     } else if (error) {
-      setStatusMessage({ type: 'error', text: `Connection failed: ${error}` });
+      const message = params.get('message') || error;
+      setStatusMessage({ type: 'error', text: `Connection failed: ${message}` });
       setTimeout(() => setStatusMessage(null), 5000);
       // Clean URL
       window.history.replaceState({}, '', '/settings/integrations');
