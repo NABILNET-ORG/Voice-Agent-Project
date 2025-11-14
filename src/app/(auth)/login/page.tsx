@@ -31,8 +31,15 @@ export default function LoginPage() {
       if (error) throw error;
 
       if (data.session) {
-        // Successfully logged in - use hard redirect to ensure cookies are propagated
-        window.location.href = "/bookings";
+        // Get redirect URL from query params or default to bookings
+        const params = new URLSearchParams(window.location.search);
+        const redirectTo = params.get('redirectTo') || '/bookings';
+
+        // Wait a moment for cookies to be set, then do hard reload
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Use hard redirect to ensure cookies and session are properly propagated
+        window.location.href = redirectTo;
       }
     } catch (err: any) {
       console.error("Login error:", err);
