@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { Mic, MicOff, Phone, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +11,14 @@ import { useRealtimeAPI } from "@/hooks/useRealtimeAPI";
 
 export default function LiveDemo() {
   const { status, transcript, error, connect, disconnect, isConnected } = useRealtimeAPI();
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+  }, [transcript]);
 
   const getStatusText = () => {
     switch (status) {
@@ -139,6 +148,7 @@ export default function LiveDemo() {
                       {transcript.map((message, index) => (
                         <div
                           key={index}
+                          ref={index === transcript.length - 1 ? scrollRef : null}
                           className={`flex ${
                             message.role === "user" ? "justify-end" : "justify-start"
                           }`}
