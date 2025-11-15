@@ -620,9 +620,6 @@ export default function ServicesManagement() {
           </div>
         </DialogContent>
       </Dialog>
-
-      {/* Add New Service */}
-      <Card className="bg-[#1A1A1A] border-gray-800">
-        <CardHeader>
-          <CardTitle className="text-white">Add New Service Manually</CardTitle>
-        </CardHeader>
+    </div>
+  );
+}
