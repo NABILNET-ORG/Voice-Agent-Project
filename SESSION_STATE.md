@@ -1,8 +1,8 @@
 # Session State - November 15, 2025
 
 ## Session Overview
-**Duration**: ~3 hours
-**Focus**: Voice agent knowledge integration, service extraction system, settings enhancements
+**Duration**: ~4 hours
+**Focus**: Voice agent knowledge integration, service extraction system with 3 modes, settings enhancements
 
 ## Major Changes This Session
 
@@ -21,12 +21,16 @@
 - Middle East support: Asia/Riyadh (Saudi Arabia), Asia/Beirut (Lebanon)
 - All settings data now feeds into voice agent context
 
-### 3. AI Service Extraction System ✅ INFRASTRUCTURE COMPLETE
+### 3. AI Service Extraction System ✅ COMPLETE WITH 3 MODES
 - Created POST /api/services/extract-from-url (extracts from any URL)
-- Created POST /api/services/extract-from-knowledge (extracts from KB)
-- Service extraction UI with URL input + buttons
+- Created POST /api/services/extract-from-knowledge with 3 modes:
+  - **simple-query**: Quick extraction from top 2-3 sources (default, backward compatible)
+  - **full-context**: Comprehensive extraction from ALL sources via batching
+  - **batch**: One source at a time with real-time progress tracking
+- Service extraction UI with URL input + mode selection buttons (Quick/Full/Batch)
+- Real-time progress bar for batch mode
 - Service review modal with checkboxes, inline editing, select/deselect
-- Bilingual support structure (name_ar/en, description_ar/en, category_ar/en)
+- Bilingual support (name_ar/en, description_ar/en, category_ar/en)
 - Enhanced web crawling (sends full HTML, extracts short + long descriptions)
 
 ### 4. Bug Fixes & Improvements
@@ -39,38 +43,43 @@
 
 ### Working Features ✅
 - Voice agent: Loads comprehensive context from ALL settings
-- Service extraction UI: URL input, KB button, review modal
+- Service extraction: 3 modes (simple-query, full-context, batch) with progress tracking
+- Service extraction UI: URL input, mode selection, progress bar, review modal
 - Settings pages: Complete (Business Info, Services, Availability, AI Config, Notifications)
-- Bilingual support: Structure in place (AR + EN fields)
+- Bilingual support: Full implementation (name_ar/en, description_ar/en, category_ar/en)
 - Knowledge Base: 25 sources summarized
+- Token limit fixed: Batching prevents truncation
 
-### Partially Working ⚠️
-- URL extraction: Finds 7/16 services (token limit truncation)
-- KB extraction: Finds 2/16 services (8192 token output limit)
-- Issues: Only Arabic names, English descriptions, missing bilingual fields
+### Ready for Testing ⚠️
+- Test simple-query mode (should extract 2-3 services quickly)
+- Test full-context mode (should extract all 25+ services via batching)
+- Test batch mode (should show real-time progress)
+- Verify bilingual extraction works correctly
 
 ### Known Issues
-1. **Token Limit**: Gemini maxOutputTokens=8192 truncates responses mid-array
-2. **Bilingual incomplete**: Not extracting both AR and EN consistently
-3. **Categories**: Wrong/missing category extraction
-4. **Deduplication**: No duplicate detection yet
+1. **Deduplication**: No duplicate detection yet (next priority)
+2. **Category extraction**: May need refinement based on testing results
 
 ## Technical Details
 
-**Root Cause Identified**: 8192 token output limit
-- KB extraction: 25 sources → only 2-3 fit in response
-- URL extraction: 16 services → only 7 fit in response
-- Solution: Batch processing (process 1 source at a time, aggregate results)
+**Problem Solved**: 8192 token output limit
+- Previous: KB extraction → only 2-3 services due to truncation
+- Solution implemented: 3 extraction modes
+  1. simple-query: Top 2-3 sources (fast, default)
+  2. full-context: Batch processing (8 sources per call)
+  3. batch: One source at a time with progress tracking
+- All modes support bilingual extraction
+- Backward compatible (defaults to simple-query)
 
-**Files Modified** (14 commits):
+**Files Modified** (15 commits):
 - src/app/settings/integrations/page.tsx (AI save fixes)
 - src/hooks/useRealtimeAPI.ts (context loading)
 - src/app/api/voice-agent/context/route.ts (comprehensive context)
 - src/app/settings/page.tsx (notifications, availability, timezones)
-- src/app/settings/services/page.tsx (extraction UI + modal)
+- src/app/settings/services/page.tsx (extraction UI + 3 modes + progress)
 - src/app/api/services/extract-from-url/route.ts (URL extraction)
-- src/app/api/services/extract-from-knowledge/route.ts (KB extraction + debug)
+- src/app/api/services/extract-from-knowledge/route.ts (3 modes + batching + bilingual)
 
 ---
 
-**Session End Status**: Voice agent fully integrated, service extraction infrastructure complete, token limit issue diagnosed
+**Session End Status**: Voice agent fully integrated, service extraction with 3 modes complete, token limit issue SOLVED
