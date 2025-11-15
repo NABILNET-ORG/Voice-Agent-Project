@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { User, Mail, Phone, Globe, Clock, Shield, CreditCard, Download, Trash2, Key, Smartphone, LogOut, AlertTriangle } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,6 +17,7 @@ import { Separator } from "@/components/ui/separator";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 export default function AccountSettings() {
+  const router = useRouter();
   const [profile, setProfile] = useState({
     fullName: "John Doe",
     email: "john@example.com",
@@ -40,6 +44,34 @@ export default function AccountSettings() {
 
   const currentPlan = "free";
 
+  const handleLogout = async () => {
+    try {
+      // Sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+
+      if (error) {
+        console.error("Logout error:", error);
+        toast.error("Failed to sign out");
+        return;
+      }
+
+      // Clear all local storage
+      if (typeof window !== "undefined") {
+        localStorage.clear();
+        sessionStorage.clear();
+      }
+
+      toast.success("Signed out successfully");
+
+      // Redirect to login
+      router.push("/login");
+      router.refresh();
+    } catch (error) {
+      console.error("Unexpected logout error:", error);
+      toast.error("An error occurred during sign out");
+    }
+  };
+
   return (
     <div className="flex-1 space-y-6 p-6">
       <div className="flex items-center justify-between">
@@ -47,7 +79,11 @@ export default function AccountSettings() {
           <h1 className="text-3xl font-bold text-white">Account Settings</h1>
           <p className="text-gray-400 mt-2">Manage your profile and account preferences</p>
         </div>
-        <Button variant="outline" className="border-gray-700 text-gray-300 hover:text-white">
+        <Button
+          variant="outline"
+          className="border-gray-700 text-gray-300 hover:text-white"
+          onClick={handleLogout}
+        >
           <LogOut className="h-4 w-4 mr-2" />
           Sign Out
         </Button>

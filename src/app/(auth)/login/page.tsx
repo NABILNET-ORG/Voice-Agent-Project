@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2, Phone, Mail, Lock, AlertCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { signInWithRetry } from "@/lib/auth-helpers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,12 +24,8 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) throw error;
+      // Use retry logic for better reliability
+      const data = await signInWithRetry(email, password);
 
       if (data.session) {
         // Get redirect URL from query params or default to bookings
