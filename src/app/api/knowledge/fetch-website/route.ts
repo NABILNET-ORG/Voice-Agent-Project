@@ -111,6 +111,28 @@ async function fetchAndCleanPage(url: string) {
   }
 }
 
+// Normalize URL to prevent duplicates
+function normalizeUrl(url: string): string {
+  try {
+    const parsed = new URL(url);
+    // Remove trailing slash, convert to lowercase, remove www
+    let normalized = parsed.href.toLowerCase();
+    if (normalized.endsWith('/')) {
+      normalized = normalized.slice(0, -1);
+    }
+    // Remove fragment
+    normalized = normalized.split('#')[0];
+    // Remove common query params that don't change content
+    const urlObj = new URL(normalized);
+    urlObj.searchParams.delete('utm_source');
+    urlObj.searchParams.delete('utm_medium');
+    urlObj.searchParams.delete('utm_campaign');
+    return urlObj.href;
+  } catch {
+    return url;
+  }
+}
+
 async function smartCrawl(
   startUrl: string,
   maxDepth: number,
@@ -126,12 +148,13 @@ async function smartCrawl(
 
   while (queue.length > 0 && pages.length < maxPages) {
     const { url, depth } = queue.shift()!;
+    const normalizedUrl = normalizeUrl(url);
 
-    if (visited.has(url) || depth > maxDepth) {
+    if (visited.has(normalizedUrl) || depth > maxDepth) {
       continue;
     }
 
-    visited.add(url);
+    visited.add(normalizedUrl);
 
     const page = await fetchAndCleanPage(url);
     pages.push(page);
@@ -160,8 +183,9 @@ async function smartCrawl(
           // Only follow links on same domain
           if (linkUrl.hostname !== baseDomain) return;
 
-          // Skip already visited
-          if (visited.has(absoluteUrl)) return;
+          // Skip already visited (use normalized URL)
+          const normalizedLink = normalizeUrl(absoluteUrl);
+          if (visited.has(normalizedLink)) return;
 
           // Skip certain file types
           if (absoluteUrl.match(/\.(pdf|jpg|jpeg|png|gif|zip|exe|dmg)$/i)) return;
