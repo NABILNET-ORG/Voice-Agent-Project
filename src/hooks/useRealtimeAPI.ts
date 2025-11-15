@@ -506,7 +506,13 @@ export function useRealtimeAPI() {
   const handleRealtimeEvent = (event: any) => {
     switch (event.type) {
       case 'conversation.item.created':
-        if (event.item?.type === 'message') {
+        // Check if it's a function call
+        if (event.item?.type === 'function_call') {
+          console.log('[Function Call] conversation.item.created', event.item);
+          if (event.item.call_id && event.item.name && event.item.arguments) {
+            handleFunctionCall(event.item.call_id, event.item.name, event.item.arguments);
+          }
+        } else if (event.item?.type === 'message') {
           const role = event.item.role;
           if (event.item.content) {
             event.item.content.forEach((content: any) => {
@@ -569,8 +575,10 @@ export function useRealtimeAPI() {
 
       case 'response.function_call_arguments.done':
         // Agent is calling a tool/function
-        console.log('[Function Call]', event.name, event.arguments);
-        handleFunctionCall(event.call_id, event.name, event.arguments);
+        console.log('[Function Call] response.function_call_arguments.done', event);
+        if (event.call_id && event.name && event.arguments) {
+          handleFunctionCall(event.call_id, event.name, event.arguments);
+        }
         break;
 
       case 'input_audio_buffer.speech_started':
