@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Globe, FileText, Loader2, Eye, Download, Search, Sparkles, CheckSquare, Square } from "lucide-react";
+import { Plus, Trash2, Globe, FileText, Loader2, Eye, Download, Search, Sparkles, CheckSquare, Square, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -24,10 +24,12 @@ export function KnowledgeBaseManager({ userId }: Props) {
   const [loading, setLoading] = useState(true);
   const [fetchDialogOpen, setFetchDialogOpen] = useState(false);
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [fetching, setFetching] = useState(false);
   const [summarizing, setSummarizing] = useState(false);
   const [resummaryProgress, setResummaryProgress] = useState<{current: number, total: number, title: string} | null>(null);
   const [selectedSources, setSelectedSources] = useState<Set<string>>(new Set());
+  const [editingSource, setEditingSource] = useState<KnowledgeSource | null>(null);
 
   // Add website form
   const [newUrl, setNewUrl] = useState('');
@@ -394,6 +396,18 @@ export function KnowledgeBaseManager({ userId }: Props) {
                       <Button
                         variant="ghost"
                         size="sm"
+                        className="text-gray-400 hover:text-blue-400"
+                        onClick={() => {
+                          setEditingSource(source);
+                          setEditDialogOpen(true);
+                        }}
+                        title="Edit source"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         className="text-gray-400 hover:text-[#84CC16]"
                         onClick={async () => {
                           if (source.content) {
@@ -578,6 +592,92 @@ export function KnowledgeBaseManager({ userId }: Props) {
               </div>
             </ScrollArea>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Source Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="bg-[#1A1A1A] border-gray-700 text-white max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Knowledge Source</DialogTitle>
+          </DialogHeader>
+          {editingSource && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Title</Label>
+                <Input
+                  value={editingSource.title}
+                  onChange={(e) => setEditingSource({...editingSource, title: e.target.value})}
+                  className="bg-gray-800 border-gray-700 text-white"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>URL</Label>
+                <Input
+                  value={editingSource.url || ''}
+                  onChange={(e) => setEditingSource({...editingSource, url: e.target.value})}
+                  className="bg-gray-800 border-gray-700 text-white"
+                  disabled
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Priority (1-3)</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={3}
+                  value={editingSource.priority || 3}
+                  onChange={(e) => setEditingSource({...editingSource, priority: parseInt(e.target.value) || 3})}
+                  className="bg-gray-800 border-gray-700 text-white"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Summary</Label>
+                <Textarea
+                  value={editingSource.summary || ''}
+                  onChange={(e) => setEditingSource({...editingSource, summary: e.target.value})}
+                  className="bg-gray-800 border-gray-700 text-white min-h-[100px]"
+                  placeholder="Brief summary of this source..."
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setEditDialogOpen(false);
+                    setEditingSource(null);
+                  }}
+                  className="border-gray-700"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={async () => {
+                    try {
+                      await supabase
+                        .from('knowledge_sources')
+                        .update({
+                          title: editingSource.title,
+                          priority: editingSource.priority,
+                          summary: editingSource.summary
+                        })
+                        .eq('id', editingSource.id);
+
+                      setEditDialogOpen(false);
+                      setEditingSource(null);
+                      loadSources();
+                    } catch (error) {
+                      console.error('Error updating source:', error);
+                      alert('Failed to update source');
+                    }
+                  }}
+                  className="bg-[#84CC16] text-black hover:bg-[#65A30D]"
+                >
+                  Save Changes
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
