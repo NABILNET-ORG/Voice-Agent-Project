@@ -93,37 +93,45 @@ Total sources: ${knowledgeSources.length}
 Knowledge Base Content:
 ${combinedContent.substring(0, 50000)}
 
+IMPORTANT INSTRUCTIONS:
+1. Look for ANY items that could be services or products (books, readings, crystals, tools, courses, sessions, etc.)
+2. Extract EVERYTHING mentioned, even if only briefly
+3. Preserve the ORIGINAL LANGUAGE - do NOT translate (keep Arabic as Arabic, French as French, etc.)
+4. Extract ALL available information including full descriptions
+5. Look for prices in any currency format
+
 Extract each service/product with:
-- name (required): Clear, concise service/product name
-- description (optional): Brief description
+- name (required): ORIGINAL name in ORIGINAL language - DO NOT TRANSLATE
+- description (required): FULL description in ORIGINAL language - extract ALL details found
 - price (optional): Numeric price only (no currency symbols)
 - duration (optional): Duration in minutes (for services)
-- category (optional): Service/product category
+- category (optional): Service/product category in ORIGINAL language
 - sourceIndex (optional): Which source number mentioned this (1-${knowledgeSources.length})
 
 Return ONLY a valid JSON array of ALL unique services/products found, nothing else. Example format:
 [
   {
-    "name": "Tarot Reading",
-    "description": "30-minute personal tarot reading session",
+    "name": "قراءة التاروت",
+    "description": "جلسة قراءة التاروت الشخصية لمدة 30 دقيقة مع تفسير شامل للبطاقات",
     "price": 45,
     "duration": 30,
-    "category": "Readings",
+    "category": "القراءات",
     "sourceIndex": 1
   },
   {
-    "name": "Crystal Healing",
-    "description": "Energy healing with crystals",
-    "price": 60,
-    "duration": 45,
-    "category": "Healing",
-    "sourceIndex": 3
+    "name": "Crystal Healing Book",
+    "description": "Comprehensive guide to crystal healing practices and techniques for beginners",
+    "price": 25,
+    "category": "Books",
+    "sourceIndex": 2
   }
 ]
 
-If no services/products found, return empty array: []
-
-IMPORTANT: Include ALL services/products mentioned, even if spread across different sources.`,
+CRITICAL:
+- DO NOT translate anything - keep original language
+- Extract COMPLETE descriptions, not just summaries
+- Include EVERY product/service mentioned
+- If no services/products found, return empty array: []`,
                 },
               ],
             },

@@ -79,7 +79,7 @@ export async function POST(request: Request) {
             {
               parts: [
                 {
-                  text: `Extract all services or products from this website content.
+                  text: `Extract ALL services or products from this website content.
 
 Business category: ${businessCategory || "general"}
 
@@ -88,31 +88,40 @@ Website URL: ${url}
 Content:
 ${textContent.substring(0, 50000)}
 
+CRITICAL INSTRUCTIONS:
+1. Preserve the ORIGINAL LANGUAGE - DO NOT TRANSLATE (if Arabic, keep Arabic; if French, keep French, etc.)
+2. Extract COMPLETE descriptions - include ALL details found on the page
+3. Look for ANY items that could be products or services
+4. Extract prices in any currency format
+
 Extract each service/product with:
-- name (required): Clear, concise service/product name
-- description (optional): Brief description
+- name (required): ORIGINAL name in ORIGINAL language - DO NOT TRANSLATE
+- description (required): COMPLETE description in ORIGINAL language - extract ALL details, benefits, features
 - price (optional): Numeric price only (no currency symbols)
 - duration (optional): Duration in minutes (for services)
-- category (optional): Service/product category
+- category (optional): Service/product category in ORIGINAL language
 
-Return ONLY a valid JSON array of services, nothing else. Example format:
+Return ONLY a valid JSON array of ALL services/products, nothing else. Example format:
 [
   {
-    "name": "Basic Haircut",
-    "description": "Professional haircut with styling",
-    "price": 25,
+    "name": "قراءة التاروت الشاملة",
+    "description": "جلسة قراءة تاروت كاملة لمدة 30 دقيقة تشمل تفسير البطاقات وتوجيهات شخصية للمستقبل",
+    "price": 150,
     "duration": 30,
-    "category": "Hair Services"
+    "category": "الخدمات الروحانية"
   },
   {
     "name": "Deluxe Pizza",
-    "description": "Large pizza with premium toppings",
+    "description": "Large 14-inch pizza with premium toppings including pepperoni, mushrooms, bell peppers, and extra cheese on hand-tossed dough",
     "price": 18.99,
     "category": "Main Dishes"
   }
 ]
 
-If no services/products found, return empty array: []`,
+CRITICAL:
+- DO NOT translate - keep original language
+- Extract FULL descriptions, not summaries
+- If no services/products found, return empty array: []`,
                 },
               ],
             },
