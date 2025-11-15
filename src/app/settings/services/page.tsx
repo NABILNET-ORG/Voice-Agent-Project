@@ -47,8 +47,14 @@ export default function ServicesManagement() {
   const [extractedServices, setExtractedServices] = useState<Service[]>([]);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [businessCategory, setBusinessCategory] = useState("general");
-  const [extractionMode, setExtractionMode] = useState<'simple-query' | 'full-context' | 'batch'>('simple-query');
+
+  // KB extraction modes
+  const [kbExtractionMode, setKbExtractionMode] = useState<'simple-query' | 'full-context' | 'batch'>('simple-query');
   const [batchProgress, setBatchProgress] = useState<{ current: number; total: number; percentage: number } | null>(null);
+
+  // URL extraction modes
+  const [urlExtractionMode, setUrlExtractionMode] = useState<'single-page' | 'deep-extraction' | 'full-crawl'>('single-page');
+  const [maxPages, setMaxPages] = useState(20);
 
   useEffect(() => {
     if (user?.id) {
@@ -132,12 +138,19 @@ export default function ServicesManagement() {
 
     try {
       setFetching(true);
-      setMessage("Extracting services from URL...");
+      const modeText = urlExtractionMode === 'single-page' ? 'quick' :
+                       urlExtractionMode === 'deep-extraction' ? 'deep' : 'full crawl';
+      setMessage(`Extracting services from URL (${modeText} mode)...`);
 
       const response = await fetch('/api/services/extract-from-url', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: fetchUrl, businessCategory })
+        body: JSON.stringify({
+          url: fetchUrl,
+          businessCategory,
+          mode: urlExtractionMode,
+          maxPages
+        })
       });
 
       const data = await response.json();
@@ -148,7 +161,14 @@ export default function ServicesManagement() {
 
       setExtractedServices(data.services);
       setShowReviewModal(true);
-      setMessage(`Found ${data.count} services!`);
+
+      // Show crawl stats if available (full-crawl mode)
+      if (data.crawlStats) {
+        setMessage(`Crawled ${data.crawlStats.pagesCrawled} pages, found ${data.crawlStats.servicesFound} services, ${data.crawlStats.uniqueServices} unique!`);
+      } else {
+        setMessage(`Found ${data.count} services!`);
+      }
+
       setTimeout(() => setMessage(""), 3000);
     } catch (error: any) {
       console.error('Error fetching services:', error);
@@ -165,7 +185,7 @@ export default function ServicesManagement() {
       setBatchProgress(null);
       setExtractedServices([]);
 
-      if (extractionMode === 'batch') {
+      if (kbExtractionMode === 'batch') {
         // Batch mode: iterate through sources one at a time
         setMessage("Starting batch extraction...");
         let allServices: Service[] = [];
@@ -213,7 +233,7 @@ export default function ServicesManagement() {
         setMessage(`Found ${allServices.length} services from batch extraction!`);
       } else {
         // Simple-query or full-context mode
-        const modeText = extractionMode === 'simple-query' ? 'quick' : 'comprehensive';
+        const modeText = kbExtractionMode === 'simple-query' ? 'quick' : 'comprehensive';
         setMessage(`Running ${modeText} extraction from knowledge base...`);
 
         const response = await fetch('/api/services/extract-from-knowledge', {
@@ -221,7 +241,7 @@ export default function ServicesManagement() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             businessCategory,
-            mode: extractionMode
+            mode: kbExtractionMode
           })
         });
 
@@ -442,6 +462,69 @@ export default function ServicesManagement() {
           {/* Fetch from URL */}
           <div className="space-y-3">
             <Label className="text-gray-300">Extract from Website URL</Label>
+
+            {/* URL Mode Selection */}
+            <div className="grid grid-cols-3 gap-2">
+              <Button
+                onClick={() => setUrlExtractionMode('single-page')}
+                variant={urlExtractionMode === 'single-page' ? 'default' : 'outline'}
+                size="sm"
+                disabled={fetching}
+                className={urlExtractionMode === 'single-page'
+                  ? 'bg-[#84CC16] text-black hover:bg-[#65A30D]'
+                  : 'border-gray-700 text-gray-400 hover:text-white'
+                }
+              >
+                Single Page
+              </Button>
+              <Button
+                onClick={() => setUrlExtractionMode('deep-extraction')}
+                variant={urlExtractionMode === 'deep-extraction' ? 'default' : 'outline'}
+                size="sm"
+                disabled={fetching}
+                className={urlExtractionMode === 'deep-extraction'
+                  ? 'bg-[#84CC16] text-black hover:bg-[#65A30D]'
+                  : 'border-gray-700 text-gray-400 hover:text-white'
+                }
+              >
+                Deep
+              </Button>
+              <Button
+                onClick={() => setUrlExtractionMode('full-crawl')}
+                variant={urlExtractionMode === 'full-crawl' ? 'default' : 'outline'}
+                size="sm"
+                disabled={fetching}
+                className={urlExtractionMode === 'full-crawl'
+                  ? 'bg-[#84CC16] text-black hover:bg-[#65A30D]'
+                  : 'border-gray-700 text-gray-400 hover:text-white'
+                }
+              >
+                Full Crawl
+              </Button>
+            </div>
+
+            {/* Mode Description */}
+            <p className="text-xs text-gray-500">
+              {urlExtractionMode === 'single-page' && "Single Page: Quick extraction from current page only"}
+              {urlExtractionMode === 'deep-extraction' && "Deep: Extract ALL services from current page thoroughly"}
+              {urlExtractionMode === 'full-crawl' && `Full Crawl: Discover and crawl up to ${maxPages} pages from same domain`}
+            </p>
+
+            {/* Max Pages for Full Crawl */}
+            {urlExtractionMode === 'full-crawl' && (
+              <div className="flex items-center gap-2">
+                <Label className="text-gray-400 text-xs">Max Pages:</Label>
+                <Input
+                  type="number"
+                  value={maxPages}
+                  onChange={(e) => setMaxPages(parseInt(e.target.value) || 20)}
+                  min={1}
+                  max={50}
+                  className="bg-gray-800 border-gray-700 text-white w-20"
+                />
+              </div>
+            )}
+
             <div className="flex gap-2">
               <Input
                 value={fetchUrl}
@@ -458,9 +541,6 @@ export default function ServicesManagement() {
                 {fetching ? "Extracting..." : "Fetch Services"}
               </Button>
             </div>
-            <p className="text-xs text-gray-500">
-              Enter the URL of your services or products page
-            </p>
           </div>
 
           <Separator className="bg-gray-800" />
@@ -472,11 +552,11 @@ export default function ServicesManagement() {
             {/* Mode Selection */}
             <div className="grid grid-cols-3 gap-2">
               <Button
-                onClick={() => setExtractionMode('simple-query')}
-                variant={extractionMode === 'simple-query' ? 'default' : 'outline'}
+                onClick={() => setKbExtractionMode('simple-query')}
+                variant={kbExtractionMode === 'simple-query' ? 'default' : 'outline'}
                 size="sm"
                 disabled={fetching}
-                className={extractionMode === 'simple-query'
+                className={kbExtractionMode === 'simple-query'
                   ? 'bg-[#84CC16] text-black hover:bg-[#65A30D]'
                   : 'border-gray-700 text-gray-400 hover:text-white'
                 }
@@ -484,11 +564,11 @@ export default function ServicesManagement() {
                 Quick
               </Button>
               <Button
-                onClick={() => setExtractionMode('full-context')}
-                variant={extractionMode === 'full-context' ? 'default' : 'outline'}
+                onClick={() => setKbExtractionMode('full-context')}
+                variant={kbExtractionMode === 'full-context' ? 'default' : 'outline'}
                 size="sm"
                 disabled={fetching}
-                className={extractionMode === 'full-context'
+                className={kbExtractionMode === 'full-context'
                   ? 'bg-[#84CC16] text-black hover:bg-[#65A30D]'
                   : 'border-gray-700 text-gray-400 hover:text-white'
                 }
@@ -496,11 +576,11 @@ export default function ServicesManagement() {
                 Full
               </Button>
               <Button
-                onClick={() => setExtractionMode('batch')}
-                variant={extractionMode === 'batch' ? 'default' : 'outline'}
+                onClick={() => setKbExtractionMode('batch')}
+                variant={kbExtractionMode === 'batch' ? 'default' : 'outline'}
                 size="sm"
                 disabled={fetching}
-                className={extractionMode === 'batch'
+                className={kbExtractionMode === 'batch'
                   ? 'bg-[#84CC16] text-black hover:bg-[#65A30D]'
                   : 'border-gray-700 text-gray-400 hover:text-white'
                 }
@@ -511,9 +591,9 @@ export default function ServicesManagement() {
 
             {/* Mode Description */}
             <p className="text-xs text-gray-500">
-              {extractionMode === 'simple-query' && "Quick: Extracts from top 2-3 sources (fast, minimal context)"}
-              {extractionMode === 'full-context' && "Full: Processes all sources in batches (comprehensive)"}
-              {extractionMode === 'batch' && "Batch: Processes one source at a time with progress tracking"}
+              {kbExtractionMode === 'simple-query' && "Quick: Extracts from top 2-3 sources (fast, minimal context)"}
+              {kbExtractionMode === 'full-context' && "Full: Processes all sources in batches (comprehensive)"}
+              {kbExtractionMode === 'batch' && "Batch: Processes one source at a time with progress tracking"}
             </p>
 
             {/* Progress Bar for Batch Mode */}
