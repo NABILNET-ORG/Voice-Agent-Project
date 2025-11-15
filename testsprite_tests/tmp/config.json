@@ -9,10 +9,10 @@
     "projectName": "Voice-Agent-Project",
     "projectPath": "C:\\Users\\saeee\\Downloads\\Voice-Agent-Project\\Voice-Agent-Project",
     "testIds": [],
-    "additionalInstruction": "Test EVERYTHING comprehensively:\n- All authentication flows (login, signup, password reset)\n- Live Demo voice agent page and all interactions\n- All settings pages: Business Info, Services (with 3 extraction modes), Integrations, Availability\n- Knowledge Base Manager: Add website (3 modes), Edit sources, Delete, Re-summarize\n- Service Extraction: URL extraction (Single/Deep/Full Crawl), KB extraction (Quick/Full/Batch)\n- Booking system: Create booking, Check availability, Booking history\n- Call History page\n- Analytics Dashboard\n- Account Management\n- All buttons, forms, modals, dropdowns\n- Test extraction mode selection and progress bars\n- Test filtering of non-service pages\n- Test bilingual support\n- Navigation between all pages\n- Error handling and edge cases",
+    "additionalInstruction": "Test all pages, buttons, links, forms, API endpoints, database interactions, authentication flow, booking system, analytics dashboard, voice agent demo, settings pages, service extraction, knowledge base management, and all integrations. Verify all CRUD operations work correctly.",
     "envs": {
       "API_KEY": "sk-user-8I2JI-K31qKmMZ9XHEeLIHCR0EUV62FFKJIlGk8cCz7SZvRqxdVc-bIfFRfoqgtAFAstgKVg87XeHilLOXfIrhaYqDcDsIZY_9jOvGI2ZmKvuTEcGCHumbzyggXs1bipWxk"
     }
   },
-  "proxy": "http://ed2b30e2-606a-497d-8c34-57d560307e4c:MAWvoPckieKLH3gg1Q85IW4m52GndFPX@tun.testsprite.com:8080"
+  "proxy": "http://97d6a98f-3061-4a1b-a9d2-c69271b42c9a:9xiZOpyTtQqZvmv98kiS7EaAtdWKKxJK@tun.testsprite.com:8080"
 }

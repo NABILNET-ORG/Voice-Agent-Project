@@ -1,43 +1,18 @@
 [
   {
     "id": "TC001",
-    "title": "User Signup with Valid Data",
-    "description": "Verify that a new user can successfully sign up using valid email, password, and required fields.",
+    "title": "User Login Success",
+    "description": "Verify that users can successfully log in with valid credentials.",
     "category": "functional",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to the signup page"
+        "description": "Navigate to login page"
       },
       {
         "type": "action",
-        "description": "Input valid email, strong password, and required user information"
-      },
-      {
-        "type": "action",
-        "description": "Submit the signup form"
-      },
-      {
-        "type": "assertion",
-        "description": "Confirm user account is created and user is redirected to dashboard or welcome screen"
-      }
-    ]
-  },
-  {
-    "id": "TC002",
-    "title": "User Login with Correct Credentials",
-    "description": "Verify that existing users can log in with valid email and password.",
-    "category": "functional",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to the login page"
-      },
-      {
-        "type": "action",
-        "description": "Enter correct email and password"
+        "description": "Input valid username/email and password"
       },
       {
         "type": "action",
@@ -45,14 +20,14 @@
       },
       {
         "type": "assertion",
-        "description": "Verify successful login and access to user dashboard"
+        "description": "Verify that user is redirected to main dashboard"
       }
     ]
   },
   {
-    "id": "TC003",
-    "title": "User Login Failure with Incorrect Password",
-    "description": "Verify login is denied when user inputs an incorrect password.",
+    "id": "TC002",
+    "title": "User Login Failure with Invalid Credentials",
+    "description": "Verify that login is rejected with invalid username or password.",
     "category": "error handling",
     "priority": "High",
     "steps": [
@@ -62,160 +37,252 @@
       },
       {
         "type": "action",
-        "description": "Input valid email and incorrect password"
+        "description": "Input invalid username/email or password"
       },
       {
         "type": "action",
-        "description": "Attempt to login"
+        "description": "Click login button"
       },
       {
         "type": "assertion",
-        "description": "Verify error message is displayed and login denied"
+        "description": "Verify that error message 'Invalid username or password' is displayed"
+      }
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "Password Reset Request",
+    "description": "Verify that users can request a password reset using registered email.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to forgot password page"
+      },
+      {
+        "type": "action",
+        "description": "Enter registered email and submit"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that a password reset email is sent"
       }
     ]
   },
   {
     "id": "TC004",
-    "title": "Password Reset Flow",
-    "description": "Verify user can request password reset and successfully update password via the reset link.",
+    "title": "Create New Booking with Available Slot",
+    "description": "Verify that a customer can create a booking when the selected time slot is available.",
     "category": "functional",
-    "priority": "Medium",
+    "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to the forgot password page"
+        "description": "Use AI voice agent to initiate booking process for a specific service"
       },
       {
         "type": "action",
-        "description": "Input registered email and submit password reset request"
+        "description": "Agent checks availability for requested time slot"
       },
       {
         "type": "assertion",
-        "description": "Verify password reset email is sent to user"
+        "description": "Verify availability check returns positive"
       },
       {
         "type": "action",
-        "description": "Open the reset link from email and enter a new valid password"
-      },
-      {
-        "type": "action",
-        "description": "Submit new password"
+        "description": "Customer confirms booking"
       },
       {
         "type": "assertion",
-        "description": "Confirm password is updated and user can login with new password"
+        "description": "Verify booking is created in database with correct details"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify corresponding event is created and synced in Google Calendar"
       }
     ]
   },
   {
     "id": "TC005",
-    "title": "Secure Session Management and Logout",
-    "description": "Validate that user sessions are managed securely and user can logout properly.",
-    "category": "security",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Login with valid credentials"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify session is created and secured with Supabase Auth including Row Level Security"
-      },
-      {
-        "type": "action",
-        "description": "Click the logout button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify session is destroyed and user is redirected to login page"
-      }
-    ]
-  },
-  {
-    "id": "TC006",
-    "title": "Initiate Live Voice Booking via Demo",
-    "description": "Test that customers can initiate a voice-based booking via the live demo interface and complete the booking flow successfully.",
-    "category": "functional",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to the live demo voice agent page"
-      },
-      {
-        "type": "action",
-        "description": "Enable microphone and grant WebRTC permissions"
-      },
-      {
-        "type": "action",
-        "description": "Start voice interaction and provide booking details (date, time, service)"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify AI agent understands natural language and confirms the entered booking details"
-      },
-      {
-        "type": "action",
-        "description": "Confirm booking with AI agent"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify booking appears in the booking system and Google Calendar is synced"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify confirmation notification is sent to customer"
-      }
-    ]
-  },
-  {
-    "id": "TC007",
-    "title": "Handle Booking Attempt for Unavailable Slot",
-    "description": "Verify the AI voice agent correctly identifies and responds when the requested booking time is unavailable.",
+    "title": "Booking Creation Failure due to Unavailable Slot",
+    "description": "Verify that booking cannot be created if selected time slot is unavailable.",
     "category": "error handling",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Initiate a voice booking with a time slot that is fully booked"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify AI agent informs customer of unavailability"
+        "description": "Use AI voice agent to initiate booking for a time slot already booked"
       },
       {
         "type": "action",
-        "description": "Receive alternate available time suggestions from AI agent"
+        "description": "Agent checks availability for requested time slot"
       },
       {
         "type": "assertion",
-        "description": "Verify customer can select alternate booking and booking completes successfully"
+        "description": "Verify availability check returns negative with appropriate message"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify booking is not created in database"
+      }
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "Reschedule Existing Booking Successfully",
+    "description": "Verify that a booking can be rescheduled to a new available time slot.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as business owner and navigate to booking management"
+      },
+      {
+        "type": "action",
+        "description": "Select an existing booking and request reschedule"
+      },
+      {
+        "type": "action",
+        "description": "Choose a new available time slot and confirm reschedule"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify booking details are updated with new time"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify Google Calendar event is updated accordingly"
+      }
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "Reschedule Booking to Unavailable Slot Fails",
+    "description": "Verify that rescheduling fails when the new time slot is unavailable.",
+    "category": "error handling",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as business owner and select booking to reschedule"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to reschedule to a fully booked time slot"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an error is shown preventing reschedule"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify booking remains at the original time"
       }
     ]
   },
   {
     "id": "TC008",
-    "title": "Booking Update and Cancellation from Owner Portal",
-    "description": "Validate that business owners can update booking details (change time/date/status) and cancel bookings correctly, with system syncing updates.",
+    "title": "Real-Time AI Voice Agent Conversation Success",
+    "description": "Validate that AI voice agent handles real-time voice conversation within 500ms response latency during booking.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Initiate call to AI voice agent via web demo or phone"
+      },
+      {
+        "type": "action",
+        "description": "Engage in natural language conversation requesting booking details"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify AI agent transcribes speech-to-text accurately in real-time"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify AI replies with natural voice response with latency under 500ms"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify booking is confirmed and saved with proper data"
+      }
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "Call Logs and Transcripts Storage and Search",
+    "description": "Ensure that call logs, transcripts, and outcomes are stored correctly and can be searched.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Complete several calls with the AI voice agent booking appointments"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to call logs page"
+      },
+      {
+        "type": "action",
+        "description": "Search call logs by customer name, date, or outcome"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that call logs with transcripts and outcomes appear correctly"
+      }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "Analytics Dashboard Metrics and Filtering",
+    "description": "Verify that analytics dashboard displays correct metrics and supports filters and data export.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in as business owner and navigate to analytics dashboard"
+      },
+      {
+        "type": "action",
+        "description": "View revenue, booking, and call performance charts"
+      },
+      {
+        "type": "action",
+        "description": "Apply various filters such as date ranges and service types"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify charts update correctly based on filters"
+      },
+      {
+        "type": "action",
+        "description": "Export analytics data as CSV or PDF"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify exported file matches visible data"
+      }
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "Business Settings Update and Persistence",
+    "description": "Verify that updates to business info, scheduling, and AI assistant settings persist and reflect in system behavior.",
     "category": "functional",
     "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Login as business owner"
+        "description": "Login to settings page as business owner"
       },
       {
         "type": "action",
-        "description": "Navigate to booking list or calendar view"
-      },
-      {
-        "type": "action",
-        "description": "Select an existing active booking"
-      },
-      {
-        "type": "action",
-        "description": "Modify booking details (e.g. reschedule date/time or change status to canceled)"
+        "description": "Modify business info, schedule availability, and AI personality settings"
       },
       {
         "type": "action",
@@ -223,343 +290,256 @@
       },
       {
         "type": "assertion",
-        "description": "Verify booking updates are reflected in UI and synced with Google Calendar"
+        "description": "Verify changes are saved and reload reflects updated settings"
       },
       {
         "type": "assertion",
-        "description": "Verify notifications related to booking update/cancellation are sent"
+        "description": "Verify AI voice agent uses updated personality and knowledge base responses"
       }
     ]
   },
   {
-    "id": "TC009",
-    "title": "Booking Filtering and Export",
-    "description": "Verify bookings can be filtered by date, status, or service and that filtered results can be exported.",
-    "category": "functional",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Access booking management page"
-      },
-      {
-        "type": "action",
-        "description": "Apply filters such as date range, booking status, and service type"
-      },
-      {
-        "type": "assertion",
-        "description": "Confirm displayed bookings match filter criteria"
-      },
-      {
-        "type": "action",
-        "description": "Export filtered bookings using export functionality"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify exported file contains correct booking data matching filters"
-      }
-    ]
-  },
-  {
-    "id": "TC010",
-    "title": "Google Calendar OAuth Integration",
-    "description": "Test business owner can connect their Google Calendar account via OAuth successfully and permissions are granted to sync bookings.",
+    "id": "TC012",
+    "title": "Google Calendar OAuth Flow and Sync",
+    "description": "Validate OAuth authorization with Google Calendar and ensure tokens are stored securely and syncing is enabled.",
     "category": "functional",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Login as business owner"
+        "description": "Login as business owner and navigate to Google Calendar integration page"
       },
       {
         "type": "action",
-        "description": "Go to integrations settings and select Google Calendar connection"
+        "description": "Initiate OAuth authorization with Google account"
       },
       {
         "type": "action",
-        "description": "Complete OAuth flow with Google account selection and permission grant"
+        "description": "Complete OAuth authorization flow"
       },
       {
         "type": "assertion",
         "description": "Verify OAuth tokens are stored securely"
       },
       {
-        "type": "assertion",
-        "description": "Confirm bookings created or updated are reflected in Google Calendar in near real-time"
-      }
-    ]
-  },
-  {
-    "id": "TC011",
-    "title": "AI Voice Agent Latency and Accuracy",
-    "description": "Verify that the AI voice assistant responds within 2 seconds and the transcription provided is accurate compared to spoken input.",
-    "category": "functional",
-    "priority": "High",
-    "steps": [
-      {
         "type": "action",
-        "description": "Start a sample voice interaction with the AI assistant"
-      },
-      {
-        "type": "action",
-        "description": "Speak a complex booking query or natural conversation"
+        "description": "Create bookings and verify they sync to Google Calendar"
       },
       {
         "type": "assertion",
-        "description": "Measure response latency and ensure AI answers within 2 seconds"
-      },
-      {
-        "type": "assertion",
-        "description": "Compare AI transcription with actual spoken words for accuracy"
-      }
-    ]
-  },
-  {
-    "id": "TC012",
-    "title": "Call History Access and Transcript Search",
-    "description": "Ensure business owners can view call logs, access recordings, read transcripts, search call content, and export data.",
-    "category": "functional",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Login as business owner and navigate to call history page"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify call recordings and transcripts are listed with linking to associated bookings"
-      },
-      {
-        "type": "action",
-        "description": "Search call transcripts using keywords"
-      },
-      {
-        "type": "assertion",
-        "description": "Confirm call entries shown match the search query"
-      },
-      {
-        "type": "action",
-        "description": "Export call history or transcripts data"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify exported data contains complete call log and transcript information"
+        "description": "Verify that calendar events reflect up-to-date booking info"
       }
     ]
   },
   {
     "id": "TC013",
-    "title": "Analytics Dashboard Data Accuracy and Refresh",
-    "description": "Verify analytics metrics including revenue, booking counts, call performance, and customer insights are accurate and update in near real-time.",
+    "title": "AI Service Extraction from URLs",
+    "description": "Validate AI powered extraction of service information from provided URLs with all 6 modes.",
     "category": "functional",
     "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Generate sample bookings, calls, and revenue events"
+        "description": "Provide a URL via the service extraction feature"
       },
       {
         "type": "action",
-        "description": "Access analytics dashboard"
+        "description": "Select each of the 6 extraction modes sequentially"
       },
       {
         "type": "assertion",
-        "description": "Verify metrics accurately reflect generated data"
-      },
-      {
-        "type": "action",
-        "description": "Wait and refresh view to simulate real-time updates"
-      },
-      {
-        "type": "assertion",
-        "description": "Confirm dashboard metrics refresh and update according to new data"
+        "description": "Verify extracted service content is relevant and correctly summarized for each mode"
       }
     ]
   },
   {
     "id": "TC014",
-    "title": "Business Settings Save and Apply",
-    "description": "Check that changes to business info, availability, scheduling policies, and notifications in settings are saved and applied correctly.",
+    "title": "Knowledge Base CRUD and AI Summarization",
+    "description": "Verify that users can create, read, update and delete knowledge sources and that AI summarization refresh works.",
     "category": "functional",
     "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Login as business owner and navigate to business settings page"
+        "description": "Navigate to knowledge base management"
       },
       {
         "type": "action",
-        "description": "Modify business info such as timezone, currency, language"
-      },
-      {
-        "type": "action",
-        "description": "Configure availability schedules and notification preferences"
-      },
-      {
-        "type": "action",
-        "description": "Save changes"
+        "description": "Create a new knowledge source with URL or text input"
       },
       {
         "type": "assertion",
-        "description": "Verify changes persist after page reload and take effect in booking system behavior"
+        "description": "Verify new knowledge source appears in list"
+      },
+      {
+        "type": "action",
+        "description": "Edit the knowledge source content and save"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify changes are persisted"
+      },
+      {
+        "type": "action",
+        "description": "Request AI summarization refresh for a knowledge source"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify summary is updated with AI generated content"
+      },
+      {
+        "type": "action",
+        "description": "Delete a knowledge source"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify source is removed from list and no longer accessible"
       }
     ]
   },
   {
     "id": "TC015",
-    "title": "Configure AI Assistant and Knowledge Base",
-    "description": "Verify owners can add URLs, fetch and summarize web content to train AI knowledge base, improving AI responses.",
+    "title": "Pricing Calculation Accuracy",
+    "description": "Verify pricing calculation for bookings considering taxes, fees, discounts and delivery charges.",
     "category": "functional",
-    "priority": "Medium",
+    "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to AI assistant and knowledge base configuration page"
-      },
-      {
-        "type": "action",
-        "description": "Add a new URL for content extraction using available modes (single page, deep, crawl)"
-      },
-      {
-        "type": "action",
-        "description": "Trigger fetching and summarization of content"
+        "description": "Create new bookings with varying parameters like service type, quantity, discounts and delivery options"
       },
       {
         "type": "assertion",
-        "description": "Verify content is summarized and added to knowledge base"
-      },
-      {
-        "type": "action",
-        "description": "Test AI assistant responses incorporate updated knowledge base context"
+        "description": "Verify calculated price is correct with applied tax, fees, discounts, and delivery charges"
       }
     ]
   },
   {
     "id": "TC016",
-    "title": "AI Integrations Configuration and API Key Validation",
-    "description": "Verify that business owners can configure AI providers with API keys, select models, and assign features successfully.",
+    "title": "User Profile Management and Avatar Upload",
+    "description": "Validate user profile edit workflows including avatar image upload to Supabase Storage.",
     "category": "functional",
     "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Access AI integrations configuration page"
+        "description": "Navigate to user profile page"
       },
       {
         "type": "action",
-        "description": "Enter valid API keys for OpenAI, Google Gemini, or Anthropic"
+        "description": "Edit profile details such as name, contact info"
       },
       {
         "type": "action",
-        "description": "Select AI models and assign feature roles"
+        "description": "Upload a new avatar image"
       },
       {
         "type": "action",
-        "description": "Save the configuration"
+        "description": "Save profile changes"
       },
       {
         "type": "assertion",
-        "description": "Verify configurations are saved and API keys validated"
+        "description": "Verify profile updates persist and avatar is displayed"
       }
     ]
   },
   {
     "id": "TC017",
-    "title": "Responsive UI and WebRTC Microphone Access",
-    "description": "Confirm the UI is responsive across supported browsers and microphone access is properly requested and granted for WebRTC voice agent.",
-    "category": "ui",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Open the voice agent demo page in various supported browsers and device viewports"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify UI adapts correctly to different screen sizes"
-      },
-      {
-        "type": "action",
-        "description": "Trigger microphone permission request via WebRTC"
-      },
-      {
-        "type": "assertion",
-        "description": "Confirm microphone access prompt appears and permission granted"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify voice agent records audio input correctly after permission"
-      }
-    ]
-  },
-  {
-    "id": "TC018",
-    "title": "System HTTPS and Environment Configuration",
-    "description": "Verify that the system operates exclusively over HTTPS in production environment and required environment variables are correctly configured.",
+    "title": "Session Management and Secure Sign Out",
+    "description": "Verify user session persistence and secure sign out invalidates session.",
     "category": "security",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Deploy or run system in production mode"
+        "description": "Login to the system"
+      },
+      {
+        "type": "action",
+        "description": "Close and reopen browser and verify session is persisted"
+      },
+      {
+        "type": "action",
+        "description": "Sign out from account"
       },
       {
         "type": "assertion",
-        "description": "Verify all backend and frontend traffic is served over HTTPS"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify environment variables for APIs (OpenAI, Google, Supabase) are set and loaded"
-      },
-      {
-        "type": "assertion",
-        "description": "Ensure no sensitive credentials or tokens appear in client side code"
+        "description": "Verify session is invalidated and user is redirected to login page"
       }
     ]
   },
   {
-    "id": "TC019",
-    "title": "Error Handling for Missing or Invalid API Keys",
-    "description": "Validate system behavior and user notifications when AI or Google Calendar API keys are missing or invalid.",
-    "category": "error handling",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Configure AI or Google integrations with invalid or empty API keys"
-      },
-      {
-        "type": "action",
-        "description": "Attempt AI voice agent interaction or booking calendar sync"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify meaningful error messages are shown to the owner/user"
-      },
-      {
-        "type": "assertion",
-        "description": "Ensure system gracefully handles request failures without crashing"
-      }
-    ]
-  },
-  {
-    "id": "TC020",
-    "title": "Simultaneous Booking Requests Handling",
-    "description": "Test system behavior under simultaneous booking requests to the same time slot to ensure no double bookings occur.",
+    "id": "TC018",
+    "title": "System Load and Scalability",
+    "description": "Verify system performance and booking success rate under expected simulated load.",
     "category": "functional",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Start two or more voice booking sessions requesting the same time slot concurrently"
+        "description": "Simulate concurrent calls and booking attempts up to expected max load"
       },
       {
         "type": "assertion",
-        "description": "Verify only one booking succeeds and others are prompted with availability conflict"
+        "description": "Verify zero missed calls and system handles load without failures"
       },
       {
         "type": "assertion",
-        "description": "Confirm bookings are atomic and Google Calendar sync maintains consistency"
+        "description": "Verify booking completion rate is at least 90%"
+      }
+    ]
+  },
+  {
+    "id": "TC019",
+    "title": "Error Handling on Network Failures",
+    "description": "Validate system gracefully handles network errors during booking, AI voice calls, and Google sync.",
+    "category": "error handling",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Simulate network failure during booking creation"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify user is notified and booking is not partially saved"
+      },
+      {
+        "type": "action",
+        "description": "Simulate network failure during AI voice call"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify call terminates gracefully with message and prompt to retry"
+      },
+      {
+        "type": "action",
+        "description": "Simulate network failure during Google Calendar sync"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify sync errors are logged and user can retry manually"
+      }
+    ]
+  },
+  {
+    "id": "TC020",
+    "title": "UI Navigation and Accessibility",
+    "description": "Verify UI components, navigation system, and accessibility features function correctly across pages.",
+    "category": "ui",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate through sidebar menu and breadcrumbs across all main pages"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify menus expand/collapse correctly and breadcrumbs update appropriately"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify buttons, dialogs, tables, and forms render correctly and are keyboard accessible"
       }
     ]
   }
