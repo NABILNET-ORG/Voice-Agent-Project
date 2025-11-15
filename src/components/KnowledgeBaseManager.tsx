@@ -181,12 +181,24 @@ export function KnowledgeBaseManager({ userId }: Props) {
             <div className="flex items-center gap-3">
               <Loader2 className="h-5 w-5 animate-spin text-blue-400" />
               <div className="flex-1">
-                <p className="text-blue-400 font-medium">
-                  Re-summarizing: {resummaryProgress.title}
-                </p>
-                <p className="text-blue-300 text-sm">
-                  Progress: {resummaryProgress.current} of {resummaryProgress.total} ({Math.round(resummaryProgress.current / resummaryProgress.total * 100)}%)
-                </p>
+                <div className="flex items-center justify-between">
+                  <p className="text-blue-400 font-medium">
+                    Re-summarizing: {resummaryProgress.title}
+                  </p>
+                  <Badge className="bg-blue-600 text-white">
+                    {Math.round(resummaryProgress.current / resummaryProgress.total * 100)}%
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-4 mt-1">
+                  <p className="text-blue-300 text-sm">
+                    {resummaryProgress.current} of {resummaryProgress.total} sources
+                  </p>
+                  {sources[resummaryProgress.current - 1] && (
+                    <p className="text-blue-300 text-sm">
+                      Est. Tokens: ~{Math.ceil((sources[resummaryProgress.current - 1]?.content?.split(/\s+/).length || 0) / 0.75)}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           </CardContent>
