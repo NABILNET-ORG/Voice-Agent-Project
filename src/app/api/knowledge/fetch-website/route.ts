@@ -111,26 +111,37 @@ async function fetchAndCleanPage(url: string) {
   }
 }
 
-// Normalize URL to prevent duplicates
+// Normalize URL to prevent duplicates - more aggressive normalization
 function normalizeUrl(url: string): string {
   try {
     const parsed = new URL(url);
-    // Remove trailing slash, convert to lowercase, remove www
-    let normalized = parsed.href.toLowerCase();
-    if (normalized.endsWith('/')) {
-      normalized = normalized.slice(0, -1);
+
+    // Remove www. from hostname
+    let hostname = parsed.hostname.toLowerCase();
+    if (hostname.startsWith('www.')) {
+      hostname = hostname.substring(4);
     }
-    // Remove fragment
-    normalized = normalized.split('#')[0];
-    // Remove common query params that don't change content
-    const urlObj = new URL(normalized);
-    urlObj.searchParams.delete('utm_source');
-    urlObj.searchParams.delete('utm_medium');
-    urlObj.searchParams.delete('utm_campaign');
-    return urlObj.href;
+
+    // Normalize path - remove trailing slash except for root
+    let pathname = parsed.pathname;
+    if (pathname.endsWith('/') && pathname.length > 1) {
+      pathname = pathname.slice(0, -1);
+    }
+
+    // Remove ALL query params and fragments for better deduplication
+    // Construct normalized URL
+    const normalized = `${parsed.protocol}//${hostname}${pathname}`;
+
+    return normalized.toLowerCase();
   } catch {
-    return url;
+    return url.toLowerCase();
   }
+}
+
+// Content fingerprint to detect duplicate content even with different URLs
+function getContentFingerprint(content: string): string {
+  const cleaned = content.replace(/\s+/g, ' ').trim();
+  return cleaned.substring(0, 300) + ':' + cleaned.length;
 }
 
 async function smartCrawl(
@@ -140,16 +151,18 @@ async function smartCrawl(
   priorityKeywords: string[]
 ): Promise<any[]> {
   const visited = new Set<string>();
+  const contentFingerprints = new Set<string>();
   const pages: any[] = [];
   const queue: { url: string; depth: number }[] = [{ url: startUrl, depth: 0 }];
 
   const baseUrl = new URL(startUrl);
-  const baseDomain = baseUrl.hostname;
+  const baseDomain = baseUrl.hostname.replace('www.', '');
 
   while (queue.length > 0 && pages.length < maxPages) {
     const { url, depth } = queue.shift()!;
     const normalizedUrl = normalizeUrl(url);
 
+    // Skip if URL already visited
     if (visited.has(normalizedUrl) || depth > maxDepth) {
       continue;
     }
@@ -157,6 +170,17 @@ async function smartCrawl(
     visited.add(normalizedUrl);
 
     const page = await fetchAndCleanPage(url);
+
+    // Check for duplicate content using fingerprint
+    if (page.content) {
+      const fingerprint = getContentFingerprint(page.content);
+      if (contentFingerprints.has(fingerprint)) {
+        console.log(`Skipping duplicate content from: ${url}`);
+        continue;  // Skip this page - duplicate content
+      }
+      contentFingerprints.add(fingerprint);
+    }
+
     pages.push(page);
 
     // Don't crawl further if we hit an error or reached max depth
@@ -180,8 +204,9 @@ async function smartCrawl(
           const absoluteUrl = new URL(href, url).href;
           const linkUrl = new URL(absoluteUrl);
 
-          // Only follow links on same domain
-          if (linkUrl.hostname !== baseDomain) return;
+          // Only follow links on same domain (normalize both for comparison)
+          const linkDomain = linkUrl.hostname.replace('www.', '');
+          if (linkDomain !== baseDomain) return;
 
           // Skip already visited (use normalized URL)
           const normalizedLink = normalizeUrl(absoluteUrl);
