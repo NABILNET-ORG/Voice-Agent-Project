@@ -95,33 +95,40 @@ CRITICAL INSTRUCTIONS:
 4. Extract prices in any currency format
 
 Extract each service/product with:
-- name (required): ORIGINAL name in ORIGINAL language - DO NOT TRANSLATE
-- description (required): COMPLETE description in ORIGINAL language - extract ALL details, benefits, features
-- price (optional): Numeric price only (no currency symbols)
-- duration (optional): Duration in minutes (for services)
-- category (optional): Service/product category in ORIGINAL language
+- name: Primary name in ORIGINAL language (required)
+- name_ar: Arabic name if available
+- name_en: English translation (you can provide this)
+- description: Full description in ORIGINAL language (required)
+- description_ar: Arabic description if available
+- description_en: English translation of description (you can provide this)
+- category: Category in original language
+- category_ar: Arabic category if available
+- category_en: English category translation
+- price: Numeric only, no currency symbols
+- duration: Minutes only
 
-Return ONLY a valid JSON array of ALL services/products, nothing else. Example format:
+Return ONLY a valid JSON array. Example:
 [
   {
     "name": "قراءة التاروت الشاملة",
+    "name_ar": "قراءة التاروت الشاملة",
+    "name_en": "Comprehensive Tarot Reading",
     "description": "جلسة قراءة تاروت كاملة لمدة 30 دقيقة تشمل تفسير البطاقات وتوجيهات شخصية للمستقبل",
+    "description_ar": "جلسة قراءة تاروت كاملة لمدة 30 دقيقة تشمل تفسير البطاقات وتوجيهات شخصية للمستقبل",
+    "description_en": "Complete 30-minute tarot reading session including card interpretation and personal guidance for the future",
     "price": 150,
     "duration": 30,
-    "category": "الخدمات الروحانية"
-  },
-  {
-    "name": "Deluxe Pizza",
-    "description": "Large 14-inch pizza with premium toppings including pepperoni, mushrooms, bell peppers, and extra cheese on hand-tossed dough",
-    "price": 18.99,
-    "category": "Main Dishes"
+    "category": "تاروت",
+    "category_ar": "تاروت",
+    "category_en": "Tarot"
   }
 ]
 
 CRITICAL:
-- DO NOT translate - keep original language
-- Extract FULL descriptions, not summaries
-- If no services/products found, return empty array: []`,
+- Keep Arabic as primary
+- Provide English translations for bilingual support
+- Extract FULL descriptions
+- If no services found, return []`,
                 },
               ],
             },

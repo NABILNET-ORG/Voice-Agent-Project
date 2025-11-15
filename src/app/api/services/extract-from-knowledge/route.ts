@@ -84,54 +84,76 @@ export async function POST(request: Request) {
             {
               parts: [
                 {
-                  text: `Extract ALL services or products mentioned across these knowledge base sources.
+                  text: `You are analyzing knowledge base summaries that describe services/products.
 
 Business category: ${businessCategory || "general"}
-
 Total sources: ${knowledgeSources.length}
 
-Knowledge Base Content:
+Knowledge Base Summaries:
 ${combinedContent.substring(0, 50000)}
 
-IMPORTANT INSTRUCTIONS:
-1. Look for ANY items that could be services or products (books, readings, crystals, tools, courses, sessions, etc.)
-2. Extract EVERYTHING mentioned, even if only briefly
-3. Preserve the ORIGINAL LANGUAGE - do NOT translate (keep Arabic as Arabic, French as French, etc.)
-4. Extract ALL available information including full descriptions
-5. Look for prices in any currency format
+TASK: Extract ALL services/products from these summaries.
 
-Extract each service/product with:
-- name (required): ORIGINAL name in ORIGINAL language - DO NOT TRANSLATE
-- description (required): FULL description in ORIGINAL language - extract ALL details found
-- price (optional): Numeric price only (no currency symbols)
-- duration (optional): Duration in minutes (for services)
-- category (optional): Service/product category in ORIGINAL language
-- sourceIndex (optional): Which source number mentioned this (1-${knowledgeSources.length})
+The summaries describe services and often include:
+- Service names (may be in Arabic like "المكالمة الذهبية" or English)
+- Prices (like "$300.00" or "L.L 13,425,564")
+- Durations (like "30 minutes" or "60 دقيقة")
+- Descriptions of what the service includes
 
-Return ONLY a valid JSON array of ALL unique services/products found, nothing else. Example format:
+EXTRACTION RULES:
+1. Find EVERY service/product mentioned in ANY source
+2. Use ARABIC names if provided (like "المكالمة الذهبية" not "Golden Call")
+3. Extract the COMPLETE description from the summary
+4. Extract prices (use USD if multiple currencies shown)
+5. Extract duration if mentioned
+6. If summary says "Service: X" or "**Service:** X" - that's a service!
+
+For EACH service/product found, extract:
+- name: Use Arabic name if provided, otherwise English (required)
+- name_ar: Arabic name if available
+- name_en: English translation if summary provides it
+- description: Full description from summary (required)
+- description_ar: Arabic description if available
+- description_en: English description if available
+- price: Numeric only, no currency symbols
+- duration: Minutes only
+- category: Category in original language
+- sourceIndex: Which source (1-${knowledgeSources.length})
+
+Return ONLY a valid JSON array. Example based on actual knowledge base:
 [
   {
-    "name": "قراءة التاروت",
-    "description": "جلسة قراءة التاروت الشخصية لمدة 30 دقيقة مع تفسير شامل للبطاقات",
-    "price": 45,
+    "name": "المكالمة الذهبية 30 دقيقة",
+    "name_ar": "المكالمة الذهبية 30 دقيقة",
+    "name_en": "Golden Call 30 Minutes",
+    "description": "جلسة قراءة تاروت مباشرة عبر الهاتف لمدة 30 دقيقة مع السيدة سامية",
+    "description_ar": "جلسة قراءة تاروت مباشرة عبر الهاتف لمدة 30 دقيقة مع السيدة سامية",
+    "description_en": "30-minute live phone tarot reading with Madame Samia",
+    "price": 150,
     "duration": 30,
-    "category": "القراءات",
+    "category": "تاروت",
+    "category_ar": "تاروت",
+    "category_en": "Tarot",
     "sourceIndex": 1
   },
   {
-    "name": "Crystal Healing Book",
-    "description": "Comprehensive guide to crystal healing practices and techniques for beginners",
-    "price": 25,
-    "category": "Books",
+    "name": "مكالمة الرموز الرونية الذهبية",
+    "name_ar": "مكالمة الرموز الرونية الذهبية",
+    "name_en": "Golden Runic Symbols Call",
+    "description": "استشارة روحانية متخصصة باستخدام الرموز الرونية",
+    "price": 300,
+    "duration": 60,
+    "category": "رونية",
     "sourceIndex": 2
   }
 ]
 
 CRITICAL:
-- DO NOT translate anything - keep original language
-- Extract COMPLETE descriptions, not just summaries
-- Include EVERY product/service mentioned
-- If no services/products found, return empty array: []`,
+- Extract bilingual names/descriptions when available
+- Use Arabic as primary name if present
+- Include ALL services mentioned
+- Extract complete descriptions from summaries
+- If no services found, return []: []`,
                 },
               ],
             },
