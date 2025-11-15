@@ -46,12 +46,11 @@ export async function POST(request: Request) {
       );
     }
 
-    // Fetch all knowledge sources with summaries
+    // Fetch ALL knowledge sources (with or without summaries)
     const { data: allSources, error: knowledgeError } = await supabase
       .from("knowledge_sources")
       .select("url, title, summary, content")
       .eq("user_id", user.id)
-      .not("summary", "is", null)
       .order("created_at", { ascending: false });
 
     if (knowledgeError) {
@@ -121,9 +120,10 @@ async function handleSimpleQuery(
   const topSources = knowledgeSources.slice(0, 3);
 
   const combinedContent = topSources
-    .map((source, idx) =>
-      `${idx + 1}. "${source.title?.split('–')[0]?.trim() || 'Untitled'}" - ${source.summary?.substring(0, 800) || ''}`
-    )
+    .map((source, idx) => {
+      const text = source.summary || source.content?.substring(0, 1000) || '';
+      return `${idx + 1}. "${source.title?.split('–')[0]?.trim() || 'Untitled'}" - ${text.substring(0, 800)}`;
+    })
     .join('\n\n');
 
   const prompt = `Extract services from these ${topSources.length} knowledge base entries.
@@ -174,9 +174,10 @@ async function handleFullContext(
   for (let i = 0; i < knowledgeSources.length; i += BATCH_SIZE) {
     const batch = knowledgeSources.slice(i, i + BATCH_SIZE);
     const batchContent = batch
-      .map((source, idx) =>
-        `${i + idx + 1}. "${source.title?.split('–')[0]?.trim() || 'Untitled'}" - ${source.summary?.substring(0, 500) || ''}`
-      )
+      .map((source, idx) => {
+        const text = source.summary || source.content?.substring(0, 1000) || '';
+        return `${i + idx + 1}. "${source.title?.split('–')[0]?.trim() || 'Untitled'}" - ${text.substring(0, 500)}`;
+      })
       .join('\n\n');
 
     console.log(`Processing batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(knowledgeSources.length / BATCH_SIZE)}: ${batch.length} sources`);
@@ -243,7 +244,8 @@ async function handleBatchMode(
   }
 
   const source = knowledgeSources[batchIndex];
-  const content = `"${source.title?.split('–')[0]?.trim() || 'Untitled'}" - ${source.summary?.substring(0, 1000) || ''}`;
+  const text = source.summary || source.content?.substring(0, 1000) || '';
+  const content = `"${source.title?.split('–')[0]?.trim() || 'Untitled'}" - ${text.substring(0, 1000)}`;
 
   const prompt = `Extract service from this knowledge base entry.
 
