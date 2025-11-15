@@ -664,6 +664,8 @@ export default function BusinessSettings() {
                       <SelectItem value="America/Los_Angeles">Pacific Time (PT)</SelectItem>
                       <SelectItem value="Europe/London">London (GMT)</SelectItem>
                       <SelectItem value="Europe/Paris">Paris (CET)</SelectItem>
+                      <SelectItem value="Asia/Riyadh">Saudi Arabia (AST)</SelectItem>
+                      <SelectItem value="Asia/Beirut">Lebanon (EET)</SelectItem>
                       <SelectItem value="Asia/Dubai">Dubai (GST)</SelectItem>
                       <SelectItem value="Asia/Tokyo">Tokyo (JST)</SelectItem>
                     </SelectContent>

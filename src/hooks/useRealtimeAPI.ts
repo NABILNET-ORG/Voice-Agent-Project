@@ -92,56 +92,139 @@ export function useRealtimeAPI() {
         setStatus('listening');
         addMessage('system', 'Connected to AI Booking Agent');
 
-        // Build comprehensive instructions from business context
+        // Build comprehensive instructions from ALL settings data
         let instructions = context.aiConfig?.systemInstructions || 'You are a helpful AI assistant for a booking system.';
 
-        // Add business information
+        // Business Information
         if (context.business) {
-          instructions += `\n\nBusiness Information:`;
-          instructions += `\n- Business Name: ${context.business.name}`;
-          instructions += `\n- Type: ${context.business.type}`;
+          instructions += `\n\n=== BUSINESS INFORMATION ===`;
+          instructions += `\nName: ${context.business.name}`;
+          instructions += `\nType: ${context.business.type} (${context.business.category})`;
           if (context.business.description) {
-            instructions += `\n- Description: ${context.business.description}`;
+            instructions += `\nDescription: ${context.business.description}`;
           }
+          if (context.business.phone) instructions += `\nPhone: ${context.business.phone}`;
+          if (context.business.address) instructions += `\nAddress: ${context.business.address}`;
+          if (context.business.website) instructions += `\nWebsite: ${context.business.website}`;
+          instructions += `\nLanguage: ${context.business.language}`;
+          instructions += `\nCurrency: ${context.business.currency}`;
+          instructions += `\nTimezone: ${context.business.timezone}`;
+        }
 
-          // Add services information
-          if (context.business.services && Array.isArray(context.business.services)) {
-            instructions += `\n\nAvailable Services:`;
-            context.business.services.forEach((service: any) => {
-              instructions += `\n- ${service.name}: $${service.price} (${service.duration} minutes)`;
-              if (service.description) {
-                instructions += ` - ${service.description}`;
+        // Services/Products
+        if (context.services && Array.isArray(context.services) && context.services.length > 0) {
+          instructions += `\n\n=== SERVICES/PRODUCTS ===`;
+          context.services.forEach((service: any) => {
+            instructions += `\n• ${service.name}`;
+            if (service.price) instructions += ` - ${context.business.currency} ${service.price}`;
+            if (service.duration) instructions += ` (${service.duration} min)`;
+            if (service.category) instructions += ` [${service.category}]`;
+            if (service.description) instructions += `\n  ${service.description}`;
+          });
+        }
+
+        // Schedule & Hours
+        if (context.schedule) {
+          instructions += `\n\n=== SCHEDULE & HOURS ===`;
+          if (context.schedule.is24_7) {
+            instructions += `\nOpen 24/7`;
+          } else if (context.schedule.hours) {
+            instructions += `\nBusiness Hours:`;
+            Object.entries(context.schedule.hours).forEach(([day, hours]: [string, any]) => {
+              if (hours && hours.open && hours.close) {
+                instructions += `\n  ${day.charAt(0).toUpperCase() + day.slice(1)}: ${hours.open} - ${hours.close}`;
+              } else {
+                instructions += `\n  ${day.charAt(0).toUpperCase() + day.slice(1)}: Closed`;
               }
             });
           }
-
-          // Add business hours
-          if (context.business.hours) {
-            instructions += `\n\nBusiness Hours: ${JSON.stringify(context.business.hours)}`;
+          if (context.schedule.breakTimes) {
+            instructions += `\nBreak Times: ${JSON.stringify(context.schedule.breakTimes)}`;
           }
         }
 
-        // Add knowledge base summaries
+        // Booking Policies
+        if (context.booking) {
+          instructions += `\n\n=== BOOKING POLICIES ===`;
+          if (context.booking.bufferMinutes) instructions += `\nBuffer between appointments: ${context.booking.bufferMinutes} minutes`;
+          if (context.booking.maxAdvanceDays) instructions += `\nMaximum advance booking: ${context.booking.maxAdvanceDays} days`;
+          if (context.booking.minAdvanceHours) instructions += `\nMinimum advance notice: ${context.booking.minAdvanceHours} hours`;
+          instructions += `\nSame-day bookings: ${context.booking.allowSameDay ? 'Allowed' : 'Not allowed'}`;
+          if (context.booking.maxPerDay) instructions += `\nMaximum appointments per day: ${context.booking.maxPerDay}`;
+        }
+
+        // Delivery Info (if applicable)
+        if (context.delivery) {
+          instructions += `\n\n=== DELIVERY INFORMATION ===`;
+          if (context.delivery.defaultTimeMinutes) instructions += `\nEstimated delivery time: ${context.delivery.defaultTimeMinutes} minutes`;
+          if (context.delivery.minimumOrderAmount) instructions += `\nMinimum order: ${context.business.currency} ${context.delivery.minimumOrderAmount}`;
+          if (context.delivery.maxRadiusKm) instructions += `\nDelivery radius: ${context.delivery.maxRadiusKm} km`;
+          instructions += `\nAccept orders outside hours: ${context.delivery.acceptOutsideHours ? 'Yes' : 'No'}`;
+          if (context.delivery.zones) instructions += `\nDelivery zones: ${JSON.stringify(context.delivery.zones)}`;
+        }
+
+        // Emergency Services (if applicable)
+        if (context.emergency) {
+          instructions += `\n\n=== EMERGENCY SERVICES ===`;
+          instructions += `\nEmergency service available: ${context.emergency.available ? 'Yes' : 'No'}`;
+          if (context.emergency.surcharge) instructions += `\nEmergency surcharge: ${context.business.currency} ${context.emergency.surcharge}`;
+          if (context.emergency.weekendSurcharge) instructions += `\nWeekend surcharge: ${context.business.currency} ${context.emergency.weekendSurcharge}`;
+          if (context.emergency.afterHoursSurcharge) instructions += `\nAfter-hours surcharge: ${context.business.currency} ${context.emergency.afterHoursSurcharge}`;
+          if (context.emergency.serviceAreas) instructions += `\nService areas: ${context.emergency.serviceAreas.join(', ')}`;
+          if (context.emergency.responseTimes) instructions += `\nResponse times: ${JSON.stringify(context.emergency.responseTimes)}`;
+        }
+
+        // Payment Information
+        if (context.payment) {
+          instructions += `\n\n=== PAYMENT INFORMATION ===`;
+          if (context.payment.acceptedMethods) instructions += `\nAccepted payment methods: ${context.payment.acceptedMethods.join(', ')}`;
+          instructions += `\nPayment required upfront: ${context.payment.requireUpfront ? 'Yes' : 'No'}`;
+          if (context.payment.depositAmount) {
+            instructions += `\nDeposit required: ${context.business.currency} ${context.payment.depositAmount}`;
+            if (context.payment.depositType) instructions += ` (${context.payment.depositType})`;
+          }
+        }
+
+        // Notifications & Confirmations
+        if (context.notifications) {
+          instructions += `\n\n=== CONFIRMATIONS & NOTIFICATIONS ===`;
+          if (context.notifications.instantConfirmation) instructions += `\nInstant confirmation sent: Yes`;
+          if (context.notifications.customer.sendReminders && context.notifications.customer.reminderHoursBefore) {
+            instructions += `\nReminders sent ${context.notifications.customer.reminderHoursBefore} hours before appointment`;
+          }
+          instructions += `\nCustomer notifications: ${context.notifications.customer.email ? 'Email' : ''}${context.notifications.customer.sms ? ', SMS' : ''}`;
+        }
+
+        // Knowledge Base
         if (context.knowledge && context.knowledge.length > 0) {
-          instructions += `\n\nKnowledge Base (use this information to answer customer questions):`;
+          instructions += `\n\n=== KNOWLEDGE BASE (${context.knowledge.length} sources) ===`;
+          instructions += `\nUse this information to answer customer questions accurately:`;
           context.knowledge.forEach((source: any, index: number) => {
-            instructions += `\n\n[Source ${index + 1}: ${source.title || source.url}]`;
+            instructions += `\n\n[${index + 1}] ${source.title || source.url}`;
             instructions += `\n${source.summary}`;
           });
         }
 
-        // Add personality and greeting
-        if (context.aiConfig?.personality) {
-          instructions += `\n\nPersonality: ${context.aiConfig.personality}`;
-        }
-        if (context.aiConfig?.greetingTemplate) {
-          instructions += `\n\nGreeting: ${context.aiConfig.greetingTemplate}`;
-        }
-        if (context.aiConfig?.confirmationTemplate) {
-          instructions += `\n\nBooking Confirmation Template: ${context.aiConfig.confirmationTemplate}`;
-        }
+        // AI Behavior Guidelines
+        instructions += `\n\n=== AI BEHAVIOR GUIDELINES ===`;
+        if (context.aiConfig?.personality) instructions += `\nPersonality: ${context.aiConfig.personality}`;
+        if (context.aiConfig?.greetingTemplate) instructions += `\nGreeting: ${context.aiConfig.greetingTemplate}`;
+        if (context.aiConfig?.confirmationTemplate) instructions += `\nConfirmation template: ${context.aiConfig.confirmationTemplate}`;
+        if (context.aiConfig?.enableSmallTalk) instructions += `\nSmall talk: Enabled`;
+        if (context.aiConfig?.askForEmail) instructions += `\nAlways ask for email: Yes`;
+        if (context.aiConfig?.confirmBeforeBooking) instructions += `\nConfirm before booking: Yes`;
+        if (context.aiConfig?.maxCallDuration) instructions += `\nMaximum call duration: ${context.aiConfig.maxCallDuration} minutes`;
 
-        console.log('Voice Agent Instructions:', instructions.substring(0, 500) + '...');
+        // Important reminders
+        instructions += `\n\nIMPORTANT REMINDERS:`;
+        instructions += `\n- All times are in ${context.business?.timezone || 'UTC'} timezone`;
+        instructions += `\n- All prices are in ${context.business?.currency || 'USD'}`;
+        instructions += `\n- Use the knowledge base information to answer specific questions about products/services`;
+        instructions += `\n- Follow the booking policies strictly`;
+        instructions += `\n- Inform customers about notification methods and payment requirements`;
+
+        console.log('Voice Agent Instructions (length: ' + instructions.length + ' chars):');
+        console.log(instructions.substring(0, 800) + '...\n\n[FULL CONTEXT LOADED WITH ALL SETTINGS]');
 
         // Send session configuration with loaded context
         const sessionUpdate = {
