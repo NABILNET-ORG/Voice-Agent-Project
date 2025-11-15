@@ -118,7 +118,9 @@ export default function IntegrationsManagement() {
         connectedAt: config.gemini_api_key ? new Date(config.updated_at) : undefined,
         settings: {
           apiKey: config.gemini_api_key || "",
-          modelName: "gemini-pro",
+          modelName: (config.ai_voice_agent_provider === 'gemini' || config.ai_summarization_provider === 'gemini')
+            ? (config.ai_model_name || "gemini-2.5-flash")
+            : "gemini-2.5-flash",
           provider: "gemini",
           useForVoiceAgent: config.ai_voice_agent_provider === 'gemini' || false,
           useForSummarization: config.ai_summarization_provider === 'gemini' || false,
@@ -355,34 +357,48 @@ export default function IntegrationsManagement() {
     try {
       // Save to database based on integration type
       if (integration.id === 'openai') {
-        await businessConfigApi.update(user!.id, {
+        const updateData: any = {
           openai_api_key: settings.apiKey,
-          ai_model_name: settings.modelName,
-          ai_voice_agent_provider: settings.useForVoiceAgent ? 'openai' : null,
-          ai_summarization_provider: settings.useForSummarization ? 'openai' : null,
-          ai_analytics_provider: settings.useForAnalytics ? 'openai' : null,
-          ai_transcription_provider: settings.useForTranscription ? 'openai' : null
-        });
+          ai_voice_agent_provider: settings.useForVoiceAgent ? 'openai' : businessConfig.ai_voice_agent_provider === 'openai' ? null : businessConfig.ai_voice_agent_provider,
+          ai_summarization_provider: settings.useForSummarization ? 'openai' : businessConfig.ai_summarization_provider === 'openai' ? null : businessConfig.ai_summarization_provider,
+          ai_analytics_provider: settings.useForAnalytics ? 'openai' : businessConfig.ai_analytics_provider === 'openai' ? null : businessConfig.ai_analytics_provider,
+          ai_transcription_provider: settings.useForTranscription ? 'openai' : businessConfig.ai_transcription_provider === 'openai' ? null : businessConfig.ai_transcription_provider
+        };
+        // Save model name if any feature is enabled for OpenAI
+        if (settings.useForVoiceAgent || settings.useForSummarization || settings.useForAnalytics || settings.useForTranscription) {
+          updateData.ai_model_name = settings.modelName;
+        }
+        await businessConfigApi.update(user!.id, updateData);
         setStatusMessage({ type: 'success', text: 'OpenAI settings updated successfully!' });
         setTimeout(() => setStatusMessage(null), 3000);
       } else if (integration.id === 'gemini') {
-        await businessConfigApi.update(user!.id, {
+        const updateData: any = {
           gemini_api_key: settings.apiKey,
-          ai_voice_agent_provider: settings.useForVoiceAgent ? 'gemini' : null,
-          ai_summarization_provider: settings.useForSummarization ? 'gemini' : null,
-          ai_analytics_provider: settings.useForAnalytics ? 'gemini' : null,
-          ai_transcription_provider: settings.useForTranscription ? 'gemini' : null
-        });
+          ai_voice_agent_provider: settings.useForVoiceAgent ? 'gemini' : businessConfig.ai_voice_agent_provider === 'gemini' ? null : businessConfig.ai_voice_agent_provider,
+          ai_summarization_provider: settings.useForSummarization ? 'gemini' : businessConfig.ai_summarization_provider === 'gemini' ? null : businessConfig.ai_summarization_provider,
+          ai_analytics_provider: settings.useForAnalytics ? 'gemini' : businessConfig.ai_analytics_provider === 'gemini' ? null : businessConfig.ai_analytics_provider,
+          ai_transcription_provider: settings.useForTranscription ? 'gemini' : businessConfig.ai_transcription_provider === 'gemini' ? null : businessConfig.ai_transcription_provider
+        };
+        // Save model name if any feature is enabled for Gemini
+        if (settings.useForVoiceAgent || settings.useForSummarization || settings.useForAnalytics || settings.useForTranscription) {
+          updateData.ai_model_name = settings.modelName;
+        }
+        await businessConfigApi.update(user!.id, updateData);
         setStatusMessage({ type: 'success', text: 'Gemini settings updated successfully!' });
         setTimeout(() => setStatusMessage(null), 3000);
       } else if (integration.id === 'openrouter') {
-        await businessConfigApi.update(user!.id, {
+        const updateData: any = {
           openrouter_api_key: settings.apiKey,
-          ai_voice_agent_provider: settings.useForVoiceAgent ? 'openrouter' : null,
-          ai_summarization_provider: settings.useForSummarization ? 'openrouter' : null,
-          ai_analytics_provider: settings.useForAnalytics ? 'openrouter' : null,
-          ai_transcription_provider: settings.useForTranscription ? 'openrouter' : null
-        });
+          ai_voice_agent_provider: settings.useForVoiceAgent ? 'openrouter' : businessConfig.ai_voice_agent_provider === 'openrouter' ? null : businessConfig.ai_voice_agent_provider,
+          ai_summarization_provider: settings.useForSummarization ? 'openrouter' : businessConfig.ai_summarization_provider === 'openrouter' ? null : businessConfig.ai_summarization_provider,
+          ai_analytics_provider: settings.useForAnalytics ? 'openrouter' : businessConfig.ai_analytics_provider === 'openrouter' ? null : businessConfig.ai_analytics_provider,
+          ai_transcription_provider: settings.useForTranscription ? 'openrouter' : businessConfig.ai_transcription_provider === 'openrouter' ? null : businessConfig.ai_transcription_provider
+        };
+        // Save model name if any feature is enabled for OpenRouter
+        if (settings.useForVoiceAgent || settings.useForSummarization || settings.useForAnalytics || settings.useForTranscription) {
+          updateData.ai_model_name = settings.modelName;
+        }
+        await businessConfigApi.update(user!.id, updateData);
         setStatusMessage({ type: 'success', text: 'OpenRouter settings updated successfully!' });
         setTimeout(() => setStatusMessage(null), 3000);
       } else if (integration.id === 'google-calendar') {

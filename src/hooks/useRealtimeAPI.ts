@@ -27,6 +27,13 @@ export function useRealtimeAPI() {
       setError(null);
       setTranscript([]);
 
+      // Fetch business context and knowledge
+      const contextResponse = await fetch('/api/voice-agent/context');
+      if (!contextResponse.ok) {
+        console.error('Failed to fetch voice agent context');
+      }
+      const context = await contextResponse.json();
+
       // Request microphone access
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
@@ -85,13 +92,64 @@ export function useRealtimeAPI() {
         setStatus('listening');
         addMessage('system', 'Connected to AI Booking Agent');
 
-        // Send session configuration
+        // Build comprehensive instructions from business context
+        let instructions = context.aiConfig?.systemInstructions || 'You are a helpful AI assistant for a booking system.';
+
+        // Add business information
+        if (context.business) {
+          instructions += `\n\nBusiness Information:`;
+          instructions += `\n- Business Name: ${context.business.name}`;
+          instructions += `\n- Type: ${context.business.type}`;
+          if (context.business.description) {
+            instructions += `\n- Description: ${context.business.description}`;
+          }
+
+          // Add services information
+          if (context.business.services && Array.isArray(context.business.services)) {
+            instructions += `\n\nAvailable Services:`;
+            context.business.services.forEach((service: any) => {
+              instructions += `\n- ${service.name}: $${service.price} (${service.duration} minutes)`;
+              if (service.description) {
+                instructions += ` - ${service.description}`;
+              }
+            });
+          }
+
+          // Add business hours
+          if (context.business.hours) {
+            instructions += `\n\nBusiness Hours: ${JSON.stringify(context.business.hours)}`;
+          }
+        }
+
+        // Add knowledge base summaries
+        if (context.knowledge && context.knowledge.length > 0) {
+          instructions += `\n\nKnowledge Base (use this information to answer customer questions):`;
+          context.knowledge.forEach((source: any, index: number) => {
+            instructions += `\n\n[Source ${index + 1}: ${source.title || source.url}]`;
+            instructions += `\n${source.summary}`;
+          });
+        }
+
+        // Add personality and greeting
+        if (context.aiConfig?.personality) {
+          instructions += `\n\nPersonality: ${context.aiConfig.personality}`;
+        }
+        if (context.aiConfig?.greetingTemplate) {
+          instructions += `\n\nGreeting: ${context.aiConfig.greetingTemplate}`;
+        }
+        if (context.aiConfig?.confirmationTemplate) {
+          instructions += `\n\nBooking Confirmation Template: ${context.aiConfig.confirmationTemplate}`;
+        }
+
+        console.log('Voice Agent Instructions:', instructions.substring(0, 500) + '...');
+
+        // Send session configuration with loaded context
         const sessionUpdate = {
           type: 'session.update',
           session: {
             modalities: ['text', 'audio'],
-            instructions: 'You are a helpful AI assistant for a booking system. Help customers book appointments and answer questions about services.',
-            voice: 'alloy',
+            instructions: instructions,
+            voice: context.aiConfig?.voice || 'alloy',
             input_audio_format: 'pcm16',
             output_audio_format: 'pcm16',
             input_audio_transcription: {
