@@ -69,7 +69,7 @@ export async function POST(request: Request) {
         customer_name,
         customer_email,
         customer_phone: customer_phone || null,
-        service_name,
+        service_or_item: service_name,  // Use correct column name
         date,
         time,
         notes: notes || "",
