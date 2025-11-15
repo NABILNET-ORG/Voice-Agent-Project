@@ -113,22 +113,24 @@ async function handleSimpleQuery(
 
   const prompt = `Extract services from these ${topSources.length} knowledge base entries.
 
-Each entry has a TITLE and SUMMARY. Extract ONE service per entry if it's a service/product.
+IMPORTANT: Each entry represents ONE service/product. The TITLE contains the service name.
 
 ENTRIES:
 ${combinedContent}
 
-For each entry:
-1. Extract service name from TITLE (Arabic or English)
-2. Extract price from summary (look for $ amounts or numbers)
-3. Extract duration from summary (look for "minutes", "دقيقة", time info)
+For EACH entry above (${topSources.length} total):
+1. The TITLE is the service name (e.g., "مكالمة التاروت الذهبية 60 دقيقة" = service name)
+2. Extract price from summary (look for $ amounts, numbers with currency)
+3. Extract duration from TITLE or summary (look for "30 دقيقة", "60 دقيقة", "minutes")
 4. Use summary as description
-5. Extract both Arabic AND English names/descriptions if available
+5. Provide BOTH Arabic (name_ar) AND English translation (name_en)
 
-Return ONLY a JSON array like:
-[{"name":"Service Name","name_ar":"اسم الخدمة","name_en":"Service Name","price":150,"duration":30,"description":"Details","description_ar":"التفاصيل","description_en":"Details","category":"General"}]
+CRITICAL: Extract ${topSources.length} services (ONE per entry). Do NOT skip any entry.
 
-Extract up to ${topSources.length} services. Return [] if no services found.`;
+Return ONLY a JSON array with ${topSources.length} objects:
+[{"name":"مكالمة التاروت","name_ar":"مكالمة التاروت","name_en":"Tarot Call","price":150,"duration":30,"description":"Summary text","description_ar":"نص الملخص","description_en":"Summary text","category":"تاروت","category_ar":"تاروت","category_en":"Tarot"}]
+
+Must return ${topSources.length} services.`;
 
   const services = await callGeminiExtraction(prompt, geminiApiKey, topSources);
 
@@ -166,22 +168,24 @@ async function handleFullContext(
 
     const prompt = `Extract services from these ${batch.length} knowledge base entries.
 
-Each entry has a TITLE and SUMMARY. Extract ONE service per entry if applicable.
+IMPORTANT: Each entry represents ONE service/product. The TITLE contains the service name.
 
 ENTRIES:
 ${batchContent}
 
-For each entry:
-1. Extract service name from TITLE (Arabic/English)
-2. Extract price from summary ($ or numbers)
-3. Extract duration (minutes, دقيقة)
-4. Use summary as description
-5. Extract BOTH Arabic AND English versions (name_ar, name_en, description_ar, description_en)
+For EACH entry above (${batch.length} total):
+1. The TITLE is the service name (extract the Arabic part before "–")
+2. Extract price from summary (look for $ amounts, numbers)
+3. Extract duration from TITLE or summary (look for "30 دقيقة", "60 دقيقة", "minutes")
+4. Use summary as full description
+5. Provide BOTH Arabic (name_ar) AND English translation (name_en)
 
-Return ONLY JSON array:
-[{"name":"Name","name_ar":"اسم","name_en":"Name","price":150,"duration":30,"description":"Text","description_ar":"نص","description_en":"Text","category":"General"}]
+CRITICAL: Extract ${batch.length} services (ONE per entry). Do NOT skip any entry.
 
-Extract ${batch.length} services (one per entry).`;
+Return ONLY JSON array with ${batch.length} objects:
+[{"name":"مكالمة التاروت","name_ar":"مكالمة التاروت","name_en":"Tarot Call","price":150,"duration":30,"description":"Full summary","description_ar":"الملخص الكامل","description_en":"Full summary","category":"تاروت","category_ar":"تاروت","category_en":"Tarot"}]
+
+Must return ${batch.length} services.`;
 
     const batchServices = await callGeminiExtraction(prompt, geminiApiKey, batch);
     allServices = allServices.concat(batchServices);
@@ -228,18 +232,22 @@ async function handleBatchMode(
 
   const prompt = `Extract service from this knowledge base entry.
 
+IMPORTANT: This entry represents ONE service/product. The TITLE is the service name.
+
 ENTRY:
 ${content}
 
-If this is a service/product:
-1. Extract service name from title (Arabic/English)
-2. Extract price from text ($ or numbers)
-3. Extract duration (minutes, دقيقة)
+Extract this service:
+1. The TITLE is the service name (extract the Arabic part before "–")
+2. Extract price from text (look for $ amounts, numbers)
+3. Extract duration from TITLE or text (look for "30 دقيقة", "60 دقيقة", "minutes")
 4. Use full text as description
-5. Provide BOTH Arabic AND English versions
+5. Provide BOTH Arabic (name_ar) AND English translation (name_en)
 
-Return JSON array with one service (or [] if not a service):
-[{"name":"Name","name_ar":"اسم","name_en":"Name","price":150,"duration":30,"description":"Full description","description_ar":"وصف كامل","description_en":"Full description","category":"General"}]`;
+CRITICAL: Always extract this as a service. Do NOT return [].
+
+Return JSON array with ONE service:
+[{"name":"مكالمة التاروت","name_ar":"مكالمة التاروت","name_en":"Tarot Call","price":150,"duration":30,"description":"Full text","description_ar":"النص الكامل","description_en":"Full text","category":"تاروت","category_ar":"تاروت","category_en":"Tarot"}]`;
 
   const services = await callGeminiExtraction(prompt, geminiApiKey, [source]);
 
