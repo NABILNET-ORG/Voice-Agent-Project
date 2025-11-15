@@ -543,7 +543,7 @@ export const knowledgeApi = {
   },
 
   // Fetch website
-  async fetchWebsite(url: string, method: 'smart_crawl' | 'single_page', options?: any) {
+  async fetchWebsite(url: string, method: 'smart_crawl' | 'single_page' | 'all_products', options?: any) {
     const response = await fetch('/api/knowledge/fetch-website', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

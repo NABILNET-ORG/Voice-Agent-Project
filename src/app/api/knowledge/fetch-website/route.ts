@@ -40,7 +40,20 @@ export async function POST(request: Request) {
       });
     }
 
-    // Smart crawl
+    if (method === 'all_products') {
+      // All Products mode: Only crawl product/service/menu pages
+      const pages = await smartCrawlProductsOnly(url, maxPages);
+      const totalWords = pages.reduce((sum, p) => sum + p.wordCount, 0);
+      const estimatedTokens = Math.ceil(totalWords / 0.75);
+
+      return NextResponse.json({
+        pages,
+        totalWords,
+        estimatedTokens
+      });
+    }
+
+    // Smart crawl (original behavior)
     const pages = await smartCrawl(url, maxDepth, maxPages, priorityKeywords);
 
     const totalWords = pages.reduce((sum, p) => sum + p.wordCount, 0);
@@ -148,6 +161,146 @@ function normalizeUrl(url: string): string {
 function getContentFingerprint(content: string): string {
   const cleaned = content.replace(/\s+/g, ' ').trim();
   return cleaned.substring(0, 300) + ':' + cleaned.length;
+}
+
+// Check if URL is likely a product/service/menu page
+function isProductServicePage(url: string): boolean {
+  const urlLower = url.toLowerCase();
+
+  // Include URLs containing these keywords
+  const includeKeywords = [
+    'product', 'service', 'menu', 'shop', 'store', 'catalog',
+    'item', 'booking', 'order', 'buy', 'pricing', 'price',
+    'package', 'plan', 'offer', 'deals', 'cart', 'checkout',
+    'category', 'collection', 'goods', 'merchandise'
+  ];
+
+  // Exclude URLs containing these keywords
+  const excludeKeywords = [
+    'about', 'contact', 'blog', 'news', 'article', 'post',
+    'team', 'career', 'job', 'privacy', 'terms', 'policy',
+    'faq', 'help', 'support', 'login', 'register', 'account'
+  ];
+
+  // Check if URL contains exclude keywords
+  for (const keyword of excludeKeywords) {
+    if (urlLower.includes(keyword)) {
+      return false;
+    }
+  }
+
+  // Check if URL contains include keywords
+  for (const keyword of includeKeywords) {
+    if (urlLower.includes(keyword)) {
+      return true;
+    }
+  }
+
+  // If no specific keywords, allow it (might be a product page)
+  return true;
+}
+
+// Smart crawl for products/services only
+async function smartCrawlProductsOnly(
+  startUrl: string,
+  maxPages: number
+): Promise<any[]> {
+  const visited = new Set<string>();
+  const contentFingerprints = new Set<string>();
+  const pages: any[] = [];
+  const queue: string[] = [startUrl];
+
+  const baseUrl = new URL(startUrl);
+  const baseDomain = baseUrl.hostname.replace('www.', '');
+
+  console.log(`[All Products Mode] Starting crawl from ${startUrl}, max pages: ${maxPages}`);
+
+  while (queue.length > 0 && pages.length < maxPages) {
+    const url = queue.shift()!;
+    const normalizedUrl = normalizeUrl(url);
+
+    // Skip if already visited
+    if (visited.has(normalizedUrl)) {
+      continue;
+    }
+
+    // Check if this is a product/service page
+    if (!isProductServicePage(url)) {
+      console.log(`[All Products] Skipping non-product page: ${url}`);
+      visited.add(normalizedUrl);
+      continue;
+    }
+
+    visited.add(normalizedUrl);
+
+    const page = await fetchAndCleanPage(url);
+
+    // Skip if error or duplicate content
+    if (page.error) {
+      console.log(`[All Products] Error fetching ${url}: ${page.error}`);
+      continue;
+    }
+
+    const fingerprint = getContentFingerprint(page.content);
+    if (contentFingerprints.has(fingerprint)) {
+      console.log(`[All Products] Duplicate content detected: ${url}`);
+      continue;
+    }
+
+    contentFingerprints.add(fingerprint);
+    pages.push(page);
+
+    console.log(`[All Products] Crawled ${pages.length}/${maxPages}: ${page.title}`);
+
+    // Extract and queue product/service links from this page
+    if (page.html) {
+      const links = extractLinksFromHTML(page.html, baseDomain);
+
+      // Filter to product/service pages only
+      const productLinks = links.filter(link => isProductServicePage(link));
+
+      // Add to queue
+      for (const link of productLinks) {
+        const normalizedLink = normalizeUrl(link);
+        if (!visited.has(normalizedLink) && !queue.includes(link)) {
+          queue.push(link);
+        }
+      }
+
+      console.log(`[All Products] Discovered ${productLinks.length} product/service links`);
+    }
+  }
+
+  console.log(`[All Products] Completed. Crawled ${pages.length} product/service pages`);
+  return pages;
+}
+
+// Extract links from HTML
+function extractLinksFromHTML(html: string, baseDomain: string): string[] {
+  const $ = cheerio.load(html);
+  const links: string[] = [];
+
+  $('a[href]').each((_, elem) => {
+    try {
+      const href = $(elem).attr('href');
+      if (!href) return;
+
+      // Build absolute URL
+      const absoluteUrl = href.startsWith('http')
+        ? href
+        : new URL(href, `https://${baseDomain}`).href;
+
+      // Only same domain
+      const urlDomain = new URL(absoluteUrl).hostname.replace('www.', '');
+      if (urlDomain === baseDomain) {
+        links.push(absoluteUrl);
+      }
+    } catch (e) {
+      // Skip invalid URLs
+    }
+  });
+
+  return links;
 }
 
 async function smartCrawl(
