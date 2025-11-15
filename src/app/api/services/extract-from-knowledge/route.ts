@@ -84,29 +84,31 @@ export async function POST(request: Request) {
             {
               parts: [
                 {
-                  text: `You are analyzing knowledge base summaries that describe services/products.
+                  text: `EXTRACT SERVICES FROM KNOWLEDGE BASE SUMMARIES
 
-Business category: ${businessCategory || "general"}
-Total sources: ${knowledgeSources.length}
+You will analyze ${knowledgeSources.length} knowledge base summaries about services/products.
 
-Knowledge Base Summaries:
+HERE IS THE CONTENT TO ANALYZE:
 ${combinedContent.substring(0, 50000)}
 
-TASK: Extract ALL services/products from these summaries.
+YOUR TASK:
+Look at each [Source X: ...] section above. EACH source describes a SERVICE or PRODUCT.
 
-The summaries describe services and often include:
-- Service names (may be in Arabic like "المكالمة الذهبية" or English)
-- Prices (like "$300.00" or "L.L 13,425,564")
-- Durations (like "30 minutes" or "60 دقيقة")
-- Descriptions of what the service includes
+For example, if you see:
+"This service offers a 30-minute direct voice call consultation"
+or
+"**Service:** 30-minute voice call consultation with Madam Samia"
 
-EXTRACTION RULES:
-1. Find EVERY service/product mentioned in ANY source
-2. Use ARABIC names if provided (like "المكالمة الذهبية" not "Golden Call")
-3. Extract the COMPLETE description from the summary
-4. Extract prices (use USD if multiple currencies shown)
-5. Extract duration if mentioned
-6. If summary says "Service: X" or "**Service:** X" - that's a service!
+That IS a service! Extract it!
+
+EXTRACTION RULES - VERY IMPORTANT:
+1. EACH knowledge source describes at LEAST ONE service/product - extract them ALL
+2. Look for service names in BOTH Arabic and English
+3. Find the Arabic name in the source title or content (like "المكالمة الذهبية 30 دقيقة")
+4. Extract durations (look for "30 minutes", "60 دقيقة", "30-minute", etc.)
+5. Extract prices (look for "$150", "$300", "L.L", etc.)
+6. Use the ENTIRE summary text as the description
+7. DO NOT skip any sources - extract from ALL ${knowledgeSources.length} sources
 
 For EACH service/product found, extract:
 - name: Use Arabic name if provided, otherwise English (required)
@@ -148,12 +150,19 @@ Return ONLY a valid JSON array. Example based on actual knowledge base:
   }
 ]
 
-CRITICAL:
-- Extract bilingual names/descriptions when available
-- Use Arabic as primary name if present
-- Include ALL services mentioned
-- Extract complete descriptions from summaries
-- If no services found, return []: []`,
+MANDATORY - RETURN AT LEAST ${knowledgeSources.length} SERVICES (one per source minimum):
+- Each [Source X: ...] section above = at least 1 service
+- Find Arabic names in titles (the part with Arabic text)
+- Extract ALL details from each summary
+- If summary mentions "30 minutes" or "60 دقيقة", that's the duration
+- If summary mentions "$150" or "$300", that's the price
+- Use entire summary as description
+
+CRITICAL - DO NOT RETURN EMPTY ARRAY:
+- You MUST extract services from these summaries
+- Each source describes a service - extract it
+- Look for "Service:", "**Service:**", "offers", "provides"
+- If stuck, extract based on title and summary combination`,
                 },
               ],
             },
