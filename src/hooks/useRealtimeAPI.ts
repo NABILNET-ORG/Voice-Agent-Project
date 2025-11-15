@@ -4,6 +4,8 @@ interface Message {
   role: 'user' | 'assistant' | 'system';
   text: string;
   timestamp: number;
+  isTyping?: boolean;  // For typing animation
+  fullText?: string;   // Complete text for typing animation
 }
 
 type ConnectionStatus = 'ready' | 'connecting' | 'listening' | 'processing' | 'error';
@@ -17,9 +19,75 @@ export function useRealtimeAPI() {
   const dataChannelRef = useRef<RTCDataChannel | null>(null);
   const audioStreamRef = useRef<MediaStream | null>(null);
 
+  const typingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
   const addMessage = useCallback((role: 'user' | 'assistant' | 'system', text: string) => {
     setTranscript(prev => [...prev, { role, text, timestamp: Date.now() }]);
   }, []);
+
+  // Add message with typing animation (for assistant only)
+  const addMessageWithTyping = useCallback((role: 'user' | 'assistant' | 'system', fullText: string) => {
+    if (role !== 'assistant') {
+      // No typing animation for user/system messages
+      addMessage(role, fullText);
+      return;
+    }
+
+    // Clear any existing typing interval
+    if (typingIntervalRef.current) {
+      clearInterval(typingIntervalRef.current);
+    }
+
+    // Add message with empty text, then animate
+    setTranscript(prev => {
+      const messageIndex = prev.length;
+      const newMessage: Message = {
+        role,
+        text: '',
+        fullText,
+        isTyping: true,
+        timestamp: Date.now()
+      };
+
+      // Typing animation - add characters progressively
+      let currentIndex = 0;
+      const typingSpeed = 30; // milliseconds per character
+
+      typingIntervalRef.current = setInterval(() => {
+        if (currentIndex < fullText.length) {
+          currentIndex++;
+          setTranscript(prev => {
+            const updated = [...prev];
+            if (updated[messageIndex]) {
+              updated[messageIndex] = {
+                ...updated[messageIndex],
+                text: fullText.substring(0, currentIndex)
+              };
+            }
+            return updated;
+          });
+        } else {
+          // Typing complete
+          if (typingIntervalRef.current) {
+            clearInterval(typingIntervalRef.current);
+          }
+          setTranscript(prev => {
+            const updated = [...prev];
+            if (updated[messageIndex]) {
+              updated[messageIndex] = {
+                ...updated[messageIndex],
+                isTyping: false,
+                fullText: undefined
+              };
+            }
+            return updated;
+          });
+        }
+      }, typingSpeed);
+
+      return [...prev, newMessage];
+    });
+  }, [addMessage]);
 
   const connect = useCallback(async () => {
     try {
@@ -309,7 +377,12 @@ export function useRealtimeAPI() {
           if (event.item.content) {
             event.item.content.forEach((content: any) => {
               if (content.type === 'text') {
-                addMessage(role, content.text);
+                // Use typing animation for assistant messages
+                if (role === 'assistant') {
+                  addMessageWithTyping(role, content.text);
+                } else {
+                  addMessage(role, content.text);
+                }
               }
             });
           }
@@ -377,6 +450,12 @@ export function useRealtimeAPI() {
   };
 
   const disconnect = useCallback(() => {
+    // Clear typing animation interval
+    if (typingIntervalRef.current) {
+      clearInterval(typingIntervalRef.current);
+      typingIntervalRef.current = null;
+    }
+
     // Close data channel
     if (dataChannelRef.current) {
       dataChannelRef.current.close();

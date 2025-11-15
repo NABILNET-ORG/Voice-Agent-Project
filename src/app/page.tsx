@@ -172,7 +172,12 @@ export default function LiveDemo() {
                                 : "bg-gray-800 text-white"
                             }`}
                           >
-                            <p className="text-sm whitespace-pre-wrap">{message.text}</p>
+                            <p className="text-sm whitespace-pre-wrap">
+                              {message.text}
+                              {message.isTyping && (
+                                <span className="inline-block w-1 h-4 bg-[#84CC16] ml-1 animate-pulse" />
+                              )}
+                            </p>
                             <p className="text-xs opacity-70 mt-1">
                               {new Date(message.timestamp).toLocaleTimeString()}
                             </p>
