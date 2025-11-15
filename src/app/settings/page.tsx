@@ -530,7 +530,7 @@ export default function BusinessSettings() {
           <TabsTrigger value="services" className="text-gray-200 hover:text-[#84CC16] data-[state=active]:bg-[#84CC16] data-[state=active]:text-black">Services/Products</TabsTrigger>
           <TabsTrigger value="availability" className="text-gray-200 hover:text-[#84CC16] data-[state=active]:bg-[#84CC16] data-[state=active]:text-black">Availability & Scheduling</TabsTrigger>
           <TabsTrigger value="ai-config" className="text-gray-200 hover:text-[#84CC16] data-[state=active]:bg-[#84CC16] data-[state=active]:text-black">AI Assistant Configuration</TabsTrigger>
-          <TabsTrigger value="integrations" className="text-gray-200 hover:text-[#84CC16] data-[state=active]:bg-[#84CC16] data-[state=active]:text-black">Integrations & Notifications</TabsTrigger>
+          <TabsTrigger value="integrations" className="text-gray-200 hover:text-[#84CC16] data-[state=active]:bg-[#84CC16] data-[state=active]:text-black">Notifications</TabsTrigger>
         </TabsList>
 
         {/* Tab 1: Business Information */}
@@ -1393,32 +1393,14 @@ export default function BusinessSettings() {
           </Card>
         </TabsContent>
 
-        {/* Tab 5: Integrations & Notifications */}
+        {/* Tab 5: Notifications */}
         <TabsContent value="integrations">
           <Card className="bg-[#1A1A1A] border-gray-800">
             <CardHeader>
-              <CardTitle className="text-white">Integrations & Notifications</CardTitle>
+              <CardTitle className="text-white">Notifications</CardTitle>
+              <p className="text-gray-400 text-sm mt-2">Configure how customers and business owners receive notifications</p>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Google Calendar Integration */}
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-4">Google Calendar Integration</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-gray-800 rounded-lg border border-gray-700">
-                    <div>
-                      <p className="text-white font-medium">Google Calendar</p>
-                      <p className="text-gray-400 text-sm">Sync bookings with your Google Calendar</p>
-                    </div>
-                    <Badge variant="secondary" className="bg-red-600 text-white">Not Connected</Badge>
-                  </div>
-                  
-                  <Button variant="outline" className="border-gray-700 text-gray-300 hover:text-white">
-                    Connect Calendar
-                  </Button>
-                </div>
-              </div>
-              
-              <Separator className="bg-gray-800" />
               
               {/* Customer Notifications */}
               <div>
@@ -1489,39 +1471,32 @@ export default function BusinessSettings() {
               </div>
               
               <Separator className="bg-gray-800" />
-              
-              {/* Payment Integration */}
+
+              {/* Payment Methods */}
               <div>
-                <h3 className="text-lg font-semibold text-white mb-4">Payment Integration</h3>
+                <h3 className="text-lg font-semibold text-white mb-4">Payment Methods</h3>
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label className="text-gray-300">Payment Methods Accepted</Label>
+                    <Label className="text-gray-300">Accepted Payment Methods</Label>
                     <div className="space-y-2">
                       <div className="flex items-center space-x-2">
                         <Switch id="cash" defaultChecked />
                         <Label htmlFor="cash" className="text-gray-300">Cash on Delivery/Service</Label>
                       </div>
-                      
+
                       <div className="flex items-center space-x-2">
                         <Switch id="card" />
                         <Label htmlFor="card" className="text-gray-300">Credit/Debit Card</Label>
                       </div>
-                      
+
                       <div className="flex items-center space-x-2">
                         <Switch id="online" />
                         <Label htmlFor="online" className="text-gray-300">Online Payment</Label>
                       </div>
                     </div>
-                  </div>
-                  
-                  <div className="p-4 bg-gray-800 rounded-lg border border-gray-700">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-white font-medium">Stripe Integration</p>
-                        <p className="text-gray-400 text-sm">Accept online payments</p>
-                      </div>
-                      <Badge variant="secondary" className="bg-yellow-600 text-white">Coming Soon</Badge>
-                    </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                      Note: Payment gateway integrations (Stripe, etc.) are configured in the Integrations page
+                    </p>
                   </div>
                 </div>
               </div>
