@@ -526,11 +526,11 @@ export default function BusinessSettings() {
 
       <Tabs defaultValue="business-info" className="space-y-6">
         <TabsList className="bg-[#1A1A1A] border-gray-800">
-          <TabsTrigger value="business-info" className="data-[state=active]:bg-[#84CC16] data-[state=active]:text-black">Business Information</TabsTrigger>
-          <TabsTrigger value="services" className="data-[state=active]:bg-[#84CC16] data-[state=active]:text-black">Services/Products</TabsTrigger>
-          <TabsTrigger value="availability" className="data-[state=active]:bg-[#84CC16] data-[state=active]:text-black">Availability & Scheduling</TabsTrigger>
-          <TabsTrigger value="ai-config" className="data-[state=active]:bg-[#84CC16] data-[state=active]:text-black">AI Assistant Configuration</TabsTrigger>
-          <TabsTrigger value="integrations" className="data-[state=active]:bg-[#84CC16] data-[state=active]:text-black">Integrations & Notifications</TabsTrigger>
+          <TabsTrigger value="business-info" className="text-gray-200 data-[state=active]:bg-[#84CC16] data-[state=active]:text-black">Business Information</TabsTrigger>
+          <TabsTrigger value="services" className="text-gray-200 data-[state=active]:bg-[#84CC16] data-[state=active]:text-black">Services/Products</TabsTrigger>
+          <TabsTrigger value="availability" className="text-gray-200 data-[state=active]:bg-[#84CC16] data-[state=active]:text-black">Availability & Scheduling</TabsTrigger>
+          <TabsTrigger value="ai-config" className="text-gray-200 data-[state=active]:bg-[#84CC16] data-[state=active]:text-black">AI Assistant Configuration</TabsTrigger>
+          <TabsTrigger value="integrations" className="text-gray-200 data-[state=active]:bg-[#84CC16] data-[state=active]:text-black">Integrations & Notifications</TabsTrigger>
         </TabsList>
 
         {/* Tab 1: Business Information */}

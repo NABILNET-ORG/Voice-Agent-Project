@@ -60,7 +60,7 @@ export function NavMain({
                     {item.items?.map((subItem) => (
                       <SidebarMenuSubItem key={subItem.title}>
                         <SidebarMenuSubButton asChild>
-                          <Link href={subItem.url} className="text-gray-200 hover:text-white hover:bg-gray-800">
+                          <Link href={subItem.url} className="text-gray-100 hover:text-white hover:bg-gray-800">
                             <span className="font-medium">{subItem.title}</span>
                           </Link>
                         </SidebarMenuSubButton>
