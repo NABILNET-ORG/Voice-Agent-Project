@@ -2,170 +2,72 @@
   "tech_stack": [
     "TypeScript",
     "Next.js 15",
-    "React 19",
-    "Tailwind CSS 4",
-    "shadcn/ui",
+    "React",
+    "Tailwind CSS",
     "Supabase (PostgreSQL)",
     "OpenAI Realtime API",
-    "Google Calendar API",
-    "Prisma ORM",
+    "Google Gemini AI",
+    "shadcn/ui",
     "WebRTC",
-    "Zustand",
-    "React Query"
+    "Cheerio",
+    "Turndown",
+    "Readability"
   ],
   "features": [
     {
-      "name": "Authentication & Authorization",
-      "description": "User authentication with Supabase Auth, login/signup flows, protected routes with middleware, Row Level Security",
-      "files": [
-        "src/app/(auth)/login/page.tsx",
-        "src/app/(auth)/signup/page.tsx",
-        "src/app/(auth)/layout.tsx",
-        "src/middleware.ts",
-        "src/hooks/useAuth.ts",
-        "src/lib/supabase.ts"
-      ]
+      "name": "Authentication System",
+      "description": "User authentication with Supabase Auth, login, signup, password reset",
+      "files": ["src/app/(auth)/login/page.tsx", "src/app/(auth)/signup/page.tsx", "src/app/(auth)/forgot-password/page.tsx", "src/hooks/useAuth.ts", "src/middleware.ts"]
     },
     {
-      "name": "AI Voice Agent (Live Demo)",
-      "description": "Real-time voice conversations using OpenAI Realtime API with WebRTC, speech recognition, voice activity detection, and live transcription",
-      "files": [
-        "src/app/page.tsx",
-        "src/hooks/useRealtimeAPI.ts",
-        "src/app/api/route.ts"
-      ]
+      "name": "Live Demo Voice Agent",
+      "description": "Real-time voice AI assistant using OpenAI Realtime API with WebRTC, typing animation, booking tools (check_availability, create_booking)",
+      "files": ["src/app/page.tsx", "src/hooks/useRealtimeAPI.ts", "src/app/api/route.ts", "src/app/api/voice-agent/context/route.ts"]
     },
     {
-      "name": "Bookings Management",
-      "description": "Complete booking CRUD with calendar and list views, filtering, status management, and customer information tracking",
-      "files": [
-        "src/app/bookings/page.tsx",
-        "src/app/bookings/list/page.tsx"
-      ]
+      "name": "Business Settings Management",
+      "description": "Complete business configuration: info, timezone, currency, language, availability, scheduling policies, notifications",
+      "files": ["src/app/settings/page.tsx", "src/lib/api.ts"]
     },
     {
-      "name": "Call History & Transcripts",
-      "description": "View all voice calls with complete transcripts, call details, duration, status, and customer information",
-      "files": [
-        "src/app/calls/page.tsx"
-      ]
+      "name": "Services Management with AI Extraction",
+      "description": "Service/product management with AI-powered extraction. URL modes: single-page, deep-extraction, full-crawl. KB modes: simple-query, full-context, batch",
+      "files": ["src/app/settings/services/page.tsx", "src/app/api/services/extract-from-url/route.ts", "src/app/api/services/extract-from-knowledge/route.ts"]
+    },
+    {
+      "name": "Knowledge Base System",
+      "description": "Website crawling (smart crawl, single page, all products), content summarization, source management with edit/delete, product filtering",
+      "files": ["src/components/KnowledgeBaseManager.tsx", "src/app/api/knowledge/fetch-website/route.ts", "src/app/api/knowledge/summarize/route.ts"]
+    },
+    {
+      "name": "AI Integrations Configuration",
+      "description": "Configure AI providers (OpenAI, Google Gemini, Anthropic) with feature assignments, model selection, API keys",
+      "files": ["src/app/settings/integrations/page.tsx"]
+    },
+    {
+      "name": "Booking System",
+      "description": "Appointment booking, availability checking, calendar integration, booking history, status management",
+      "files": ["src/app/bookings/page.tsx", "src/app/bookings/list/page.tsx"]
+    },
+    {
+      "name": "Call History",
+      "description": "Track and review voice agent call recordings and transcripts",
+      "files": ["src/app/calls/page.tsx"]
     },
     {
       "name": "Analytics Dashboard",
-      "description": "Business metrics visualization with charts for bookings, revenue, call performance, conversion rates, and trends over time",
-      "files": [
-        "src/app/analytics/page.tsx"
-      ]
+      "description": "Business analytics and metrics tracking",
+      "files": ["src/app/analytics/page.tsx"]
     },
     {
-      "name": "Settings - Business Configuration",
-      "description": "Configure business details including name, hours, services, pricing, and operational settings",
-      "files": [
-        "src/app/settings/page.tsx"
-      ]
+      "name": "Account Management",
+      "description": "User profile and account settings",
+      "files": ["src/app/account/page.tsx"]
     },
     {
-      "name": "Settings - Services Management",
-      "description": "Manage service offerings with names, descriptions, durations, pricing, and availability",
-      "files": [
-        "src/app/settings/services/page.tsx"
-      ]
-    },
-    {
-      "name": "Settings - Integrations",
-      "description": "Connect third-party services including Google Calendar OAuth, Twilio, email providers, and payment gateways",
-      "files": [
-        "src/app/settings/integrations/page.tsx",
-        "src/app/api/auth/google/route.ts",
-        "src/app/api/auth/google/callback/route.ts",
-        "src/app/api/integrations/google/save-tokens/route.ts"
-      ]
-    },
-    {
-      "name": "Knowledge Base Management",
-      "description": "AI-powered website crawling, content summarization, and knowledge source management for contextual AI responses",
-      "files": [
-        "src/components/KnowledgeBaseManager.tsx",
-        "src/app/api/knowledge/fetch-website/route.ts",
-        "src/app/api/knowledge/summarize/route.ts"
-      ]
-    },
-    {
-      "name": "User Account Management",
-      "description": "User profile management, password reset, email preferences, and account settings",
-      "files": [
-        "src/app/account/page.tsx"
-      ]
-    },
-    {
-      "name": "Navigation & Layout",
-      "description": "Responsive sidebar navigation with user menu, main nav items, and project switcher",
-      "files": [
-        "src/components/app-sidebar.tsx",
-        "src/components/nav-main.tsx",
-        "src/components/nav-user.tsx",
-        "src/components/nav-projects.tsx",
-        "src/app/layout.tsx"
-      ]
-    },
-    {
-      "name": "UI Components Library",
-      "description": "Comprehensive shadcn/ui component library with 40+ reusable React components including buttons, dialogs, forms, tables, charts, and more",
-      "files": [
-        "src/components/ui/button.tsx",
-        "src/components/ui/dialog.tsx",
-        "src/components/ui/form.tsx",
-        "src/components/ui/table.tsx",
-        "src/components/ui/card.tsx",
-        "src/components/ui/input.tsx",
-        "src/components/ui/select.tsx",
-        "src/components/ui/calendar.tsx",
-        "src/components/ui/chart.tsx",
-        "src/components/ui/badge.tsx",
-        "src/components/ui/alert.tsx",
-        "src/components/ui/toast.tsx",
-        "src/components/ui/sheet.tsx",
-        "src/components/ui/tabs.tsx",
-        "src/components/ui/switch.tsx",
-        "src/components/ui/textarea.tsx",
-        "src/components/ui/checkbox.tsx",
-        "src/components/ui/radio-group.tsx",
-        "src/components/ui/dropdown-menu.tsx",
-        "src/components/ui/sidebar.tsx"
-      ]
-    },
-    {
-      "name": "Database Layer",
-      "description": "Supabase client configuration, database utilities, and Prisma ORM schema for PostgreSQL",
-      "files": [
-        "src/lib/supabase.ts",
-        "src/lib/db.ts",
-        "prisma/schema.prisma"
-      ]
-    },
-    {
-      "name": "API Utilities",
-      "description": "Centralized API client with error handling, request/response interceptors, and type-safe endpoints",
-      "files": [
-        "src/lib/api.ts"
-      ]
-    },
-    {
-      "name": "Utility Functions",
-      "description": "Common utility functions for class name merging, date formatting, and helper functions",
-      "files": [
-        "src/lib/utils.ts"
-      ]
-    },
-    {
-      "name": "Custom Hooks",
-      "description": "Reusable React hooks for authentication, toast notifications, mobile detection, and realtime API",
-      "files": [
-        "src/hooks/useAuth.ts",
-        "src/hooks/use-toast.ts",
-        "src/hooks/use-mobile.ts",
-        "src/hooks/useRealtimeAPI.ts"
-      ]
+      "name": "Google Calendar Integration",
+      "description": "OAuth integration with Google Calendar for appointment sync",
+      "files": ["src/app/api/auth/google/route.ts", "src/app/api/auth/google/callback/route.ts", "src/app/api/integrations/google/save-tokens/route.ts"]
     }
   ]
 }
