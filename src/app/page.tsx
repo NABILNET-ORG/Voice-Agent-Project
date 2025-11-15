@@ -195,9 +195,9 @@ export default function LiveDemo() {
           <Card className="bg-[#1A1A1A] border-gray-800">
             <CardHeader>
               <CardTitle className="text-white flex items-center justify-between">
-                <span>Available Time Slots</span>
-                <Badge className="bg-[#84CC16] text-black">
-                  {isConnected ? 'Ready' : 'Offline'}
+                <span>Agent Status</span>
+                <Badge className={isConnected ? "bg-[#84CC16] text-black" : "bg-gray-700 text-gray-300"}>
+                  {isConnected ? 'Active' : 'Inactive'}
                 </Badge>
               </CardTitle>
             </CardHeader>
@@ -223,24 +223,18 @@ export default function LiveDemo() {
 
                 <Separator className="bg-gray-800" />
 
-                {/* Available Time Slots */}
+                {/* Connection Status Info */}
                 <div className="space-y-2">
-                  {[
-                    { time: '2:00 PM', available: true },
-                    { time: '3:30 PM', available: true },
-                    { time: '5:00 PM', available: false },
-                    { time: '6:30 PM', available: true }
-                  ].map((slot, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-3 rounded-lg bg-gray-800/50 border border-gray-700"
-                    >
-                      <span className="text-white font-medium">{slot.time}</span>
-                      <Badge className={slot.available ? 'bg-[#84CC16] text-black' : 'bg-red-600 text-white'}>
-                        {slot.available ? 'Available' : 'Booked'}
-                      </Badge>
-                    </div>
-                  ))}
+                  <div className="p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+                    <p className="text-sm text-gray-400 text-center mb-2">
+                      {isConnected
+                        ? "🎙️ Voice agent is active"
+                        : "🔌 Connect to start conversation"}
+                    </p>
+                    <p className="text-xs text-gray-500 text-center">
+                      The AI will check real-time availability and create bookings when requested.
+                    </p>
+                  </div>
                 </div>
 
                 <Separator className="bg-gray-800" />
@@ -255,16 +249,16 @@ export default function LiveDemo() {
                     onClick={() => window.location.href = '/bookings'}
                   >
                     <Calendar className="h-4 w-4 mr-2" />
-                    View Calendar
+                    View Bookings
                   </Button>
 
                   <Button
                     variant="outline"
                     className="w-full justify-start bg-gray-800/50 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white"
-                    onClick={() => window.location.href = '/bookings'}
+                    onClick={() => window.location.href = '/settings'}
                   >
                     <Calendar className="h-4 w-4 mr-2" />
-                    Check Availability
+                    Business Settings
                   </Button>
 
                   <Button
