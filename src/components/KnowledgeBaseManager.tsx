@@ -211,6 +211,27 @@ export function KnowledgeBaseManager({ userId }: Props) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
+              {sources.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="p-0 h-auto hover:bg-transparent"
+                  onClick={() => {
+                    if (selectedSources.size === sources.length) {
+                      setSelectedSources(new Set());
+                    } else {
+                      setSelectedSources(new Set(sources.map(s => s.id)));
+                    }
+                  }}
+                  title={selectedSources.size === sources.length ? "Deselect all" : "Select all"}
+                >
+                  {selectedSources.size === sources.length ? (
+                    <CheckSquare className="h-5 w-5 text-[#84CC16]" />
+                  ) : (
+                    <Square className="h-5 w-5 text-gray-500" />
+                  )}
+                </Button>
+              )}
               <CardTitle className="text-white">Knowledge Sources</CardTitle>
               {selectedSources.size > 0 && (
                 <Badge className="bg-[#84CC16] text-black">
