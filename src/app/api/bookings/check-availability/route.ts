@@ -50,11 +50,27 @@ export async function POST(request: Request) {
       .eq("user_id", user.id)
       .eq("date", date);
 
+    // Get current time to filter out past slots
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+
+    // Check if requested date is today
+    const today = new Date().toISOString().split('T')[0];
+    const isToday = date === today;
+
     // Generate time slots (9 AM to 9 PM, every 30 minutes)
     const slots = [];
     for (let hour = 9; hour <= 21; hour++) {
       for (let minute of [0, 30]) {
         if (hour === 21 && minute === 30) break; // Stop at 9:00 PM
+
+        // Skip past time slots if checking today
+        if (isToday) {
+          if (hour < currentHour || (hour === currentHour && minute <= currentMinute)) {
+            continue; // Skip past times
+          }
+        }
 
         const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
 
