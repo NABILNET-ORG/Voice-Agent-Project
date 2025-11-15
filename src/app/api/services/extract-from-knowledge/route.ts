@@ -72,9 +72,13 @@ export async function POST(request: Request) {
     }
 
     // Filter to only product/service pages
+    const excludedSources = allSources.filter(source => !isProductServiceSource(source));
     const knowledgeSources = allSources.filter(source => isProductServiceSource(source));
 
     console.log(`[KB Extraction] Filtered ${allSources.length} sources to ${knowledgeSources.length} product/service pages`);
+    if (excludedSources.length > 0) {
+      console.log(`[KB Extraction] Excluded ${excludedSources.length} non-service pages:`, excludedSources.map(s => s.title).join(', '));
+    }
 
     if (!knowledgeSources || knowledgeSources.length === 0) {
       return NextResponse.json({
