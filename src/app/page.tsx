@@ -14,6 +14,38 @@ export default function LiveDemo() {
   const { status, transcript, error, connect, disconnect, isConnected } = useRealtimeAPI();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [volume, setVolume] = useState([80]);
+  const [availableSlots, setAvailableSlots] = useState<Array<{time: string; available: boolean}>>([]);
+
+  // Fetch real availability data
+  useEffect(() => {
+    const fetchAvailability = async () => {
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        const response = await fetch('/api/bookings/check-availability', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ date: today })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          // Get first 4 slots for display
+          const displaySlots = data.slots?.slice(0, 4) || [];
+          setAvailableSlots(displaySlots.map((s: any) => ({
+            time: s.formattedTime,
+            available: s.available
+          })));
+        }
+      } catch (err) {
+        console.error('Failed to fetch availability:', err);
+      }
+    };
+
+    fetchAvailability();
+    // Refresh every 5 minutes
+    const interval = setInterval(fetchAvailability, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -195,9 +227,9 @@ export default function LiveDemo() {
           <Card className="bg-[#1A1A1A] border-gray-800">
             <CardHeader>
               <CardTitle className="text-white flex items-center justify-between">
-                <span>Agent Status</span>
+                <span>Available Time Slots</span>
                 <Badge className={isConnected ? "bg-[#84CC16] text-black" : "bg-gray-700 text-gray-300"}>
-                  {isConnected ? 'Active' : 'Inactive'}
+                  {isConnected ? 'Active' : 'Ready'}
                 </Badge>
               </CardTitle>
             </CardHeader>
@@ -223,18 +255,28 @@ export default function LiveDemo() {
 
                 <Separator className="bg-gray-800" />
 
-                {/* Connection Status Info */}
+                {/* Real-Time Available Slots */}
                 <div className="space-y-2">
-                  <div className="p-4 bg-gray-800/50 rounded-lg border border-gray-700">
-                    <p className="text-sm text-gray-400 text-center mb-2">
-                      {isConnected
-                        ? "🎙️ Voice agent is active"
-                        : "🔌 Connect to start conversation"}
-                    </p>
-                    <p className="text-xs text-gray-500 text-center">
-                      The AI will check real-time availability and create bookings when requested.
-                    </p>
-                  </div>
+                  <h4 className="text-sm font-semibold text-white mb-3">Today's Availability</h4>
+                  {availableSlots.length > 0 ? (
+                    availableSlots.map((slot, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-3 rounded-lg bg-gray-800/50 border border-gray-700"
+                      >
+                        <span className="text-white font-medium">{slot.time}</span>
+                        <Badge className={slot.available ? 'bg-[#84CC16] text-black' : 'bg-red-600 text-white'}>
+                          {slot.available ? 'Available' : 'Booked'}
+                        </Badge>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+                      <p className="text-sm text-gray-400 text-center">
+                        Loading availability...
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <Separator className="bg-gray-800" />
