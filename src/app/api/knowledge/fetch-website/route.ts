@@ -61,7 +61,7 @@ export async function POST(request: Request) {
   }
 }
 
-async function fetchAndCleanPage(url: string) {
+async function fetchAndCleanPage(url: string): Promise<{url: string, title: string, content: string, wordCount: number, excerpt: string, selected: boolean, error?: string, html?: string}> {
   try {
     const response = await fetch(url, {
       headers: {
@@ -100,7 +100,8 @@ async function fetchAndCleanPage(url: string) {
       content: markdown,
       wordCount,
       excerpt: article.excerpt || markdown.substring(0, 200),
-      selected: true
+      selected: true,
+      html: html  // Return HTML for link extraction
     };
   } catch (error: any) {
     console.error(`Failed to fetch ${url}:`, error.message);
@@ -193,11 +194,13 @@ async function smartCrawl(
       continue;
     }
 
-    // Extract links from the page
+    // Extract links from the page (reuse HTML from fetchAndCleanPage to avoid double-fetch)
+    if (!page.html) {
+      continue;  // Skip link extraction if no HTML available
+    }
+
     try {
-      const response = await fetch(url);
-      const html = await response.text();
-      const $ = cheerio.load(html);
+      const $ = cheerio.load(page.html);
 
       const links: { url: string; priority: number }[] = [];
 
