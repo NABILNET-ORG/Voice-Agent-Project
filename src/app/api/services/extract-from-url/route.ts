@@ -90,15 +90,22 @@ URL: ${url}
 HTML:
 ${cleanedHtml}
 
+CRITICAL: Preserve the ORIGINAL language from the website. Do NOT translate.
+
 Find main services/products. Extract:
-- name, name_ar, name_en
+- name: Service name in ORIGINAL language from the page
+- name_ar: Arabic name (if page is in Arabic, same as name; if English, provide translation)
+- name_en: English name (if page is in English, same as name; if Arabic, provide translation)
 - price (number only)
 - duration (minutes)
-- description, description_ar, description_en
-- category, category_ar, category_en
+- description: Description in ORIGINAL language
+- description_ar: Arabic description (translate if needed)
+- description_en: English description (translate if needed)
+- category: Category in ORIGINAL language
+- category_ar, category_en: Translated categories
 
 Return JSON array. Example:
-[{"name":"Service","name_ar":"خدمة","name_en":"Service","price":100,"duration":30,"description":"Details","description_ar":"تفاصيل","description_en":"Details","category":"General"}]
+[{"name":"Service","name_ar":"خدمة","name_en":"Service","price":100,"duration":30,"description":"Details","description_ar":"تفاصيل","description_en":"Details","category":"General","category_ar":"عام","category_en":"General"}]
 
 If no services, return []`;
 
@@ -137,25 +144,26 @@ DEEP EXTRACTION INSTRUCTIONS:
 2. Find ALL services/products on the entire page
 3. Extract BOTH short AND long descriptions
 4. Look in multiple places: titles, excerpts, full content, features, bullets
-5. Preserve ORIGINAL LANGUAGE - DO NOT translate
+5. **PRESERVE ORIGINAL LANGUAGE** - Extract text exactly as it appears on the website
 6. Extract ALL pricing and duration information
 
 Extract each service/product with:
-- name: Primary name in ORIGINAL language (required)
-- name_ar: Arabic name if available
-- name_en: English translation
-- description_short: Brief 1-2 sentence summary
-- description: Complete full description (required)
-- description_ar: Arabic full description if available
-- description_en: English full description translation
-- category, category_ar, category_en
+- name: Primary name in ORIGINAL language from the page (required)
+- name_ar: Arabic name (if page is Arabic, same as name; otherwise translate)
+- name_en: English name (if page is English, same as name; otherwise translate)
+- description_short: Brief summary in ORIGINAL language
+- description: Complete description in ORIGINAL language (required)
+- description_ar: Arabic description (same as description if Arabic, otherwise translate)
+- description_en: English description (same as description if English, otherwise translate)
+- category: Category in ORIGINAL language
+- category_ar, category_en: Translated categories
 - price: Numeric only
 - duration: Minutes only
 
 Return ONLY a valid JSON array:
-[{"name":"قراءة التاروت","name_ar":"قراءة التاروت","name_en":"Tarot Reading","description_short":"جلسة قراءة","description":"جلسة كاملة...","description_ar":"جلسة كاملة...","description_en":"Complete session...","price":150,"duration":30,"category":"تاروت","category_ar":"تاروت","category_en":"Tarot"}]
+[{"name":"Tarot Reading","name_ar":"قراءة التاروت","name_en":"Tarot Reading","description_short":"Personal session","description":"Complete 30-minute tarot reading...","description_ar":"جلسة كاملة...","description_en":"Complete 30-minute tarot reading...","price":150,"duration":30,"category":"Tarot","category_ar":"تاروت","category_en":"Tarot"}]
 
-CRITICAL: Extract EVERYTHING from the page. If no services found, return []`;
+CRITICAL: Use the ORIGINAL website language for name, description, and category. If no services found, return []`;
 
   const services = await callGeminiForExtraction(prompt, geminiApiKey, url);
 
@@ -206,7 +214,17 @@ Business: ${businessCategory || "general"}
 HTML:
 ${cleanedHtml}
 
-Extract services with full bilingual details (name_ar/en, description_ar/en, category_ar/en, price, duration).
+CRITICAL: Use ORIGINAL language from the page.
+
+Extract services with:
+- name: Service name in ORIGINAL language
+- name_ar: Arabic (if page is Arabic, same as name; otherwise translate)
+- name_en: English (if page is English, same as name; otherwise translate)
+- description: In ORIGINAL language
+- description_ar, description_en: Translated
+- category, category_ar, category_en
+- price, duration
+
 Return JSON array or [] if none found.`;
 
       const services = await callGeminiForExtraction(prompt, geminiApiKey, pageUrl);
