@@ -47,6 +47,8 @@ export default function ServicesManagement() {
   const [extractedServices, setExtractedServices] = useState<Service[]>([]);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [businessCategory, setBusinessCategory] = useState("general");
+  const [extractionMode, setExtractionMode] = useState<'simple-query' | 'full-context' | 'batch'>('simple-query');
+  const [batchProgress, setBatchProgress] = useState<{ current: number; total: number; percentage: number } | null>(null);
 
   useEffect(() => {
     if (user?.id) {
@@ -160,27 +162,85 @@ export default function ServicesManagement() {
   const fetchFromKnowledge = async () => {
     try {
       setFetching(true);
-      setMessage("Extracting services from knowledge base...");
+      setBatchProgress(null);
+      setExtractedServices([]);
 
-      const response = await fetch('/api/services/extract-from-knowledge', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ businessCategory })
-      });
+      if (extractionMode === 'batch') {
+        // Batch mode: iterate through sources one at a time
+        setMessage("Starting batch extraction...");
+        let allServices: Service[] = [];
+        let batchIndex = 0;
+        let hasMore = true;
 
-      const data = await response.json();
+        while (hasMore) {
+          const response = await fetch('/api/services/extract-from-knowledge', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              businessCategory,
+              mode: 'batch',
+              batchIndex
+            })
+          });
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to extract services');
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.error || 'Failed to extract services');
+          }
+
+          // Update progress
+          if (data.batchProgress) {
+            setBatchProgress(data.batchProgress);
+            setMessage(`Extracting ${data.batchProgress.current}/${data.batchProgress.total} (${data.batchProgress.percentage}%)`);
+          }
+
+          // Add services from this batch
+          if (data.services && data.services.length > 0) {
+            allServices = [...allServices, ...data.services];
+          }
+
+          hasMore = data.batchProgress?.hasMore || false;
+          batchIndex++;
+
+          // Small delay to show progress
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+
+        setExtractedServices(allServices);
+        setShowReviewModal(true);
+        setBatchProgress(null);
+        setMessage(`Found ${allServices.length} services from batch extraction!`);
+      } else {
+        // Simple-query or full-context mode
+        const modeText = extractionMode === 'simple-query' ? 'quick' : 'comprehensive';
+        setMessage(`Running ${modeText} extraction from knowledge base...`);
+
+        const response = await fetch('/api/services/extract-from-knowledge', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            businessCategory,
+            mode: extractionMode
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to extract services');
+        }
+
+        setExtractedServices(data.services);
+        setShowReviewModal(true);
+        setMessage(`Found ${data.count} services from ${data.sourcesAnalyzed} sources!`);
       }
 
-      setExtractedServices(data.services);
-      setShowReviewModal(true);
-      setMessage(`Found ${data.count} services from ${data.sourcesAnalyzed} sources!`);
       setTimeout(() => setMessage(""), 3000);
     } catch (error: any) {
       console.error('Error fetching services:', error);
       setMessage(error.message || "Error extracting services");
+      setBatchProgress(null);
       setTimeout(() => setMessage(""), 5000);
     } finally {
       setFetching(false);
@@ -408,6 +468,70 @@ export default function ServicesManagement() {
           {/* Fetch from Knowledge Base */}
           <div className="space-y-3">
             <Label className="text-gray-300">Extract from Knowledge Base</Label>
+
+            {/* Mode Selection */}
+            <div className="grid grid-cols-3 gap-2">
+              <Button
+                onClick={() => setExtractionMode('simple-query')}
+                variant={extractionMode === 'simple-query' ? 'default' : 'outline'}
+                size="sm"
+                disabled={fetching}
+                className={extractionMode === 'simple-query'
+                  ? 'bg-[#84CC16] text-black hover:bg-[#65A30D]'
+                  : 'border-gray-700 text-gray-400 hover:text-white'
+                }
+              >
+                Quick
+              </Button>
+              <Button
+                onClick={() => setExtractionMode('full-context')}
+                variant={extractionMode === 'full-context' ? 'default' : 'outline'}
+                size="sm"
+                disabled={fetching}
+                className={extractionMode === 'full-context'
+                  ? 'bg-[#84CC16] text-black hover:bg-[#65A30D]'
+                  : 'border-gray-700 text-gray-400 hover:text-white'
+                }
+              >
+                Full
+              </Button>
+              <Button
+                onClick={() => setExtractionMode('batch')}
+                variant={extractionMode === 'batch' ? 'default' : 'outline'}
+                size="sm"
+                disabled={fetching}
+                className={extractionMode === 'batch'
+                  ? 'bg-[#84CC16] text-black hover:bg-[#65A30D]'
+                  : 'border-gray-700 text-gray-400 hover:text-white'
+                }
+              >
+                Batch
+              </Button>
+            </div>
+
+            {/* Mode Description */}
+            <p className="text-xs text-gray-500">
+              {extractionMode === 'simple-query' && "Quick: Extracts from top 2-3 sources (fast, minimal context)"}
+              {extractionMode === 'full-context' && "Full: Processes all sources in batches (comprehensive)"}
+              {extractionMode === 'batch' && "Batch: Processes one source at a time with progress tracking"}
+            </p>
+
+            {/* Progress Bar for Batch Mode */}
+            {batchProgress && (
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs text-gray-400">
+                  <span>Progress: {batchProgress.current}/{batchProgress.total}</span>
+                  <span>{batchProgress.percentage}%</span>
+                </div>
+                <div className="w-full bg-gray-800 rounded-full h-2">
+                  <div
+                    className="bg-[#84CC16] h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${batchProgress.percentage}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
             <Button
               onClick={fetchFromKnowledge}
               disabled={fetching}
@@ -415,11 +539,8 @@ export default function ServicesManagement() {
               className="w-full border-gray-700 text-gray-300 hover:text-white"
             >
               <Database className="h-4 w-4 mr-2" />
-              {fetching ? "Analyzing..." : "Extract from Knowledge Base"}
+              {fetching ? (batchProgress ? `Extracting ${batchProgress.current}/${batchProgress.total}...` : "Analyzing...") : "Extract from Knowledge Base"}
             </Button>
-            <p className="text-xs text-gray-500">
-              AI will analyze all your knowledge sources and extract services/products automatically
-            </p>
           </div>
         </CardContent>
       </Card>
