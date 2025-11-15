@@ -167,6 +167,29 @@ function getContentFingerprint(content: string): string {
 function isProductServicePage(url: string): boolean {
   const urlLower = url.toLowerCase();
 
+  // Exclude media files and assets
+  const mediaExtensions = [
+    '.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp', '.ico',
+    '.pdf', '.doc', '.docx', '.zip', '.rar',
+    '.mp4', '.mp3', '.avi', '.mov',
+    '.css', '.js', '.json', '.xml'
+  ];
+
+  for (const ext of mediaExtensions) {
+    if (urlLower.endsWith(ext)) {
+      return false;
+    }
+  }
+
+  // Exclude wp-content uploads and assets
+  if (urlLower.includes('/wp-content/uploads/') ||
+      urlLower.includes('/wp-content/themes/') ||
+      urlLower.includes('/wp-includes/') ||
+      urlLower.includes('/assets/') ||
+      urlLower.includes('/static/')) {
+    return false;
+  }
+
   // Include URLs containing these keywords
   const includeKeywords = [
     'product', 'service', 'menu', 'shop', 'store', 'catalog',
