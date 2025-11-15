@@ -1,0 +1,791 @@
+[
+  {
+    "id": "TC-AUTH-001",
+    "feature": "Authentication - Login",
+    "title": "User Login with Email and Password",
+    "description": "Test complete login flow with valid credentials",
+    "priority": "Critical",
+    "steps": [
+      "Navigate to /login",
+      "Enter valid email",
+      "Enter valid password",
+      "Click login button",
+      "Verify redirect to dashboard",
+      "Verify session token set",
+      "Verify user authenticated"
+    ]
+  },
+  {
+    "id": "TC-AUTH-002",
+    "feature": "Authentication - Signup",
+    "title": "User Signup with Email and Password",
+    "description": "Test new user registration flow",
+    "priority": "Critical",
+    "steps": [
+      "Navigate to /signup",
+      "Enter email",
+      "Enter password",
+      "Confirm password",
+      "Click signup button",
+      "Verify account created",
+      "Verify email confirmation sent",
+      "Verify redirect to login"
+    ]
+  },
+  {
+    "id": "TC-AUTH-003",
+    "feature": "Authentication - Logout",
+    "title": "User Logout",
+    "description": "Test logout functionality",
+    "priority": "High",
+    "steps": [
+      "Login as user",
+      "Click user menu",
+      "Click logout",
+      "Verify session cleared",
+      "Verify redirect to login",
+      "Verify protected pages not accessible"
+    ]
+  },
+  {
+    "id": "TC-AI-MODEL-001",
+    "feature": "AI Models - OpenAI Card",
+    "title": "OpenAI Integration Card Visibility and Configuration",
+    "description": "Test OpenAI card appears and can be configured",
+    "priority": "Critical",
+    "steps": [
+      "Navigate to Settings → Integrations",
+      "Verify OpenAI card visible with 🤖 icon",
+      "Click OpenAI card",
+      "Verify config dialog opens",
+      "Verify API key field present",
+      "Verify model dropdown with official names: gpt-4o, gpt-4o-mini, gpt-4-turbo, gpt-3.5-turbo",
+      "Select gpt-4o-mini",
+      "Verify 4 feature toggles: Voice Agent, Summarization, Analytics, Transcription",
+      "Toggle Voice Agent ON",
+      "Toggle Summarization ON",
+      "Enter API key (masked)",
+      "Click Save",
+      "Verify success message",
+      "Verify card status → Connected"
+    ]
+  },
+  {
+    "id": "TC-AI-MODEL-002",
+    "feature": "AI Models - Gemini Card",
+    "title": "Google Gemini Integration Card and Configuration",
+    "description": "Test Gemini card with official model names",
+    "priority": "Critical",
+    "steps": [
+      "Click AI Models tab",
+      "Verify Gemini card visible with ✨ icon",
+      "Click Gemini card",
+      "Verify config dialog opens",
+      "Verify Gemini API key field",
+      "Verify model dropdown with: gemini-2.5-pro, gemini-2.5-flash, gemini-2.0-flash, gemini-pro-latest, gemini-flash-latest",
+      "Select gemini-2.5-flash",
+      "Verify 4 feature toggles present",
+      "Toggle Summarization ON",
+      "Enter Gemini API key",
+      "Click Save",
+      "Verify success message",
+      "Verify Gemini card → Connected"
+    ]
+  },
+  {
+    "id": "TC-AI-MODEL-003",
+    "feature": "AI Models - OpenRouter Card",
+    "title": "OpenRouter Integration Card and Multi-Model Selection",
+    "description": "Test OpenRouter with provider/model format",
+    "priority": "High",
+    "steps": [
+      "Verify OpenRouter card visible with ⚡ icon",
+      "Click OpenRouter card",
+      "Verify config dialog",
+      "Verify model dropdown: auto, openai/gpt-4o, anthropic/claude-3.5-sonnet, google/gemini-pro-1.5, meta-llama/llama-3-70b",
+      "Select anthropic/claude-3.5-sonnet",
+      "Verify feature toggles",
+      "Enter OpenRouter API key",
+      "Click Save",
+      "Verify success"
+    ]
+  },
+  {
+    "id": "TC-AI-MODEL-004",
+    "feature": "AI Models - Category Filter",
+    "title": "AI Models Category Tab Filtering",
+    "description": "Test AI Models tab shows only 3 AI cards",
+    "priority": "Critical",
+    "steps": [
+      "Navigate to Integrations",
+      "Verify category tabs: All, AI Models, Calendar, Payment, Communication, Analytics, Other",
+      "Click 'AI Models' tab",
+      "Verify ONLY 3 cards visible: OpenAI, Gemini, OpenRouter",
+      "Verify Google Calendar NOT visible",
+      "Verify Stripe NOT visible",
+      "Verify Twilio NOT visible",
+      "Click 'All Integrations' tab",
+      "Verify all cards visible including AI + others"
+    ]
+  },
+  {
+    "id": "TC-AI-MODEL-005",
+    "feature": "AI Models - Custom Model Support",
+    "title": "Custom Model Entry for Future Models",
+    "description": "Test custom model input for all 3 providers",
+    "priority": "High",
+    "steps": [
+      "Open OpenAI config",
+      "Select 'Custom Model...' from dropdown",
+      "Verify custom input appears",
+      "Enter 'gpt-5-preview'",
+      "Save and verify stored",
+      "Open Gemini config",
+      "Select 'Custom Model...'",
+      "Enter 'gemini-3.0-ultra'",
+      "Save and verify",
+      "Verify custom models persist after page reload"
+    ]
+  },
+  {
+    "id": "TC-AI-MODEL-006",
+    "feature": "AI Models - Feature Assignment",
+    "title": "Assign Different Providers to Different Features",
+    "description": "Test mixing providers: OpenAI for voice, Gemini for summarization",
+    "priority": "Critical",
+    "steps": [
+      "Configure OpenAI: Toggle Voice Agent ON, Summarization OFF",
+      "Save OpenAI",
+      "Configure Gemini: Toggle Voice Agent OFF, Summarization ON",
+      "Save Gemini",
+      "Verify database ai_voice_agent_provider = 'openai'",
+      "Verify database ai_summarization_provider = 'gemini'",
+      "Both cards show Connected status"
+    ]
+  },
+  {
+    "id": "TC-AI-MODEL-007",
+    "feature": "AI Models - Database Integration",
+    "title": "AI Configuration Database Persistence",
+    "description": "Test all AI config saved and loaded from database",
+    "priority": "Critical",
+    "steps": [
+      "Configure all 3 AI providers",
+      "Set different models for each",
+      "Assign different features to each",
+      "Save all",
+      "Refresh page",
+      "Verify all 3 cards show correct Connected/Disconnected status",
+      "Open each config",
+      "Verify API keys persisted (masked)",
+      "Verify model selections preserved",
+      "Verify feature toggles state correct"
+    ]
+  },
+  {
+    "id": "TC-KB-001",
+    "feature": "Knowledge Base - Website Fetch",
+    "title": "Fetch Website Content with Adjustable Depth",
+    "description": "Test website crawling with depth and page controls",
+    "priority": "High",
+    "steps": [
+      "Navigate to Settings → AI Configuration → Knowledge Base",
+      "Click Add Website",
+      "Enter URL: https://samiatarot.com/",
+      "Select Smart Crawl",
+      "Set Max Depth to 1",
+      "Set Max Pages to 5",
+      "Click Fetch & Preview",
+      "Verify 1 page fetched",
+      "Close dialog",
+      "Try again with Max Depth: 3",
+      "Set Max Pages: 30",
+      "Fetch",
+      "Verify multiple pages fetched",
+      "Verify word count shown",
+      "Verify page selection checkboxes"
+    ]
+  },
+  {
+    "id": "TC-KB-002",
+    "feature": "Knowledge Base - Summarization with Gemini",
+    "description": "Test AI summarization using configured Gemini provider",
+    "priority": "Critical",
+    "steps": [
+      "Ensure Gemini configured with api key and Summarization toggle ON",
+      "Fetch website content",
+      "Click Summarize button",
+      "Verify Gemini API called (check server logs)",
+      "Verify summary generated",
+      "Verify summary length < original",
+      "Verify token count shown",
+      "Verify compression ratio displayed"
+    ]
+  },
+  {
+    "id": "TC-KB-003",
+    "feature": "Knowledge Base - Save to Database",
+    "title": "Save Knowledge Source to Database",
+    "description": "Test saving knowledge source with all metadata",
+    "priority": "High",
+    "steps": [
+      "Fetch and summarize website",
+      "Review summary",
+      "Edit summary if needed",
+      "Set priority (1-5)",
+      "Set active status ON",
+      "Click Save",
+      "Verify success message",
+      "Verify saved in knowledge_sources table",
+      "Verify RLS applied (user can only see own sources)"
+    ]
+  },
+  {
+    "id": "TC-KB-004",
+    "feature": "Knowledge Base - List & Manage Sources",
+    "title": "View, Edit, Delete Knowledge Sources",
+    "description": "Test knowledge source management",
+    "priority": "Medium",
+    "steps": [
+      "Navigate to Knowledge Base",
+      "Verify list of saved sources",
+      "Verify each source shows: title, URL, priority, status",
+      "Click edit on a source",
+      "Modify summary",
+      "Save changes",
+      "Verify updated",
+      "Click delete",
+      "Confirm deletion",
+      "Verify removed from list"
+    ]
+  },
+  {
+    "id": "TC-VOICE-001",
+    "feature": "Voice Agent - Start Session",
+    "title": "Initiate Voice Agent Session",
+    "description": "Test starting voice agent conversation",
+    "priority": "Critical",
+    "steps": [
+      "Navigate to homepage (Live Demo)",
+      "Verify AI Business Assistant Demo heading",
+      "Click Phone button to start",
+      "Verify microphone permission requested",
+      "Grant permission",
+      "Verify WebRTC connection established",
+      "Verify AI greeting message appears",
+      "Verify transcript area shows messages"
+    ]
+  },
+  {
+    "id": "TC-VOICE-002",
+    "feature": "Voice Agent - Voice Conversation",
+    "title": "Conduct Voice Conversation",
+    "description": "Test natural voice conversation flow",
+    "priority": "Critical",
+    "steps": [
+      "Start voice session",
+      "Speak a message",
+      "Verify VAD detects speech",
+      "Verify AI responds with voice",
+      "Verify transcript updates in real-time",
+      "Verify low latency response (< 2 seconds)",
+      "Verify conversation flows naturally"
+    ]
+  },
+  {
+    "id": "TC-BOOKINGS-001",
+    "feature": "Bookings - Calendar View",
+    "title": "View Bookings in Calendar",
+    "description": "Test calendar view shows bookings",
+    "priority": "High",
+    "steps": [
+      "Login",
+      "Navigate to /bookings",
+      "Verify calendar component renders",
+      "Verify existing bookings appear on calendar",
+      "Verify color coding by status",
+      "Click a booking",
+      "Verify booking details popup",
+      "Verify customer info displayed"
+    ]
+  },
+  {
+    "id": "TC-BOOKINGS-002",
+    "feature": "Bookings - List View",
+    "title": "View and Filter Bookings List",
+    "description": "Test list view with filtering",
+    "priority": "High",
+    "steps": [
+      "Navigate to /bookings/list",
+      "Verify table with bookings",
+      "Verify columns: Date, Customer, Service, Status, Actions",
+      "Apply status filter (Confirmed)",
+      "Verify filtered results",
+      "Apply date range filter",
+      "Verify results match filter",
+      "Search by customer name",
+      "Verify search works"
+    ]
+  },
+  {
+    "id": "TC-BOOKINGS-003",
+    "feature": "Bookings - Create New",
+    "title": "Create New Booking Manually",
+    "description": "Test manual booking creation",
+    "priority": "High",
+    "steps": [
+      "Navigate to Bookings",
+      "Click 'New Booking' button",
+      "Fill customer name",
+      "Fill phone number",
+      "Select service",
+      "Select date and time",
+      "Enter notes",
+      "Click Save",
+      "Verify booking created",
+      "Verify appears in list",
+      "Verify appears in calendar"
+    ]
+  },
+  {
+    "id": "TC-BOOKINGS-004",
+    "feature": "Bookings - Edit Existing",
+    "title": "Edit Booking Details",
+    "description": "Test editing booking",
+    "priority": "Medium",
+    "steps": [
+      "Open booking",
+      "Click Edit",
+      "Change date/time",
+      "Update notes",
+      "Click Save",
+      "Verify changes saved",
+      "Verify updated in database"
+    ]
+  },
+  {
+    "id": "TC-BOOKINGS-005",
+    "feature": "Bookings - Cancel",
+    "title": "Cancel Booking",
+    "description": "Test booking cancellation",
+    "priority": "High",
+    "steps": [
+      "Select booking",
+      "Click Cancel",
+      "Enter cancellation reason",
+      "Confirm",
+      "Verify status → Cancelled",
+      "Verify notification sent to customer"
+    ]
+  },
+  {
+    "id": "TC-CALLS-001",
+    "feature": "Call History - View List",
+    "title": "View Call History List",
+    "description": "Test call logs display",
+    "priority": "High",
+    "steps": [
+      "Navigate to /calls",
+      "Verify Call History heading",
+      "Verify table with calls",
+      "Verify columns: Date, Customer, Duration, Outcome, Status",
+      "Verify calls sorted by date (newest first)"
+    ]
+  },
+  {
+    "id": "TC-CALLS-002",
+    "feature": "Call History - View Transcript",
+    "title": "View Full Call Transcript",
+    "description": "Test transcript viewer",
+    "priority": "High",
+    "steps": [
+      "Click on a call log",
+      "Verify transcript dialog opens",
+      "Verify full conversation displayed",
+      "Verify timestamps on messages",
+      "Verify customer and AI messages distinguished",
+      "Verify audio playback option (if available)"
+    ]
+  },
+  {
+    "id": "TC-CALLS-003",
+    "feature": "Call History - Search",
+    "title": "Search Call Transcripts",
+    "description": "Test transcript search",
+    "priority": "Medium",
+    "steps": [
+      "Enter search term in search box",
+      "Verify results filtered",
+      "Search by customer name",
+      "Search by keywords in transcript",
+      "Verify search highlights matches"
+    ]
+  },
+  {
+    "id": "TC-ANALYTICS-001",
+    "feature": "Analytics - Dashboard View",
+    "title": "View Analytics Dashboard",
+    "description": "Test analytics dashboard loads with charts",
+    "priority": "High",
+    "steps": [
+      "Navigate to /analytics",
+      "Verify Analytics heading",
+      "Verify KPI cards: Total Bookings, Revenue, Calls, Conversion Rate",
+      "Verify charts render: Line chart, Bar chart, Pie chart",
+      "Verify data populated from database"
+    ]
+  },
+  {
+    "id": "TC-ANALYTICS-002",
+    "feature": "Analytics - Date Filtering",
+    "title": "Filter Analytics by Date Range",
+    "description": "Test date range filtering",
+    "priority": "Medium",
+    "steps": [
+      "Select date range: Today",
+      "Verify charts update",
+      "Select: This Week",
+      "Verify data changes",
+      "Select: This Month",
+      "Select: Custom Range",
+      "Enter start and end date",
+      "Verify filtered data"
+    ]
+  },
+  {
+    "id": "TC-ANALYTICS-003",
+    "feature": "Analytics - Export Data",
+    "title": "Export Analytics to CSV",
+    "description": "Test data export",
+    "priority": "Medium",
+    "steps": [
+      "Click Export button",
+      "Select CSV format",
+      "Verify download starts",
+      "Verify CSV contains correct data"
+    ]
+  },
+  {
+    "id": "TC-SETTINGS-001",
+    "feature": "Settings - Business Info",
+    "title": "Configure Business Information",
+    "description": "Test business settings tab",
+    "priority": "High",
+    "steps": [
+      "Navigate to /settings",
+      "Verify Business Settings heading",
+      "Verify tabs: Business Info, Hours, Services, AI Config, Notifications",
+      "Edit business name",
+      "Edit phone number",
+      "Edit address",
+      "Edit website",
+      "Click Save",
+      "Verify saved",
+      "Refresh page",
+      "Verify changes persisted"
+    ]
+  },
+  {
+    "id": "TC-SETTINGS-002",
+    "feature": "Settings - Business Hours",
+    "title": "Configure Business Hours",
+    "description": "Test business hours configuration",
+    "priority": "High",
+    "steps": [
+      "Click Hours tab",
+      "Set hours for each day",
+      "Toggle 24/7 mode",
+      "Set break times",
+      "Click Save",
+      "Verify saved to business_config",
+      "Verify hours display correctly"
+    ]
+  },
+  {
+    "id": "TC-SETTINGS-003",
+    "feature": "Settings - Services Management",
+    "title": "Add, Edit, Delete Services",
+    "description": "Test service CRUD operations",
+    "priority": "Critical",
+    "steps": [
+      "Navigate to /settings/services",
+      "Click Add Service",
+      "Enter service name",
+      "Enter description",
+      "Set duration (minutes)",
+      "Set price",
+      "Click Save",
+      "Verify service appears in list",
+      "Click Edit on service",
+      "Change price",
+      "Save",
+      "Verify updated",
+      "Click Delete",
+      "Confirm",
+      "Verify removed"
+    ]
+  },
+  {
+    "id": "TC-SETTINGS-004",
+    "feature": "Settings - AI Configuration",
+    "title": "AI Voice Agent Configuration",
+    "description": "Test AI voice settings",
+    "priority": "High",
+    "steps": [
+      "Click AI Config tab",
+      "Verify AI Voice dropdown",
+      "Verify Voice Personality field",
+      "Verify System Instructions textarea",
+      "Verify Greeting Template",
+      "Edit greeting message",
+      "Toggle Enable Small Talk",
+      "Toggle Confirm Before Booking",
+      "Click Save",
+      "Verify saved"
+    ]
+  },
+  {
+    "id": "TC-SETTINGS-005",
+    "feature": "Settings - Notifications",
+    "title": "Configure Notification Settings",
+    "description": "Test notification preferences",
+    "priority": "Medium",
+    "steps": [
+      "Click Notifications tab",
+      "Toggle Customer Email Notifications",
+      "Toggle Customer SMS Notifications",
+      "Toggle Send Reminders",
+      "Set reminder hours before appointment",
+      "Enter owner email",
+      "Toggle owner notifications",
+      "Save",
+      "Verify saved"
+    ]
+  },
+  {
+    "id": "TC-INTEGRATIONS-001",
+    "feature": "Integrations - Google Calendar",
+    "title": "Connect Google Calendar via OAuth",
+    "description": "Test Google Calendar OAuth flow",
+    "priority": "High",
+    "steps": [
+      "Navigate to /settings/integrations",
+      "Click Google Calendar card",
+      "Click Connect button",
+      "Verify redirect to Google OAuth",
+      "Authorize app",
+      "Verify redirect back to app",
+      "Verify success message",
+      "Verify Google Calendar card → Connected",
+      "Verify tokens saved in database"
+    ]
+  },
+  {
+    "id": "TC-INTEGRATIONS-002",
+    "feature": "Integrations - Google Calendar Settings",
+    "title": "Configure Google Calendar Settings",
+    "description": "Test calendar sync settings",
+    "priority": "Medium",
+    "steps": [
+      "Open Google Calendar config",
+      "Set Calendar ID",
+      "Select sync frequency",
+      "Toggle Create Events ON",
+      "Toggle Send Reminders ON",
+      "Save",
+      "Verify settings saved"
+    ]
+  },
+  {
+    "id": "TC-INTEGRATIONS-003",
+    "feature": "Integrations - Stripe",
+    "title": "Configure Stripe Payment Integration",
+    "description": "Test Stripe config (if implemented)",
+    "priority": "Low",
+    "steps": [
+      "Click Stripe card",
+      "Enter publishable key",
+      "Enter secret key",
+      "Set webhook URL",
+      "Save",
+      "Verify configuration"
+    ]
+  },
+  {
+    "id": "TC-INTEGRATIONS-004",
+    "feature": "Integrations - Twilio",
+    "title": "Configure Twilio for Voice Calls",
+    "description": "Test Twilio configuration",
+    "priority": "Medium",
+    "steps": [
+      "Click Twilio card",
+      "Verify Account SID field",
+      "Verify Phone Number field",
+      "Verify Voice URL field",
+      "Enter configuration",
+      "Test connection",
+      "Save"
+    ]
+  },
+  {
+    "id": "TC-INTEGRATIONS-005",
+    "feature": "Integrations - Email (Resend)",
+    "title": "Configure Email Service",
+    "description": "Test email integration",
+    "priority": "Medium",
+    "steps": [
+      "Click Resend card",
+      "Enter API key",
+      "Set from email",
+      "Set from name",
+      "Test email send",
+      "Verify configuration saved"
+    ]
+  },
+  {
+    "id": "TC-ACCOUNT-001",
+    "feature": "Account - Profile Management",
+    "title": "View and Edit User Profile",
+    "description": "Test account settings",
+    "priority": "Medium",
+    "steps": [
+      "Navigate to /account",
+      "Verify profile information displayed",
+      "Edit full name",
+      "Edit phone number",
+      "Change language preference",
+      "Change timezone",
+      "Save",
+      "Verify updated"
+    ]
+  },
+  {
+    "id": "TC-ACCOUNT-002",
+    "feature": "Account - Password Change",
+    "title": "Change Account Password",
+    "description": "Test password update",
+    "priority": "High",
+    "steps": [
+      "Go to account page",
+      "Click Change Password",
+      "Enter current password",
+      "Enter new password",
+      "Confirm new password",
+      "Submit",
+      "Verify password updated",
+      "Logout and login with new password"
+    ]
+  },
+  {
+    "id": "TC-UI-001",
+    "feature": "UI - Dark Theme",
+    "title": "Dark Theme Styling",
+    "description": "Test dark theme applies correctly",
+    "priority": "Medium",
+    "steps": [
+      "Navigate to any page",
+      "Verify dark background (#1A1A1A)",
+      "Verify text is visible (light colors)",
+      "Verify buttons have green hover (#84CC16)",
+      "Verify cards have proper borders",
+      "Verify all pages use consistent dark theme"
+    ]
+  },
+  {
+    "id": "TC-UI-002",
+    "feature": "UI - Sidebar Navigation",
+    "title": "Sidebar Navigation Functionality",
+    "description": "Test sidebar navigation",
+    "priority": "High",
+    "steps": [
+      "Verify sidebar visible on left",
+      "Verify all menu items: Live Demo, Bookings, Calls, Analytics, Settings, Account",
+      "Click each menu item",
+      "Verify navigation works",
+      "Verify active state highlights current page",
+      "Verify user menu at bottom",
+      "Verify collapse/expand works"
+    ]
+  },
+  {
+    "id": "TC-UI-003",
+    "feature": "UI - Responsive Design",
+    "title": "Responsive Layout on Mobile",
+    "description": "Test mobile responsiveness",
+    "priority": "Medium",
+    "steps": [
+      "Resize to mobile viewport (375px)",
+      "Verify sidebar collapses to hamburger menu",
+      "Verify tables responsive",
+      "Verify forms stack vertically",
+      "Verify all interactive elements accessible",
+      "Test on tablet (768px)",
+      "Verify mid-size breakpoints"
+    ]
+  },
+  {
+    "id": "TC-ERROR-001",
+    "feature": "Error Handling - API Failures",
+    "title": "Graceful API Error Handling",
+    "description": "Test error states when API fails",
+    "priority": "High",
+    "steps": [
+      "Simulate network failure (disconnect)",
+      "Try to save settings",
+      "Verify error message displayed",
+      "Verify user-friendly error text",
+      "Reconnect network",
+      "Verify can retry operation"
+    ]
+  },
+  {
+    "id": "TC-ERROR-002",
+    "feature": "Error Handling - Loading States",
+    "title": "Loading Indicators During Operations",
+    "description": "Test loading states appear",
+    "priority": "Medium",
+    "steps": [
+      "Click Save on settings (slow operation)",
+      "Verify loading spinner appears",
+      "Verify button disabled during loading",
+      "Verify loading text shown",
+      "Wait for completion",
+      "Verify loading state cleared"
+    ]
+  },
+  {
+    "id": "TC-SECURITY-001",
+    "feature": "Security - Route Protection",
+    "title": "Protected Routes Require Auth",
+    "description": "Test middleware protects routes",
+    "priority": "Critical",
+    "steps": [
+      "Logout completely",
+      "Try to access /bookings directly",
+      "Verify redirected to /login",
+      "Try to access /settings",
+      "Verify redirected to /login",
+      "Try to access /calls",
+      "Verify redirected",
+      "Login",
+      "Verify can access all protected routes"
+    ]
+  },
+  {
+    "id": "TC-SECURITY-002",
+    "feature": "Security - RLS Enforcement",
+    "title": "Row Level Security Isolates User Data",
+    "description": "Test users only see own data",
+    "priority": "Critical",
+    "steps": [
+      "Login as User A",
+      "Create booking",
+      "Note booking ID",
+      "Logout",
+      "Login as User B",
+      "Try to access User A's booking",
+      "Verify cannot see other user's data",
+      "Verify only own bookings visible"
+    ]
+  }
+]

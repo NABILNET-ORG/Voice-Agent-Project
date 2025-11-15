@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Save, Loader2 } from "lucide-react";
+import { Plus, Trash2, Save, Loader2, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,7 @@ export default function ServicesManagement() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [newService, setNewService] = useState<Service>({
     name: "",
     category: "",
@@ -93,6 +94,20 @@ export default function ServicesManagement() {
     setServices(services.filter(s => s.id !== id));
   };
 
+  const startEdit = (service: Service) => {
+    setEditingId(service.id!);
+  };
+
+  const updateService = (id: string, field: keyof Service, value: any) => {
+    setServices(services.map(s =>
+      s.id === id ? { ...s, [field]: value } : s
+    ));
+  };
+
+  const finishEdit = () => {
+    setEditingId(null);
+  };
+
   if (loading) {
     return (
       <div className="flex-1 space-y-6 p-6">
@@ -143,29 +158,95 @@ export default function ServicesManagement() {
               <div className="space-y-3">
                 {services.map((service) => (
                   <div key={service.id} className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h4 className="text-white font-medium text-lg">{service.name}</h4>
-                        <p className="text-gray-400 text-sm mt-1">{service.category}</p>
-                        {service.description && (
-                          <p className="text-gray-500 text-sm mt-2">{service.description}</p>
-                        )}
-                        <div className="flex items-center gap-4 mt-3">
-                          <Badge className="bg-[#84CC16] text-black">${service.price}</Badge>
-                          {service.duration && (
-                            <Badge className="bg-gray-700 text-white">{service.duration} min</Badge>
-                          )}
+                    {editingId === service.id ? (
+                      <div className="space-y-3">
+                        <Input
+                          value={service.name}
+                          onChange={(e) => updateService(service.id!, 'name', e.target.value)}
+                          className="bg-gray-900 border-gray-700 text-white"
+                          placeholder="Service name"
+                        />
+                        <Input
+                          value={service.category}
+                          onChange={(e) => updateService(service.id!, 'category', e.target.value)}
+                          className="bg-gray-900 border-gray-700 text-white"
+                          placeholder="Category"
+                        />
+                        <Textarea
+                          value={service.description}
+                          onChange={(e) => updateService(service.id!, 'description', e.target.value)}
+                          className="bg-gray-900 border-gray-700 text-white"
+                          placeholder="Description"
+                        />
+                        <div className="grid grid-cols-2 gap-2">
+                          <Input
+                            type="number"
+                            value={service.price}
+                            onChange={(e) => updateService(service.id!, 'price', parseFloat(e.target.value))}
+                            className="bg-gray-900 border-gray-700 text-white"
+                            placeholder="Price"
+                          />
+                          <Input
+                            type="number"
+                            value={service.duration || 60}
+                            onChange={(e) => updateService(service.id!, 'duration', parseInt(e.target.value))}
+                            className="bg-gray-900 border-gray-700 text-white"
+                            placeholder="Duration (min)"
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            onClick={finishEdit}
+                            className="bg-[#84CC16] text-black hover:bg-[#65A30D]"
+                          >
+                            Done
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setEditingId(null)}
+                            className="border-gray-700 text-gray-300"
+                          >
+                            Cancel
+                          </Button>
                         </div>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-gray-400 hover:text-red-500"
-                        onClick={() => removeService(service.id!)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    ) : (
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h4 className="text-white font-medium text-lg">{service.name}</h4>
+                          <p className="text-gray-400 text-sm mt-1">{service.category}</p>
+                          {service.description && (
+                            <p className="text-gray-500 text-sm mt-2">{service.description}</p>
+                          )}
+                          <div className="flex items-center gap-4 mt-3">
+                            <Badge className="bg-[#84CC16] text-black">${service.price}</Badge>
+                            {service.duration && (
+                              <Badge className="bg-gray-700 text-white">{service.duration} min</Badge>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-gray-400 hover:text-white"
+                            onClick={() => startEdit(service)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-gray-400 hover:text-red-500"
+                            onClick={() => removeService(service.id!)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

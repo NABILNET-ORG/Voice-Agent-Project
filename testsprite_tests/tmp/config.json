@@ -1,0 +1,18 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:3000",
+  "loginUser": "saeeeel@gmail.com",
+  "loginPassword": "M@ma2009",
+  "executionArgs": {
+    "projectName": "Voice-Agent-Project",
+    "projectPath": "c:\\Users\\saeee\\Downloads\\Voice-Agent-Project\\Voice-Agent-Project",
+    "testIds": [],
+    "additionalInstruction": "Run all 19 test cases to comprehensively test the Voice Agent application. Focus on critical functionality including authentication, AI voice agent, bookings, integrations (especially the new AI Models integration with OpenAI, Gemini, and OpenRouter cards), and knowledge base features. Test that the AI Models category tab exists and shows the 3 AI provider cards.",
+    "envs": {
+      "API_KEY": "sk-user-8I2JI-K31qKmMZ9XHEeLIHCR0EUV62FFKJIlGk8cCz7SZvRqxdVc-bIfFRfoqgtAFAstgKVg87XeHilLOXfIrhaYqDcDsIZY_9jOvGI2ZmKvuTEcGCHumbzyggXs1bipWxk"
+    }
+  },
+  "proxy": "http://2009277d-8911-4827-ab9a-01cf2b2815f6:ORc407osrBviNgxAa4iAxgw4aU0RMAPu@tun.testsprite.com:8080"
+}

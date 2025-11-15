@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pwsh -File .scriptsresume_dev.ps1)",
+      "Bash($null)",
+      "Bash(mkdir:*)",
+      "Bash(supabase link:*)",
+      "Bash(ls:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

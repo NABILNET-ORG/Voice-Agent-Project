@@ -178,6 +178,13 @@ export default function Bookings() {
         </div>
         <div className="flex items-center gap-2">
           <Button
+            className="bg-[#84CC16] text-black hover:bg-[#65A30D]"
+            onClick={() => window.location.href = '/bookings/new'}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            New Booking
+          </Button>
+          <Button
             variant={viewMode === "list" ? "default" : "outline"}
             onClick={() => setViewMode("list")}
             className={viewMode === "list" ? "bg-[#84CC16] text-black" : "border-gray-700 text-gray-300"}

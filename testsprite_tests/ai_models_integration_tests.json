@@ -1,0 +1,453 @@
+[
+  {
+    "id": "TC020",
+    "title": "AI Models Integration - View 3 Separate Provider Cards",
+    "description": "Verify that the Integrations page shows 3 separate AI provider cards: OpenAI, Gemini, and OpenRouter",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in as business owner"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to Settings → Integrations"
+      },
+      {
+        "type": "assertion",
+        "description": "OpenAI card is visible with icon 🤖"
+      },
+      {
+        "type": "assertion",
+        "description": "Google Gemini card is visible with icon ✨"
+      },
+      {
+        "type": "assertion",
+        "description": "OpenRouter card is visible with icon ⚡"
+      }
+    ]
+  },
+  {
+    "id": "TC021",
+    "title": "AI Models Category Tab Filter",
+    "description": "Verify that the AI Models category tab exists and filters to show only the 3 AI provider cards",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to Settings → Integrations"
+      },
+      {
+        "type": "assertion",
+        "description": "AI Models tab is visible in category filter"
+      },
+      {
+        "type": "action",
+        "description": "Click AI Models tab"
+      },
+      {
+        "type": "assertion",
+        "description": "Only 3 cards are displayed: OpenAI, Gemini, OpenRouter"
+      },
+      {
+        "type": "assertion",
+        "description": "Other integration cards (Google Calendar, Stripe, etc) are not visible"
+      }
+    ]
+  },
+  {
+    "id": "TC022",
+    "title": "Configure OpenAI with API Key and Model Selection",
+    "description": "Test OpenAI configuration including API key input, model selection from dropdown, and custom model support",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Click OpenAI card in Integrations"
+      },
+      {
+        "type": "assertion",
+        "description": "Configuration dialog opens with title 'Configure OpenAI'"
+      },
+      {
+        "type": "assertion",
+        "description": "API Key password field is present"
+      },
+      {
+        "type": "assertion",
+        "description": "Model dropdown shows official model names: gpt-4o, gpt-4o-mini, gpt-4-turbo, etc"
+      },
+      {
+        "type": "action",
+        "description": "Select a model from dropdown (e.g., gpt-4o-mini)"
+      },
+      {
+        "type": "action",
+        "description": "Select 'Custom Model...' option"
+      },
+      {
+        "type": "assertion",
+        "description": "Custom model input field appears"
+      },
+      {
+        "type": "action",
+        "description": "Enter custom model name (e.g., gpt-4o-2024-08-06)"
+      },
+      {
+        "type": "assertion",
+        "description": "Custom model name is accepted"
+      }
+    ]
+  },
+  {
+    "id": "TC023",
+    "title": "OpenAI Feature Assignment Toggles",
+    "description": "Verify that OpenAI configuration allows selecting which features (Voice Agent, Summarization, Analytics, Transcription) use OpenAI",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Open OpenAI configuration dialog"
+      },
+      {
+        "type": "assertion",
+        "description": "Section 'Use OpenAI For:' is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Voice Agent toggle switch is present"
+      },
+      {
+        "type": "assertion",
+        "description": "Knowledge Base Summarization toggle is present"
+      },
+      {
+        "type": "assertion",
+        "description": "Analytics Insights toggle is present"
+      },
+      {
+        "type": "assertion",
+        "description": "Call Transcription toggle is present"
+      },
+      {
+        "type": "action",
+        "description": "Toggle Voice Agent ON"
+      },
+      {
+        "type": "action",
+        "description": "Toggle Knowledge Base Summarization ON"
+      },
+      {
+        "type": "action",
+        "description": "Click Save"
+      },
+      {
+        "type": "assertion",
+        "description": "Success message appears: 'OpenAI settings updated successfully!'"
+      },
+      {
+        "type": "assertion",
+        "description": "OpenAI card status changes to 'Connected'"
+      }
+    ]
+  },
+  {
+    "id": "TC024",
+    "title": "Configure Gemini with API Key and Model Selection",
+    "description": "Test Gemini configuration with API key, official Gemini model selection (2.5-pro, 2.5-flash, etc), and feature assignment",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Click Gemini card in AI Models tab"
+      },
+      {
+        "type": "assertion",
+        "description": "Configuration dialog opens with title 'Configure Google Gemini'"
+      },
+      {
+        "type": "assertion",
+        "description": "Gemini API Key field is present"
+      },
+      {
+        "type": "assertion",
+        "description": "Model dropdown shows official Gemini models: gemini-2.5-pro, gemini-2.5-flash, gemini-2.0-flash, etc"
+      },
+      {
+        "type": "action",
+        "description": "Select gemini-2.5-flash from dropdown"
+      },
+      {
+        "type": "assertion",
+        "description": "Feature assignment toggles are visible"
+      },
+      {
+        "type": "action",
+        "description": "Toggle Knowledge Base Summarization ON for Gemini"
+      },
+      {
+        "type": "action",
+        "description": "Enter Gemini API key"
+      },
+      {
+        "type": "action",
+        "description": "Click Save"
+      },
+      {
+        "type": "assertion",
+        "description": "Success message appears"
+      },
+      {
+        "type": "assertion",
+        "description": "Gemini card status shows 'Connected'"
+      }
+    ]
+  },
+  {
+    "id": "TC025",
+    "title": "Configure OpenRouter with Multi-Model Selection",
+    "description": "Test OpenRouter configuration with API key, multi-provider model selection, and custom model support",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Click OpenRouter card"
+      },
+      {
+        "type": "assertion",
+        "description": "Configuration dialog opens"
+      },
+      {
+        "type": "assertion",
+        "description": "Model dropdown shows provider/model format: openai/gpt-4o, anthropic/claude-3.5-sonnet, etc"
+      },
+      {
+        "type": "action",
+        "description": "Select 'auto' or specific model"
+      },
+      {
+        "type": "action",
+        "description": "Select 'Custom Model...' and enter custom provider/model"
+      },
+      {
+        "type": "assertion",
+        "description": "Custom model input accepts provider/model format"
+      },
+      {
+        "type": "assertion",
+        "description": "Feature assignment toggles are present"
+      }
+    ]
+  },
+  {
+    "id": "TC026",
+    "title": "AI Provider Database Persistence",
+    "description": "Verify that AI provider configurations (keys, models, feature assignments) are saved to database and persist across sessions",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Configure OpenAI with API key and feature assignments"
+      },
+      {
+        "type": "action",
+        "description": "Save configuration"
+      },
+      {
+        "type": "action",
+        "description": "Refresh the page"
+      },
+      {
+        "type": "assertion",
+        "description": "OpenAI card still shows 'Connected' status"
+      },
+      {
+        "type": "action",
+        "description": "Open OpenAI configuration again"
+      },
+      {
+        "type": "assertion",
+        "description": "API key is still set (masked)"
+      },
+      {
+        "type": "assertion",
+        "description": "Model selection is preserved"
+      },
+      {
+        "type": "assertion",
+        "description": "Feature toggle states are preserved"
+      }
+    ]
+  },
+  {
+    "id": "TC027",
+    "title": "Knowledge Base Summarization with Configured AI Provider",
+    "description": "Test that Knowledge Base uses the configured AI provider (Gemini) for summarization and respects the model selection",
+    "category": "integration",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Configure Gemini as summarization provider with model gemini-2.5-flash"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to Settings → AI Configuration → Knowledge Base"
+      },
+      {
+        "type": "action",
+        "description": "Add website URL"
+      },
+      {
+        "type": "action",
+        "description": "Set Max Depth to 3, Max Pages to 30"
+      },
+      {
+        "type": "action",
+        "description": "Click Fetch & Preview"
+      },
+      {
+        "type": "assertion",
+        "description": "Website content is fetched successfully"
+      },
+      {
+        "type": "action",
+        "description": "Click Summarize button"
+      },
+      {
+        "type": "assertion",
+        "description": "Summarization uses Gemini API (check server logs show 'Using AI provider for summarization: gemini Model: gemini-2.5-flash')"
+      },
+      {
+        "type": "assertion",
+        "description": "Summary is generated successfully"
+      },
+      {
+        "type": "action",
+        "description": "Save knowledge source"
+      },
+      {
+        "type": "assertion",
+        "description": "Knowledge source is saved to database"
+      }
+    ]
+  },
+  {
+    "id": "TC028",
+    "title": "Mix and Match AI Providers for Different Features",
+    "description": "Test configuring different AI providers for different features (e.g., OpenAI for voice, Gemini for summarization)",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Configure OpenAI: Toggle Voice Agent ON, Summarization OFF"
+      },
+      {
+        "type": "action",
+        "description": "Configure Gemini: Toggle Voice Agent OFF, Summarization ON"
+      },
+      {
+        "type": "assertion",
+        "description": "Both providers show 'Connected' status"
+      },
+      {
+        "type": "assertion",
+        "description": "Database stores ai_voice_agent_provider = 'openai'"
+      },
+      {
+        "type": "assertion",
+        "description": "Database stores ai_summarization_provider = 'gemini'"
+      },
+      {
+        "type": "action",
+        "description": "Test Knowledge Base summarization"
+      },
+      {
+        "type": "assertion",
+        "description": "Summarization uses Gemini (as configured)"
+      }
+    ]
+  },
+  {
+    "id": "TC029",
+    "title": "Custom Model Entry for Future Models",
+    "description": "Verify that custom model entry works for all providers and accepts any model identifier for future model support",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Open OpenAI configuration"
+      },
+      {
+        "type": "action",
+        "description": "Select 'Custom Model...' from dropdown"
+      },
+      {
+        "type": "assertion",
+        "description": "Custom model input field appears"
+      },
+      {
+        "type": "action",
+        "description": "Enter future model name (e.g., gpt-5-preview)"
+      },
+      {
+        "type": "action",
+        "description": "Save configuration"
+      },
+      {
+        "type": "assertion",
+        "description": "Custom model name is saved to database"
+      },
+      {
+        "type": "action",
+        "description": "Reopen configuration"
+      },
+      {
+        "type": "assertion",
+        "description": "Custom model name is preserved"
+      }
+    ]
+  },
+  {
+    "id": "TC030",
+    "title": "All Integrations Comprehensive Test",
+    "description": "Test all integration cards including Calendar, Payment, Communication, AI Models, and Analytics",
+    "category": "integration",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to Settings → Integrations"
+      },
+      {
+        "type": "assertion",
+        "description": "All integration categories are visible: All, AI Models, Calendar, Payment, Communication, Analytics, Other"
+      },
+      {
+        "type": "action",
+        "description": "Click each category tab"
+      },
+      {
+        "type": "assertion",
+        "description": "Each category filters cards correctly"
+      },
+      {
+        "type": "assertion",
+        "description": "All integration cards show correct status badges"
+      },
+      {
+        "type": "assertion",
+        "description": "Each card can be clicked to open configuration dialog"
+      }
+    ]
+  }
+]

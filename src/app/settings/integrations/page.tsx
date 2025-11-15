@@ -20,7 +20,7 @@ interface Integration {
   id: string;
   name: string;
   description: string;
-  category: "calendar" | "payment" | "communication" | "analytics" | "other";
+  category: "calendar" | "payment" | "communication" | "analytics" | "ai" | "other";
   status: "connected" | "disconnected" | "error" | "pending";
   icon: string;
   connectedAt?: Date;
@@ -85,6 +85,65 @@ export default function IntegrationsManagement() {
 
       // Build integrations list with real status from database
       const availableIntegrations: Integration[] = [
+      {
+        id: "openai",
+        name: "OpenAI",
+        description: "GPT models for voice agent and knowledge base summarization",
+        category: "ai",
+        status: config.openai_api_key ? "connected" : "disconnected",
+        icon: "🤖",
+        connectedAt: config.openai_api_key ? new Date(config.updated_at) : undefined,
+        settings: {
+          apiKey: config.openai_api_key || "",
+          modelName: config.ai_model_name || "gpt-4o-realtime-preview-2024-12-17",
+          provider: "openai",
+          useForVoiceAgent: config.ai_voice_agent_provider === 'openai' || !config.ai_voice_agent_provider,
+          useForSummarization: config.ai_summarization_provider === 'openai' || !config.ai_summarization_provider,
+          useForAnalytics: config.ai_analytics_provider === 'openai' || false,
+          useForTranscription: config.ai_transcription_provider === 'openai' || false
+        },
+        usage: config.openai_api_key ? {
+          calls: 0,
+          data: "Configured",
+          lastUsed: new Date()
+        } : undefined
+      },
+      {
+        id: "gemini",
+        name: "Google Gemini",
+        description: "Google's AI models for advanced reasoning and multimodal tasks",
+        category: "ai",
+        status: config.gemini_api_key ? "connected" : "disconnected",
+        icon: "✨",
+        connectedAt: config.gemini_api_key ? new Date(config.updated_at) : undefined,
+        settings: {
+          apiKey: config.gemini_api_key || "",
+          modelName: "gemini-pro",
+          provider: "gemini",
+          useForVoiceAgent: config.ai_voice_agent_provider === 'gemini' || false,
+          useForSummarization: config.ai_summarization_provider === 'gemini' || false,
+          useForAnalytics: config.ai_analytics_provider === 'gemini' || false,
+          useForTranscription: config.ai_transcription_provider === 'gemini' || false
+        }
+      },
+      {
+        id: "openrouter",
+        name: "OpenRouter",
+        description: "Access multiple AI models through a unified API",
+        category: "ai",
+        status: config.openrouter_api_key ? "connected" : "disconnected",
+        icon: "⚡",
+        connectedAt: config.openrouter_api_key ? new Date(config.updated_at) : undefined,
+        settings: {
+          apiKey: config.openrouter_api_key || "",
+          modelName: "auto",
+          provider: "openrouter",
+          useForVoiceAgent: config.ai_voice_agent_provider === 'openrouter' || false,
+          useForSummarization: config.ai_summarization_provider === 'openrouter' || false,
+          useForAnalytics: config.ai_analytics_provider === 'openrouter' || false,
+          useForTranscription: config.ai_transcription_provider === 'openrouter' || false
+        }
+      },
       {
         id: "google-calendar",
         name: "Google Calendar",
@@ -295,7 +354,38 @@ export default function IntegrationsManagement() {
   const handleSaveConfig = async (integration: Integration, settings: Record<string, any>) => {
     try {
       // Save to database based on integration type
-      if (integration.id === 'google-calendar') {
+      if (integration.id === 'openai') {
+        await businessConfigApi.update(user!.id, {
+          openai_api_key: settings.apiKey,
+          ai_model_name: settings.modelName,
+          ai_voice_agent_provider: settings.useForVoiceAgent ? 'openai' : null,
+          ai_summarization_provider: settings.useForSummarization ? 'openai' : null,
+          ai_analytics_provider: settings.useForAnalytics ? 'openai' : null,
+          ai_transcription_provider: settings.useForTranscription ? 'openai' : null
+        });
+        setStatusMessage({ type: 'success', text: 'OpenAI settings updated successfully!' });
+        setTimeout(() => setStatusMessage(null), 3000);
+      } else if (integration.id === 'gemini') {
+        await businessConfigApi.update(user!.id, {
+          gemini_api_key: settings.apiKey,
+          ai_voice_agent_provider: settings.useForVoiceAgent ? 'gemini' : null,
+          ai_summarization_provider: settings.useForSummarization ? 'gemini' : null,
+          ai_analytics_provider: settings.useForAnalytics ? 'gemini' : null,
+          ai_transcription_provider: settings.useForTranscription ? 'gemini' : null
+        });
+        setStatusMessage({ type: 'success', text: 'Gemini settings updated successfully!' });
+        setTimeout(() => setStatusMessage(null), 3000);
+      } else if (integration.id === 'openrouter') {
+        await businessConfigApi.update(user!.id, {
+          openrouter_api_key: settings.apiKey,
+          ai_voice_agent_provider: settings.useForVoiceAgent ? 'openrouter' : null,
+          ai_summarization_provider: settings.useForSummarization ? 'openrouter' : null,
+          ai_analytics_provider: settings.useForAnalytics ? 'openrouter' : null,
+          ai_transcription_provider: settings.useForTranscription ? 'openrouter' : null
+        });
+        setStatusMessage({ type: 'success', text: 'OpenRouter settings updated successfully!' });
+        setTimeout(() => setStatusMessage(null), 3000);
+      } else if (integration.id === 'google-calendar') {
         await businessConfigApi.update(user!.id, {
           google_calendar_id: settings.calendarId,
           calendar_sync_frequency: settings.syncFrequency,
@@ -326,6 +416,7 @@ export default function IntegrationsManagement() {
 
   const categories = [
     { value: "all", label: "All Integrations", icon: "🔗" },
+    { value: "ai", label: "AI Models", icon: "🤖" },
     { value: "calendar", label: "Calendar", icon: "📅" },
     { value: "payment", label: "Payment", icon: "💳" },
     { value: "communication", label: "Communication", icon: "📞" },
@@ -656,6 +747,331 @@ function IntegrationConfig({
 
   const renderConfigFields = () => {
     switch (integration.id) {
+      case "openai":
+        return (
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <Label className="text-gray-300">OpenAI API Key</Label>
+              <Input
+                type="password"
+                value={settings.apiKey || ""}
+                onChange={(e) => setSettings(prev => ({ ...prev, apiKey: e.target.value }))}
+                className="bg-gray-800 border-gray-700 text-white"
+                placeholder="sk-..."
+              />
+              <p className="text-xs text-gray-500">Get your API key from platform.openai.com</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-gray-300">Default Model</Label>
+              <Select
+                value={settings.modelName?.startsWith('gpt-') ? settings.modelName : 'custom'}
+                onValueChange={(value) => {
+                  if (value !== 'custom') {
+                    setSettings(prev => ({ ...prev, modelName: value, customModelName: '' }));
+                  } else {
+                    setSettings(prev => ({ ...prev, customModelName: prev.modelName || '' }));
+                  }
+                }}
+              >
+                <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-[#1A1A1A] border-gray-700">
+                  <SelectItem value="gpt-4o-realtime-preview-2024-12-17">GPT-4o Realtime (Voice Agent)</SelectItem>
+                  <SelectItem value="gpt-4o">GPT-4o (Most Capable)</SelectItem>
+                  <SelectItem value="gpt-4o-mini">GPT-4o Mini (Fast & Cheap)</SelectItem>
+                  <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
+                  <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
+                  <SelectItem value="custom">Custom Model...</SelectItem>
+                </SelectContent>
+              </Select>
+              {(settings.customModelName || settings.modelName?.startsWith('gpt-') === false) && (
+                <Input
+                  value={settings.customModelName || settings.modelName || ""}
+                  onChange={(e) => setSettings(prev => ({ ...prev, modelName: e.target.value, customModelName: e.target.value }))}
+                  className="bg-gray-800 border-gray-700 text-white mt-2"
+                  placeholder="Enter custom model name (e.g., gpt-4o-2024-08-06)"
+                />
+              )}
+              <p className="text-xs text-gray-500">Select a preset or enter a custom model identifier</p>
+            </div>
+
+            <div className="space-y-4 border-t border-gray-700 pt-4">
+              <h3 className="text-sm font-medium text-gray-300">Use OpenAI For:</h3>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="useForVoiceAgent" className="text-gray-300 font-normal">Voice Agent</Label>
+                  <p className="text-xs text-gray-500">Real-time voice conversations with customers</p>
+                </div>
+                <Switch
+                  id="useForVoiceAgent"
+                  checked={settings.useForVoiceAgent || false}
+                  onCheckedChange={(checked) => setSettings(prev => ({ ...prev, useForVoiceAgent: checked }))}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="useForSummarization" className="text-gray-300 font-normal">Knowledge Base Summarization</Label>
+                  <p className="text-xs text-gray-500">Summarize website content for AI context</p>
+                </div>
+                <Switch
+                  id="useForSummarization"
+                  checked={settings.useForSummarization || false}
+                  onCheckedChange={(checked) => setSettings(prev => ({ ...prev, useForSummarization: checked }))}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="useForAnalytics" className="text-gray-300 font-normal">Analytics Insights</Label>
+                  <p className="text-xs text-gray-500">Generate business insights and trends</p>
+                </div>
+                <Switch
+                  id="useForAnalytics"
+                  checked={settings.useForAnalytics || false}
+                  onCheckedChange={(checked) => setSettings(prev => ({ ...prev, useForAnalytics: checked }))}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="useForTranscription" className="text-gray-300 font-normal">Call Transcription</Label>
+                  <p className="text-xs text-gray-500">Transcribe and analyze call recordings</p>
+                </div>
+                <Switch
+                  id="useForTranscription"
+                  checked={settings.useForTranscription || false}
+                  onCheckedChange={(checked) => setSettings(prev => ({ ...prev, useForTranscription: checked }))}
+                />
+              </div>
+            </div>
+
+            <div className="bg-blue-900/20 border border-blue-700/50 rounded p-3 text-sm text-gray-300">
+              <strong>Note:</strong> Select which features should use OpenAI. You can assign different AI providers to different features.
+            </div>
+          </div>
+        );
+
+      case "gemini":
+        return (
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <Label className="text-gray-300">Gemini API Key</Label>
+              <Input
+                type="password"
+                value={settings.apiKey || ""}
+                onChange={(e) => setSettings(prev => ({ ...prev, apiKey: e.target.value }))}
+                className="bg-gray-800 border-gray-700 text-white"
+                placeholder="AI..."
+              />
+              <p className="text-xs text-gray-500">Get your API key from aistudio.google.com</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-gray-300">Default Model</Label>
+              <Select
+                value={settings.modelName?.startsWith('gemini-') ? settings.modelName : 'custom'}
+                onValueChange={(value) => {
+                  if (value !== 'custom') {
+                    setSettings(prev => ({ ...prev, modelName: value, customModelName: '' }));
+                  } else {
+                    setSettings(prev => ({ ...prev, customModelName: prev.modelName || '' }));
+                  }
+                }}
+              >
+                <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-[#1A1A1A] border-gray-700">
+                  <SelectItem value="gemini-2.5-pro">Gemini 2.5 Pro (Latest)</SelectItem>
+                  <SelectItem value="gemini-2.5-flash">Gemini 2.5 Flash (Fast)</SelectItem>
+                  <SelectItem value="gemini-2.0-flash">Gemini 2.0 Flash</SelectItem>
+                  <SelectItem value="gemini-2.0-flash-exp">Gemini 2.0 Flash (Experimental)</SelectItem>
+                  <SelectItem value="gemini-pro-latest">Gemini Pro (Latest)</SelectItem>
+                  <SelectItem value="gemini-flash-latest">Gemini Flash (Latest)</SelectItem>
+                  <SelectItem value="custom">Custom Model...</SelectItem>
+                </SelectContent>
+              </Select>
+              {(settings.customModelName || settings.modelName?.startsWith('gemini-') === false) && (
+                <Input
+                  value={settings.customModelName || settings.modelName || ""}
+                  onChange={(e) => setSettings(prev => ({ ...prev, modelName: e.target.value, customModelName: e.target.value }))}
+                  className="bg-gray-800 border-gray-700 text-white mt-2"
+                  placeholder="Enter custom Gemini model name..."
+                />
+              )}
+              <p className="text-xs text-gray-500">Select a preset or enter a custom model identifier</p>
+            </div>
+
+            <div className="space-y-4 border-t border-gray-700 pt-4">
+              <h3 className="text-sm font-medium text-gray-300">Use Gemini For:</h3>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="gemini-voice" className="text-gray-300 font-normal">Voice Agent</Label>
+                  <p className="text-xs text-gray-500">Real-time voice conversations with customers</p>
+                </div>
+                <Switch
+                  id="gemini-voice"
+                  checked={settings.useForVoiceAgent || false}
+                  onCheckedChange={(checked) => setSettings(prev => ({ ...prev, useForVoiceAgent: checked }))}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="gemini-summary" className="text-gray-300 font-normal">Knowledge Base Summarization</Label>
+                  <p className="text-xs text-gray-500">Summarize website content for AI context</p>
+                </div>
+                <Switch
+                  id="gemini-summary"
+                  checked={settings.useForSummarization || false}
+                  onCheckedChange={(checked) => setSettings(prev => ({ ...prev, useForSummarization: checked }))}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="gemini-analytics" className="text-gray-300 font-normal">Analytics Insights</Label>
+                  <p className="text-xs text-gray-500">Generate business insights and trends</p>
+                </div>
+                <Switch
+                  id="gemini-analytics"
+                  checked={settings.useForAnalytics || false}
+                  onCheckedChange={(checked) => setSettings(prev => ({ ...prev, useForAnalytics: checked }))}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="gemini-transcription" className="text-gray-300 font-normal">Call Transcription</Label>
+                  <p className="text-xs text-gray-500">Transcribe and analyze call recordings</p>
+                </div>
+                <Switch
+                  id="gemini-transcription"
+                  checked={settings.useForTranscription || false}
+                  onCheckedChange={(checked) => setSettings(prev => ({ ...prev, useForTranscription: checked }))}
+                />
+              </div>
+            </div>
+
+            <div className="bg-blue-900/20 border border-blue-700/50 rounded p-3 text-sm text-gray-300">
+              <strong>Note:</strong> Gemini offers advanced reasoning and long context windows, ideal for complex tasks.
+            </div>
+          </div>
+        );
+
+      case "openrouter":
+        return (
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <Label className="text-gray-300">OpenRouter API Key</Label>
+              <Input
+                type="password"
+                value={settings.apiKey || ""}
+                onChange={(e) => setSettings(prev => ({ ...prev, apiKey: e.target.value }))}
+                className="bg-gray-800 border-gray-700 text-white"
+                placeholder="sk-or-..."
+              />
+              <p className="text-xs text-gray-500">Get your API key from openrouter.ai</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-gray-300">Default Model</Label>
+              <Select
+                value={settings.modelName || 'auto'}
+                onValueChange={(value) => {
+                  if (value !== 'custom') {
+                    setSettings(prev => ({ ...prev, modelName: value, customModelName: '' }));
+                  } else {
+                    setSettings(prev => ({ ...prev, customModelName: prev.modelName || '' }));
+                  }
+                }}
+              >
+                <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-[#1A1A1A] border-gray-700">
+                  <SelectItem value="auto">Auto (Best Available)</SelectItem>
+                  <SelectItem value="openai/gpt-4o">OpenAI GPT-4o</SelectItem>
+                  <SelectItem value="anthropic/claude-3.5-sonnet">Claude 3.5 Sonnet</SelectItem>
+                  <SelectItem value="google/gemini-pro-1.5">Gemini Pro 1.5</SelectItem>
+                  <SelectItem value="meta-llama/llama-3-70b">Llama 3 70B</SelectItem>
+                  <SelectItem value="custom">Custom Model...</SelectItem>
+                </SelectContent>
+              </Select>
+              {settings.customModelName && (
+                <Input
+                  value={settings.customModelName || ""}
+                  onChange={(e) => setSettings(prev => ({ ...prev, modelName: e.target.value, customModelName: e.target.value }))}
+                  className="bg-gray-800 border-gray-700 text-white mt-2"
+                  placeholder="Enter custom model name (provider/model-name)"
+                />
+              )}
+              <p className="text-xs text-gray-500">Select a preset or enter a custom model identifier (format: provider/model)</p>
+            </div>
+
+            <div className="space-y-4 border-t border-gray-700 pt-4">
+              <h3 className="text-sm font-medium text-gray-300">Use OpenRouter For:</h3>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="openrouter-voice" className="text-gray-300 font-normal">Voice Agent</Label>
+                  <p className="text-xs text-gray-500">Real-time voice conversations with customers</p>
+                </div>
+                <Switch
+                  id="openrouter-voice"
+                  checked={settings.useForVoiceAgent || false}
+                  onCheckedChange={(checked) => setSettings(prev => ({ ...prev, useForVoiceAgent: checked }))}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="openrouter-summary" className="text-gray-300 font-normal">Knowledge Base Summarization</Label>
+                  <p className="text-xs text-gray-500">Summarize website content for AI context</p>
+                </div>
+                <Switch
+                  id="openrouter-summary"
+                  checked={settings.useForSummarization || false}
+                  onCheckedChange={(checked) => setSettings(prev => ({ ...prev, useForSummarization: checked }))}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="openrouter-analytics" className="text-gray-300 font-normal">Analytics Insights</Label>
+                  <p className="text-xs text-gray-500">Generate business insights and trends</p>
+                </div>
+                <Switch
+                  id="openrouter-analytics"
+                  checked={settings.useForAnalytics || false}
+                  onCheckedChange={(checked) => setSettings(prev => ({ ...prev, useForAnalytics: checked }))}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="openrouter-transcription" className="text-gray-300 font-normal">Call Transcription</Label>
+                  <p className="text-xs text-gray-500">Transcribe and analyze call recordings</p>
+                </div>
+                <Switch
+                  id="openrouter-transcription"
+                  checked={settings.useForTranscription || false}
+                  onCheckedChange={(checked) => setSettings(prev => ({ ...prev, useForTranscription: checked }))}
+                />
+              </div>
+            </div>
+
+            <div className="bg-blue-900/20 border border-blue-700/50 rounded p-3 text-sm text-gray-300">
+              <strong>Note:</strong> OpenRouter provides access to multiple AI models through a unified API.
+            </div>
+          </div>
+        );
+
       case "google-calendar":
         return (
           <div className="space-y-4">

@@ -24,8 +24,18 @@ export function NavUser({
   const { signOut } = useAuth();
 
   const handleSignOut = async () => {
-    await signOut();
-    window.location.href = '/login';
+    try {
+      const { error } = await signOut();
+      if (error) {
+        console.error('Sign out error:', error);
+      }
+      // Force full page redirect to clear all state
+      window.location.replace('/login');
+    } catch (err) {
+      console.error('Sign out failed:', err);
+      // Still redirect even if error
+      window.location.replace('/login');
+    }
   };
 
   const handleAccountSettings = () => {

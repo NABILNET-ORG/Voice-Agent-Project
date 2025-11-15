@@ -1,17 +1,19 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { Mic, MicOff, Phone, AlertCircle } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Mic, MicOff, Phone, AlertCircle, Volume2, Calendar, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Slider } from "@/components/ui/slider";
 import { useRealtimeAPI } from "@/hooks/useRealtimeAPI";
 
 export default function LiveDemo() {
   const { status, transcript, error, connect, disconnect, isConnected } = useRealtimeAPI();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [volume, setVolume] = useState([80]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -19,6 +21,14 @@ export default function LiveDemo() {
       scrollRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }
   }, [transcript]);
+
+  // Update audio volume when slider changes
+  useEffect(() => {
+    const audioElement = document.getElementById('remote-audio') as HTMLAudioElement;
+    if (audioElement) {
+      audioElement.volume = volume[0] / 100;
+    }
+  }, [volume]);
 
   const getStatusText = () => {
     switch (status) {
@@ -176,39 +186,90 @@ export default function LiveDemo() {
             </CardContent>
           </Card>
 
-          {/* Info Panel */}
+          {/* Available Time Slots & Quick Actions */}
           <Card className="bg-[#1A1A1A] border-gray-800">
             <CardHeader>
-              <CardTitle className="text-white">How to Use</CardTitle>
+              <CardTitle className="text-white flex items-center justify-between">
+                <span>Available Time Slots</span>
+                <Badge className="bg-[#84CC16] text-black">
+                  {isConnected ? 'Ready' : 'Offline'}
+                </Badge>
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <ol className="list-decimal list-inside space-y-2 text-sm text-gray-400">
-                  <li>Click the phone button to connect</li>
-                  <li>Allow microphone access when prompted</li>
-                  <li>Start speaking naturally</li>
-                  <li>The AI will respond with voice</li>
-                  <li>Click the red button to disconnect</li>
-                </ol>
-
-                <Separator className="bg-gray-800" />
-
+                {/* Volume Control */}
                 <div className="space-y-2">
-                  <h4 className="text-sm font-semibold text-white">What You Can Do</h4>
-                  <ul className="space-y-1 text-sm text-gray-400">
-                    <li>• Ask about available services</li>
-                    <li>• Check booking times</li>
-                    <li>• Make an appointment</li>
-                    <li>• Get business information</li>
-                  </ul>
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm text-gray-400 flex items-center gap-2">
+                      <Volume2 className="h-4 w-4" />
+                      Sound Control
+                    </label>
+                    <span className="text-xs text-gray-500">{volume[0]}%</span>
+                  </div>
+                  <Slider
+                    value={volume}
+                    onValueChange={setVolume}
+                    max={100}
+                    step={1}
+                    className="w-full"
+                  />
                 </div>
 
                 <Separator className="bg-gray-800" />
 
-                <div className="p-3 bg-blue-500/10 border border-blue-500 rounded-lg">
-                  <p className="text-xs text-blue-400">
-                    <strong>Note:</strong> This uses OpenAI's Realtime API. Make sure OPENAI_API_KEY is configured in Supabase Edge Functions.
-                  </p>
+                {/* Available Time Slots */}
+                <div className="space-y-2">
+                  {[
+                    { time: '2:00 PM', available: true },
+                    { time: '3:30 PM', available: true },
+                    { time: '5:00 PM', available: false },
+                    { time: '6:30 PM', available: true }
+                  ].map((slot, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 rounded-lg bg-gray-800/50 border border-gray-700"
+                    >
+                      <span className="text-white font-medium">{slot.time}</span>
+                      <Badge className={slot.available ? 'bg-[#84CC16] text-black' : 'bg-red-600 text-white'}>
+                        {slot.available ? 'Available' : 'Booked'}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+
+                <Separator className="bg-gray-800" />
+
+                {/* Quick Actions */}
+                <div className="space-y-2">
+                  <h4 className="text-sm font-semibold text-white mb-3">Quick Actions</h4>
+
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start bg-gray-800/50 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white"
+                    onClick={() => window.location.href = '/bookings'}
+                  >
+                    <Calendar className="h-4 w-4 mr-2" />
+                    View Calendar
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start bg-gray-800/50 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white"
+                    onClick={() => window.location.href = '/bookings'}
+                  >
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Check Availability
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start bg-gray-800/50 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white"
+                    disabled={transcript.length === 0}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download Transcript
+                  </Button>
                 </div>
               </div>
             </CardContent>
