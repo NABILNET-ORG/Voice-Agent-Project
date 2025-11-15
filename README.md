@@ -152,20 +152,29 @@ src/
 ## 🔄 Recent Updates (Nov 15, 2025)
 
 ### ✅ Completed This Session
-- **3 Extraction Modes** for both URL and Knowledge Base
-- **Smart Product Filtering** (excludes policies, registration, media files)
-- **All 26 KB Sources** now accessible (not just 10 with summaries)
-- **Bilingual Support** (Arabic/English with original language preservation)
-- **KB Source Editing** (title, priority, summary)
-- **Typing Animation** for voice agent transcript
-- **Booking Tools** (check_availability, create_booking)
-- **Fake Booking Prevention** (enforces proper workflow)
+- **6 Extraction Modes Total**
+  - URL: Single Page, Deep, Full Crawl
+  - KB: Quick, Full, Batch (with progress tracking)
+- **Smart Filtering** (excludes policies, registration, cart, media files)
+- **All 26 KB Sources** accessible (uses summary OR content)
+- **Bilingual Support** (preserves original language, auto-translates)
+- **KB Source Management** (edit title, priority, summary)
+- **Voice-Synced Typing** (real-time audio_transcript.delta)
+- **Working Booking APIs** (check_availability, create_booking)
+- **Real Booking Creation** (saves to database, no fake confirmations)
+- **Complete Backup System** (17 services + 26 KB sources)
+- **Clean UI** (removed mock data, professional interface)
 
-### 📊 Commits: 25+ | Files Modified: 8 | Deployed: ✅ Production
+### 📊 Commits: 35+ | Files Modified: 12 | Deployed: ✅ Production
 
 ## 🚀 Deployment
 
-**Production URL:** https://voice-agent-project-8q9fko36f-nabils-projects-447e19b8.vercel.app
+**Latest Production URL:** https://voice-agent-project-gr2jzfb5h-nabils-projects-447e19b8.vercel.app
+
+**Previous URLs:**
+- https://voice-agent-project-qzdggust6-nabils-projects-447e19b8.vercel.app
+- https://voice-agent-project-9bdgak5tp-nabils-projects-447e19b8.vercel.app
+- https://voice-agent-project-8q9fko36f-nabils-projects-447e19b8.vercel.app
 
 ```bash
 # Deploy to production
