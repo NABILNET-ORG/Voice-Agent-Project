@@ -96,7 +96,7 @@ export async function POST(request: Request) {
           }]
         }],
         generationConfig: {
-          maxOutputTokens: Math.max(maxTokens, 1000),
+          maxOutputTokens: 2048,
           temperature: 0.3
         }
       };
