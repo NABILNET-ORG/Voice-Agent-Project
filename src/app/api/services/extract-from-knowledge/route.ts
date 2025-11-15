@@ -136,11 +136,33 @@ Return ONLY the JSON array, nothing else. Extract ${knowledgeSources.length} ser
     // Parse the JSON response
     let services = [];
     try {
-      // Extract JSON from markdown code blocks if present
-      const jsonMatch = extractedText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-      const jsonText = jsonMatch ? jsonMatch[1] : extractedText;
-      services = JSON.parse(jsonText.trim());
+      // Extract JSON from markdown code blocks (handle incomplete blocks)
+      let jsonText = extractedText;
 
+      // Try to extract from code block first
+      const codeBlockMatch = extractedText.match(/```(?:json)?\s*([\s\S]*?)```/);
+      if (codeBlockMatch) {
+        jsonText = codeBlockMatch[1];
+      } else {
+        // No closing ```, try to extract from opening ``` to end
+        const openBlockMatch = extractedText.match(/```(?:json)?\s*([\s\S]*)/);
+        if (openBlockMatch) {
+          jsonText = openBlockMatch[1];
+        }
+      }
+
+      // Try to fix incomplete JSON by finding the last complete object
+      jsonText = jsonText.trim();
+      if (!jsonText.endsWith(']')) {
+        // Find the last complete '},' or '}'
+        const lastCompleteObject = jsonText.lastIndexOf('}');
+        if (lastCompleteObject !== -1) {
+          jsonText = jsonText.substring(0, lastCompleteObject + 1) + ']';
+          console.log("Fixed incomplete JSON array");
+        }
+      }
+
+      services = JSON.parse(jsonText);
       console.log("Parsed services count:", services.length);
     } catch (parseError) {
       console.error("Failed to parse AI response:", parseError);
