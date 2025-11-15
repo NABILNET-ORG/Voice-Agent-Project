@@ -1,14 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Save, Loader2, Edit } from "lucide-react";
+import { Plus, Trash2, Save, Loader2, Edit, Sparkles, Database, Link as LinkIcon, GripVertical, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
 import { businessConfigApi } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -19,6 +22,8 @@ interface Service {
   duration?: number;
   price: number;
   description: string;
+  source?: string;
+  selected?: boolean;
 }
 
 export default function ServicesManagement() {
@@ -35,6 +40,13 @@ export default function ServicesManagement() {
     price: 0,
     description: ""
   });
+
+  // Service fetching state
+  const [fetchUrl, setFetchUrl] = useState("");
+  const [fetching, setFetching] = useState(false);
+  const [extractedServices, setExtractedServices] = useState<Service[]>([]);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [businessCategory, setBusinessCategory] = useState("general");
 
   useEffect(() => {
     if (user?.id) {
@@ -106,6 +118,106 @@ export default function ServicesManagement() {
 
   const finishEdit = () => {
     setEditingId(null);
+  };
+
+  // Service fetching functions
+  const fetchFromUrl = async () => {
+    if (!fetchUrl.trim()) {
+      setMessage("Please enter a URL");
+      setTimeout(() => setMessage(""), 3000);
+      return;
+    }
+
+    try {
+      setFetching(true);
+      setMessage("Extracting services from URL...");
+
+      const response = await fetch('/api/services/extract-from-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: fetchUrl, businessCategory })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to extract services');
+      }
+
+      setExtractedServices(data.services);
+      setShowReviewModal(true);
+      setMessage(`Found ${data.count} services!`);
+      setTimeout(() => setMessage(""), 3000);
+    } catch (error: any) {
+      console.error('Error fetching services:', error);
+      setMessage(error.message || "Error extracting services");
+      setTimeout(() => setMessage(""), 5000);
+    } finally {
+      setFetching(false);
+    }
+  };
+
+  const fetchFromKnowledge = async () => {
+    try {
+      setFetching(true);
+      setMessage("Extracting services from knowledge base...");
+
+      const response = await fetch('/api/services/extract-from-knowledge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ businessCategory })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to extract services');
+      }
+
+      setExtractedServices(data.services);
+      setShowReviewModal(true);
+      setMessage(`Found ${data.count} services from ${data.sourcesAnalyzed} sources!`);
+      setTimeout(() => setMessage(""), 3000);
+    } catch (error: any) {
+      console.error('Error fetching services:', error);
+      setMessage(error.message || "Error extracting services");
+      setTimeout(() => setMessage(""), 5000);
+    } finally {
+      setFetching(false);
+    }
+  };
+
+  const toggleServiceSelection = (id: string) => {
+    setExtractedServices(extractedServices.map(s =>
+      s.id === id ? { ...s, selected: !s.selected } : s
+    ));
+  };
+
+  const toggleAllServices = () => {
+    const allSelected = extractedServices.every(s => s.selected);
+    setExtractedServices(extractedServices.map(s => ({ ...s, selected: !allSelected })));
+  };
+
+  const updateExtractedService = (id: string, field: keyof Service, value: any) => {
+    setExtractedServices(extractedServices.map(s =>
+      s.id === id ? { ...s, [field]: value } : s
+    ));
+  };
+
+  const addSelectedServices = () => {
+    const selected = extractedServices.filter(s => s.selected);
+    const newServices = selected.map(s => ({
+      ...s,
+      id: `${Date.now()}-${Math.random()}`,
+      selected: undefined // Remove selection flag
+    }));
+
+    setServices([...services, ...newServices]);
+    setShowReviewModal(false);
+    setExtractedServices([]);
+    setFetchUrl("");
+    setMessage(`Added ${newServices.length} services!`);
+    setTimeout(() => setMessage(""), 3000);
   };
 
   if (loading) {
@@ -255,10 +367,67 @@ export default function ServicesManagement() {
         </CardContent>
       </Card>
 
+      {/* AI-Powered Service Fetching */}
+      <Card className="bg-[#1A1A1A] border-gray-800">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-[#84CC16]" />
+            <CardTitle className="text-white">AI Service Extraction</CardTitle>
+          </div>
+          <CardDescription className="text-gray-400">
+            Automatically extract services from your website or knowledge base using AI
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Fetch from URL */}
+          <div className="space-y-3">
+            <Label className="text-gray-300">Extract from Website URL</Label>
+            <div className="flex gap-2">
+              <Input
+                value={fetchUrl}
+                onChange={(e) => setFetchUrl(e.target.value)}
+                placeholder="https://example.com/services or /products"
+                className="bg-gray-800 border-gray-700 text-white flex-1"
+              />
+              <Button
+                onClick={fetchFromUrl}
+                disabled={fetching || !fetchUrl.trim()}
+                className="bg-[#84CC16] text-black hover:bg-[#65A30D]"
+              >
+                <LinkIcon className="h-4 w-4 mr-2" />
+                {fetching ? "Extracting..." : "Fetch Services"}
+              </Button>
+            </div>
+            <p className="text-xs text-gray-500">
+              Enter the URL of your services or products page
+            </p>
+          </div>
+
+          <Separator className="bg-gray-800" />
+
+          {/* Fetch from Knowledge Base */}
+          <div className="space-y-3">
+            <Label className="text-gray-300">Extract from Knowledge Base</Label>
+            <Button
+              onClick={fetchFromKnowledge}
+              disabled={fetching}
+              variant="outline"
+              className="w-full border-gray-700 text-gray-300 hover:text-white"
+            >
+              <Database className="h-4 w-4 mr-2" />
+              {fetching ? "Analyzing..." : "Extract from Knowledge Base"}
+            </Button>
+            <p className="text-xs text-gray-500">
+              AI will analyze all your knowledge sources and extract services/products automatically
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Add New Service */}
       <Card className="bg-[#1A1A1A] border-gray-800">
         <CardHeader>
-          <CardTitle className="text-white">Add New Service</CardTitle>
+          <CardTitle className="text-white">Add New Service Manually</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -324,6 +493,136 @@ export default function ServicesManagement() {
           </Button>
         </CardContent>
       </Card>
-    </div>
-  );
-}
+
+      {/* Service Review Modal */}
+      <Dialog open={showReviewModal} onOpenChange={setShowReviewModal}>
+        <DialogContent className="bg-[#1A1A1A] border-gray-800 text-white max-w-4xl max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">Review Extracted Services</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Review and edit extracted services before adding them. Select which services to keep.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Select All */}
+            <div className="flex items-center justify-between p-3 bg-gray-800 rounded-lg border border-gray-700">
+              <div className="flex items-center gap-3">
+                <Checkbox
+                  checked={extractedServices.length > 0 && extractedServices.every(s => s.selected)}
+                  onCheckedChange={toggleAllServices}
+                  className="border-gray-600"
+                />
+                <Label className="text-gray-300 font-medium cursor-pointer">
+                  Select All ({extractedServices.filter(s => s.selected).length} of {extractedServices.length} selected)
+                </Label>
+              </div>
+              <Button
+                onClick={addSelectedServices}
+                disabled={!extractedServices.some(s => s.selected)}
+                className="bg-[#84CC16] text-black hover:bg-[#65A30D]"
+              >
+                <Check className="h-4 w-4 mr-2" />
+                Add Selected ({extractedServices.filter(s => s.selected).length})
+              </Button>
+            </div>
+
+            {/* Extracted Services List */}
+            <ScrollArea className="h-[500px] pr-4">
+              <div className="space-y-3">
+                {extractedServices.map((service) => (
+                  <div
+                    key={service.id}
+                    className={`p-4 rounded-lg border transition-all ${
+                      service.selected
+                        ? 'bg-gray-800 border-[#84CC16]'
+                        : 'bg-gray-900 border-gray-700'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      {/* Checkbox */}
+                      <Checkbox
+                        checked={service.selected || false}
+                        onCheckedChange={() => toggleServiceSelection(service.id!)}
+                        className="mt-1 border-gray-600"
+                      />
+
+                      {/* Service Details (Editable) */}
+                      <div className="flex-1 space-y-3">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <Label className="text-xs text-gray-400">Service Name</Label>
+                            <Input
+                              value={service.name}
+                              onChange={(e) => updateExtractedService(service.id!, 'name', e.target.value)}
+                              className="bg-gray-900 border-gray-700 text-white mt-1"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs text-gray-400">Category</Label>
+                            <Input
+                              value={service.category}
+                              onChange={(e) => updateExtractedService(service.id!, 'category', e.target.value)}
+                              className="bg-gray-900 border-gray-700 text-white mt-1"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <Label className="text-xs text-gray-400">Description</Label>
+                          <Textarea
+                            value={service.description}
+                            onChange={(e) => updateExtractedService(service.id!, 'description', e.target.value)}
+                            className="bg-gray-900 border-gray-700 text-white mt-1 min-h-[60px]"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <Label className="text-xs text-gray-400">Price</Label>
+                            <Input
+                              type="number"
+                              value={service.price}
+                              onChange={(e) => updateExtractedService(service.id!, 'price', parseFloat(e.target.value))}
+                              className="bg-gray-900 border-gray-700 text-white mt-1"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs text-gray-400">Duration (minutes)</Label>
+                            <Input
+                              type="number"
+                              value={service.duration || ''}
+                              onChange={(e) => updateExtractedService(service.id!, 'duration', parseInt(e.target.value) || undefined)}
+                              className="bg-gray-900 border-gray-700 text-white mt-1"
+                              placeholder="Optional"
+                            />
+                          </div>
+                        </div>
+
+                        {service.source && (
+                          <div className="flex items-center gap-2 text-xs text-gray-500">
+                            <LinkIcon className="h-3 w-3" />
+                            Source: {service.source}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+
+            {extractedServices.length === 0 && (
+              <div className="text-center py-12 text-gray-400">
+                No services extracted yet
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add New Service */}
+      <Card className="bg-[#1A1A1A] border-gray-800">
+        <CardHeader>
+          <CardTitle className="text-white">Add New Service Manually</CardTitle>
+        </CardHeader>
