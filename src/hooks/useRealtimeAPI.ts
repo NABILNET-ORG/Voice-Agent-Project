@@ -290,11 +290,18 @@ export function useRealtimeAPI() {
         instructions += `\n- Use the knowledge base information to answer specific questions about products/services`;
         instructions += `\n- Follow the booking policies strictly`;
         instructions += `\n- Inform customers about notification methods and payment requirements`;
+        instructions += `\n\nBOOKING WORKFLOW:`;
+        instructions += `\n1. ALWAYS call check_availability tool FIRST to see available time slots`;
+        instructions += `\n2. Present available slots to customer and let them choose`;
+        instructions += `\n3. Collect: name, email, phone (if not already provided)`;
+        instructions += `\n4. ONLY call create_booking tool AFTER customer confirms the time`;
+        instructions += `\n5. NEVER say "I've booked you" without actually calling create_booking tool`;
+        instructions += `\n6. Wait for create_booking success response before confirming to customer`;
 
         console.log('Voice Agent Instructions (length: ' + instructions.length + ' chars):');
         console.log(instructions.substring(0, 800) + '...\n\n[FULL CONTEXT LOADED WITH ALL SETTINGS]');
 
-        // Send session configuration with loaded context
+        // Send session configuration with loaded context and booking tools
         const sessionUpdate = {
           type: 'session.update',
           session: {
@@ -312,6 +319,66 @@ export function useRealtimeAPI() {
               prefix_padding_ms: 300,
               silence_duration_ms: 500,
             },
+            tools: [
+              {
+                type: 'function',
+                name: 'check_availability',
+                description: 'Check available time slots for booking. MUST be called before creating any booking to verify the time is available.',
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    date: {
+                      type: 'string',
+                      description: 'Date in YYYY-MM-DD format (e.g., 2025-11-16)'
+                    },
+                    service_name: {
+                      type: 'string',
+                      description: 'Name of the service the customer wants to book'
+                    }
+                  },
+                  required: ['date']
+                }
+              },
+              {
+                type: 'function',
+                name: 'create_booking',
+                description: 'Create a new booking. ONLY call this after checking availability with check_availability tool.',
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    customer_name: {
+                      type: 'string',
+                      description: 'Customer full name'
+                    },
+                    customer_email: {
+                      type: 'string',
+                      description: 'Customer email address'
+                    },
+                    customer_phone: {
+                      type: 'string',
+                      description: 'Customer phone number'
+                    },
+                    service_name: {
+                      type: 'string',
+                      description: 'Name of the service to book'
+                    },
+                    date: {
+                      type: 'string',
+                      description: 'Booking date in YYYY-MM-DD format'
+                    },
+                    time: {
+                      type: 'string',
+                      description: 'Booking time in HH:MM format (24-hour, e.g., 15:00)'
+                    },
+                    notes: {
+                      type: 'string',
+                      description: 'Additional notes or special requests'
+                    }
+                  },
+                  required: ['customer_name', 'customer_email', 'service_name', 'date', 'time']
+                }
+              }
+            ],
           },
         };
         dc.send(JSON.stringify(sessionUpdate));
@@ -369,6 +436,73 @@ export function useRealtimeAPI() {
     }
   }, [addMessage]);
 
+  const handleFunctionCall = async (callId: string, functionName: string, argsJson: string) => {
+    try {
+      const args = JSON.parse(argsJson);
+      console.log(`[Tool Call] ${functionName}:`, args);
+
+      let result: any = {};
+
+      if (functionName === 'check_availability') {
+        // Call availability API
+        const response = await fetch('/api/bookings/check-availability', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            date: args.date,
+            service_name: args.service_name
+          })
+        });
+
+        if (response.ok) {
+          result = await response.json();
+        } else {
+          result = { error: 'Failed to check availability' };
+        }
+      } else if (functionName === 'create_booking') {
+        // Call booking creation API
+        const response = await fetch('/api/bookings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customer_name: args.customer_name,
+            customer_email: args.customer_email,
+            customer_phone: args.customer_phone,
+            service_name: args.service_name,
+            date: args.date,
+            time: args.time,
+            notes: args.notes || ''
+          })
+        });
+
+        if (response.ok) {
+          result = await response.json();
+        } else {
+          const errorData = await response.json();
+          result = { error: errorData.error || 'Failed to create booking' };
+        }
+      }
+
+      // Send function result back to agent
+      if (dataChannelRef.current?.readyState === 'open') {
+        const functionOutput = {
+          type: 'conversation.item.create',
+          item: {
+            type: 'function_call_output',
+            call_id: callId,
+            output: JSON.stringify(result)
+          }
+        };
+        dataChannelRef.current.send(JSON.stringify(functionOutput));
+
+        // Trigger a response from the agent
+        dataChannelRef.current.send(JSON.stringify({ type: 'response.create' }));
+      }
+    } catch (error) {
+      console.error('Error handling function call:', error);
+    }
+  };
+
   const handleRealtimeEvent = (event: any) => {
     switch (event.type) {
       case 'conversation.item.created':
@@ -425,6 +559,12 @@ export function useRealtimeAPI() {
 
       case 'response.done':
         setStatus('listening');
+        break;
+
+      case 'response.function_call_arguments.done':
+        // Agent is calling a tool/function
+        console.log('[Function Call]', event.name, event.arguments);
+        handleFunctionCall(event.call_id, event.name, event.arguments);
         break;
 
       case 'input_audio_buffer.speech_started':
