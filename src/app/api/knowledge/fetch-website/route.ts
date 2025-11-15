@@ -20,7 +20,7 @@ export async function POST(request: Request) {
 
     const {
       maxDepth = 2,
-      maxPages = 20,
+      maxPages = 100,
       priorityKeywords = ['service', 'pricing', 'price', 'menu', 'about', 'contact', 'product']
     }: FetchOptions = options;
 
