@@ -31,7 +31,7 @@ export function KnowledgeBaseManager({ userId }: Props) {
 
   // Add website form
   const [newUrl, setNewUrl] = useState('');
-  const [fetchMethod, setFetchMethod] = useState<'smart_crawl' | 'single_page' | 'max_pages'>('smart_crawl');
+  const [fetchMethod, setFetchMethod] = useState<'smart_crawl' | 'single_page' | 'all_products'>('smart_crawl');
   const [maxDepth, setMaxDepth] = useState(2);
   const [maxPages, setMaxPages] = useState(20);
 
@@ -453,12 +453,12 @@ export function KnowledgeBaseManager({ userId }: Props) {
                 <SelectContent className="bg-[#1A1A1A] border-gray-700">
                   <SelectItem value="smart_crawl">Smart Full Website Crawl</SelectItem>
                   <SelectItem value="single_page">Single Page Only</SelectItem>
-                  <SelectItem value="max_pages">Max Pages</SelectItem>
+                  <SelectItem value="all_products">All Products/Services from Full Website</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            {(fetchMethod === 'smart_crawl' || fetchMethod === 'max_pages') && (
+            {(fetchMethod === 'smart_crawl' || fetchMethod === 'all_products') && (
               <>
                 <div className="space-y-2">
                   <Label>Max Depth (levels): {maxDepth}</Label>
