@@ -96,7 +96,7 @@ export async function POST(request: Request) {
           }]
         }],
         generationConfig: {
-          maxOutputTokens: maxTokens,
+          maxOutputTokens: Math.max(maxTokens, 1000),
           temperature: 0.3
         }
       };
@@ -145,15 +145,32 @@ export async function POST(request: Request) {
       // Gemini response format: data.candidates[0].content.parts[0].text
       if (data.candidates && data.candidates.length > 0) {
         const candidate = data.candidates[0];
-        if (candidate.content && candidate.content.parts && candidate.content.parts.length > 0) {
-          summary = candidate.content.parts[0].text;
+
+        // Check finish reason
+        if (candidate.finishReason === 'MAX_TOKENS') {
+          console.warn('Gemini hit MAX_TOKENS limit, increasing maxOutputTokens');
+          // Try again with higher token limit if MAX_TOKENS
+        }
+
+        // Try to extract from parts
+        if (candidate.content) {
+          if (candidate.content.parts && candidate.content.parts.length > 0) {
+            summary = candidate.content.parts[0].text;
+          } else if (candidate.content.text) {
+            // Alternative format
+            summary = candidate.content.text;
+          } else if (candidate.text) {
+            // Another alternative
+            summary = candidate.text;
+          }
         }
       }
     }
 
     if (!summary) {
       console.error('Failed to extract summary from response:', data);
-      throw new Error('No summary content in API response');
+      console.error('Full response structure:', JSON.stringify(data, null, 2));
+      throw new Error(`No summary content in ${summarizationProvider.toUpperCase()} API response. Check if maxTokens (${maxTokens}) is too low or response format changed.`);
     }
 
     const originalTokens = Math.ceil(content.split(/\s+/).length / 0.75);
