@@ -5,7 +5,8 @@
       "Bash($null)",
       "Bash(mkdir:*)",
       "Bash(supabase link:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(powershell -File:*)"
     ],
     "deny": [],
     "ask": []

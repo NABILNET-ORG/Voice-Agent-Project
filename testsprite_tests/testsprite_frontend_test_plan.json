@@ -1,37 +1,58 @@
 [
   {
     "id": "TC001",
-    "title": "User Login with Correct Credentials",
-    "description": "Verify that users can successfully log in using valid credentials through Supabase Auth.",
+    "title": "User Signup with Valid Data",
+    "description": "Verify that a new user can successfully sign up using valid email, password, and required fields.",
     "category": "functional",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to login page"
+        "description": "Navigate to the signup page"
       },
       {
         "type": "action",
-        "description": "Input a valid email and password"
+        "description": "Input valid email, strong password, and required user information"
       },
       {
         "type": "action",
-        "description": "Click the login button"
+        "description": "Submit the signup form"
       },
       {
         "type": "assertion",
-        "description": "User is authenticated and redirected to dashboard"
-      },
-      {
-        "type": "assertion",
-        "description": "A valid session token is stored securely"
+        "description": "Confirm user account is created and user is redirected to dashboard or welcome screen"
       }
     ]
   },
   {
     "id": "TC002",
-    "title": "User Login with Incorrect Credentials",
-    "description": "Ensure login fails with invalid email or password, and proper error message is shown.",
+    "title": "User Login with Correct Credentials",
+    "description": "Verify that existing users can log in with valid email and password.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the login page"
+      },
+      {
+        "type": "action",
+        "description": "Enter correct email and password"
+      },
+      {
+        "type": "action",
+        "description": "Click login button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify successful login and access to user dashboard"
+      }
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "User Login Failure with Incorrect Password",
+    "description": "Verify login is denied when user inputs an incorrect password.",
     "category": "error handling",
     "priority": "High",
     "steps": [
@@ -41,52 +62,40 @@
       },
       {
         "type": "action",
-        "description": "Input an invalid email or incorrect password"
+        "description": "Input valid email and incorrect password"
       },
       {
         "type": "action",
-        "description": "Click the login button"
+        "description": "Attempt to login"
       },
       {
         "type": "assertion",
-        "description": "Login is rejected"
-      },
-      {
-        "type": "assertion",
-        "description": "An error message indicating invalid credentials is displayed"
+        "description": "Verify error message is displayed and login denied"
       }
     ]
   },
   {
-    "id": "TC003",
-    "title": "Password Reset Workflow",
-    "description": "Validate the password reset process, including request email, reset link, and new password submission.",
+    "id": "TC004",
+    "title": "Password Reset Flow",
+    "description": "Verify user can request password reset and successfully update password via the reset link.",
     "category": "functional",
-    "priority": "High",
+    "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to login page"
+        "description": "Navigate to the forgot password page"
       },
       {
         "type": "action",
-        "description": "Click the 'Forgot Password' link"
-      },
-      {
-        "type": "action",
-        "description": "Submit registered email address for password reset"
+        "description": "Input registered email and submit password reset request"
       },
       {
         "type": "assertion",
-        "description": "Password reset email is sent"
+        "description": "Verify password reset email is sent to user"
       },
       {
         "type": "action",
-        "description": "Use reset link to open reset password form"
-      },
-      {
-        "type": "action",
-        "description": "Input and confirm new password"
+        "description": "Open the reset link from email and enter a new valid password"
       },
       {
         "type": "action",
@@ -94,954 +103,463 @@
       },
       {
         "type": "assertion",
-        "description": "Password is updated and user can log in with new password"
-      }
-    ]
-  },
-  {
-    "id": "TC004",
-    "title": "Google OAuth Integration for User Login",
-    "description": "Test login via Google OAuth including token generation, redirection, and secure storage of tokens.",
-    "category": "integration",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to login page"
-      },
-      {
-        "type": "action",
-        "description": "Click 'Login with Google' button"
-      },
-      {
-        "type": "action",
-        "description": "Complete OAuth consent and authorize app access"
-      },
-      {
-        "type": "assertion",
-        "description": "User is authenticated and redirected to dashboard"
-      },
-      {
-        "type": "assertion",
-        "description": "OAuth tokens are stored securely in backend"
+        "description": "Confirm password is updated and user can login with new password"
       }
     ]
   },
   {
     "id": "TC005",
-    "title": "Initiate AI Voice Agent Conversation via Live Demo",
-    "description": "Verify that voice agent starts conversation after customer initiates interaction on Live Demo page.",
-    "category": "functional",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to Live Demo page"
-      },
-      {
-        "type": "action",
-        "description": "Start voice input or phone call simulation"
-      },
-      {
-        "type": "assertion",
-        "description": "AI voice agent greets customer with natural voice response"
-      },
-      {
-        "type": "assertion",
-        "description": "Voice activity detection activates upon speech"
-      },
-      {
-        "type": "assertion",
-        "description": "Live transcription displays real-time text matching spoken words"
-      }
-    ]
-  },
-  {
-    "id": "TC006",
-    "title": "Book Appointment through AI Voice Agent",
-    "description": "Test booking an appointment through AI agent flow, including checking calendar availability and sending confirmation.",
-    "category": "functional",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Start conversation with AI voice agent"
-      },
-      {
-        "type": "action",
-        "description": "Request to book appointment for specific date and time"
-      },
-      {
-        "type": "assertion",
-        "description": "AI agent checks calendar availability via Google Calendar API integration"
-      },
-      {
-        "type": "assertion",
-        "description": "Confirmation of available slot is communicated to customer"
-      },
-      {
-        "type": "action",
-        "description": "Confirm appointment booking"
-      },
-      {
-        "type": "assertion",
-        "description": "Booking is saved in database and calendar is updated"
-      },
-      {
-        "type": "assertion",
-        "description": "Customer receives confirmation via email and SMS"
-      }
-    ]
-  },
-  {
-    "id": "TC007",
-    "title": "Handle Booking Conflict Scenario",
-    "description": "Verify AI agent properly handles conflict when requested appointment slot is unavailable.",
-    "category": "error handling",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Start AI conversation and request a fully booked appointment slot"
-      },
-      {
-        "type": "assertion",
-        "description": "Agent detects unavailability via calendar sync"
-      },
-      {
-        "type": "assertion",
-        "description": "Agent offers alternative available time slots"
-      },
-      {
-        "type": "action",
-        "description": "Select alternative slot and confirm"
-      },
-      {
-        "type": "assertion",
-        "description": "Booking is saved successfully and confirmation is sent"
-      }
-    ]
-  },
-  {
-    "id": "TC008",
-    "title": "Manage Bookings List View and Filtering",
-    "description": "Validate bookers' ability to view, filter, and update booking statuses in list view.",
-    "category": "functional",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Log in as business owner"
-      },
-      {
-        "type": "action",
-        "description": "Navigate to bookings list page"
-      },
-      {
-        "type": "assertion",
-        "description": "Bookings are displayed in a paginated list with key details"
-      },
-      {
-        "type": "action",
-        "description": "Apply filters e.g. date range, status, customer name"
-      },
-      {
-        "type": "assertion",
-        "description": "Bookings list updates according to filters"
-      },
-      {
-        "type": "action",
-        "description": "Update a booking status to 'confirmed' or 'cancelled'"
-      },
-      {
-        "type": "assertion",
-        "description": "Booking status changes are saved and reflected in calendar view"
-      }
-    ]
-  },
-  {
-    "id": "TC009",
-    "title": "Synchronize Google Calendar with Booking Events",
-    "description": "Ensure booking events sync bidirectionally with Google Calendar using OAuth integration.",
-    "category": "integration",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Business owner connects Google Calendar via OAuth on integrations page"
-      },
-      {
-        "type": "assertion",
-        "description": "OAuth access tokens are saved securely"
-      },
-      {
-        "type": "action",
-        "description": "Create a new booking in application"
-      },
-      {
-        "type": "assertion",
-        "description": "Booking event is created in connected Google Calendar"
-      },
-      {
-        "type": "action",
-        "description": "Create an event directly in Google Calendar"
-      },
-      {
-        "type": "assertion",
-        "description": "Event appears in application booking calendar within sync interval"
-      }
-    ]
-  },
-  {
-    "id": "TC010",
-    "title": "View and Search Call History and Transcripts",
-    "description": "Verify that call logs, duration, outcomes, and searchable transcripts are accessible and accurate.",
-    "category": "functional",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Log in as business owner"
-      },
-      {
-        "type": "action",
-        "description": "Navigate to call history page"
-      },
-      {
-        "type": "assertion",
-        "description": "List of calls is displayed with details: date, duration, status"
-      },
-      {
-        "type": "action",
-        "description": "Select a call to view full transcript and audio playback"
-      },
-      {
-        "type": "assertion",
-        "description": "Transcript text matches the voice conversation"
-      },
-      {
-        "type": "action",
-        "description": "Search transcripts by keywords or customer name"
-      },
-      {
-        "type": "assertion",
-        "description": "Search returns relevant call records"
-      }
-    ]
-  },
-  {
-    "id": "TC011",
-    "title": "Analytics Dashboard Data Visualization and Export",
-    "description": "Test analytics dashboard displays accurate metrics and charts and supports data export functionality.",
-    "category": "functional",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to analytics dashboard"
-      },
-      {
-        "type": "assertion",
-        "description": "Dashboard shows bookings, revenue, call performance, and conversion rates"
-      },
-      {
-        "type": "assertion",
-        "description": "Visual charts update interactively according to date range filters"
-      },
-      {
-        "type": "action",
-        "description": "Click to export analytics data in CSV format"
-      },
-      {
-        "type": "assertion",
-        "description": "Exported file contains accurate and complete data"
-      }
-    ]
-  },
-  {
-    "id": "TC012",
-    "title": "Business Settings Configuration and Persistence",
-    "description": "Verify business owner can configure business details, hours, services, pricing and that settings persist.",
-    "category": "functional",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Log in as business owner"
-      },
-      {
-        "type": "action",
-        "description": "Navigate to business settings page"
-      },
-      {
-        "type": "action",
-        "description": "Update business name, operation hours, and service pricing"
-      },
-      {
-        "type": "action",
-        "description": "Save the changes"
-      },
-      {
-        "type": "assertion",
-        "description": "Changes are saved to backend and visible after page reload"
-      }
-    ]
-  },
-  {
-    "id": "TC013",
-    "title": "Manage Service Offerings with Add/Edit/Delete",
-    "description": "Ensure that service offerings can be created, modified, and deleted correctly with validations.",
-    "category": "functional",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to services management page"
-      },
-      {
-        "type": "action",
-        "description": "Add a new service with name, description, duration, and pricing"
-      },
-      {
-        "type": "assertion",
-        "description": "New service appears in list and reflects correct details"
-      },
-      {
-        "type": "action",
-        "description": "Edit an existing service's pricing and description"
-      },
-      {
-        "type": "assertion",
-        "description": "Edits are saved and displayed correctly"
-      },
-      {
-        "type": "action",
-        "description": "Delete a service"
-      },
-      {
-        "type": "assertion",
-        "description": "Service is removed from list and related bookings handled accordingly"
-      }
-    ]
-  },
-  {
-    "id": "TC014",
-    "title": "Twilio Integration for Incoming Customer Calls",
-    "description": "Verify that incoming calls via Twilio trigger edge functions which create real-time AI sessions appropriately.",
-    "category": "integration",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Initiate an inbound call to the Twilio configured number"
-      },
-      {
-        "type": "assertion",
-        "description": "Twilio edge function is invoked"
-      },
-      {
-        "type": "assertion",
-        "description": "Real-time AI session is created and ready for conversation"
-      },
-      {
-        "type": "assertion",
-        "description": "Call audio streams correctly to AI voice agent"
-      }
-    ]
-  },
-  {
-    "id": "TC015",
-    "title": "Knowledge Base Website Crawling and Summarization",
-    "description": "Test adding a website to knowledge base, crawling content, summarizing, and saving for AI contextualization.",
-    "category": "functional",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to knowledge base management page"
-      },
-      {
-        "type": "action",
-        "description": "Add a new website URL for crawling"
-      },
-      {
-        "type": "action",
-        "description": "Trigger content fetch and summarization process"
-      },
-      {
-        "type": "assertion",
-        "description": "Website content is successfully fetched and summaries generated"
-      },
-      {
-        "type": "action",
-        "description": "Save summarized content to knowledge base"
-      },
-      {
-        "type": "assertion",
-        "description": "Saved content is available for AI response contextualization"
-      }
-    ]
-  },
-  {
-    "id": "TC016",
-    "title": "Session Handling and Secure Route Protection",
-    "description": "Validate that protected routes require authentication and enforce session expiration and renewal.",
+    "title": "Secure Session Management and Logout",
+    "description": "Validate that user sessions are managed securely and user can logout properly.",
     "category": "security",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Attempt to access a protected route without login"
+        "description": "Login with valid credentials"
       },
       {
         "type": "assertion",
-        "description": "User is redirected to login page"
+        "description": "Verify session is created and secured with Supabase Auth including Row Level Security"
       },
       {
         "type": "action",
-        "description": "Log in and access protected route"
+        "description": "Click the logout button"
       },
       {
         "type": "assertion",
-        "description": "Access is granted"
-      },
-      {
-        "type": "action",
-        "description": "Let session expire and try to access protected resource"
-      },
-      {
-        "type": "assertion",
-        "description": "User is redirected to login due to session expiration"
+        "description": "Verify session is destroyed and user is redirected to login page"
       }
     ]
   },
   {
-    "id": "TC017",
-    "title": "UI Responsiveness on Desktop and Mobile Devices",
-    "description": "Verify that user interface components and pages render correctly and remain usable on multiple screen sizes.",
-    "category": "ui",
-    "priority": "Medium",
+    "id": "TC006",
+    "title": "Initiate Live Voice Booking via Demo",
+    "description": "Test that customers can initiate a voice-based booking via the live demo interface and complete the booking flow successfully.",
+    "category": "functional",
+    "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Load application on desktop browser with large resolution"
-      },
-      {
-        "type": "assertion",
-        "description": "Layout and components render correctly without overlaps"
+        "description": "Navigate to the live demo voice agent page"
       },
       {
         "type": "action",
-        "description": "Load application on mobile device viewport or emulator"
+        "description": "Enable microphone and grant WebRTC permissions"
+      },
+      {
+        "type": "action",
+        "description": "Start voice interaction and provide booking details (date, time, service)"
       },
       {
         "type": "assertion",
-        "description": "Responsive navigation, modals, and forms display correctly"
+        "description": "Verify AI agent understands natural language and confirms the entered booking details"
+      },
+      {
+        "type": "action",
+        "description": "Confirm booking with AI agent"
       },
       {
         "type": "assertion",
-        "description": "All interactive elements remain accessible and usable"
+        "description": "Verify booking appears in the booking system and Google Calendar is synced"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify confirmation notification is sent to customer"
       }
     ]
   },
   {
-    "id": "TC018",
-    "title": "Error Handling and Loading States Throughout Application",
-    "description": "Test that the application gracefully handles API failures, loading delays, and displays meaningful feedback.",
+    "id": "TC007",
+    "title": "Handle Booking Attempt for Unavailable Slot",
+    "description": "Verify the AI voice agent correctly identifies and responds when the requested booking time is unavailable.",
     "category": "error handling",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Simulate network failure or server error during API calls"
+        "description": "Initiate a voice booking with a time slot that is fully booked"
       },
       {
         "type": "assertion",
-        "description": "User-facing error messages or alerts are displayed"
+        "description": "Verify AI agent informs customer of unavailability"
       },
       {
         "type": "action",
-        "description": "Perform actions triggering loading states (e.g., saving settings, booking an appointment)"
+        "description": "Receive alternate available time suggestions from AI agent"
       },
       {
         "type": "assertion",
-        "description": "Loading indicators appear until operation completes"
+        "description": "Verify customer can select alternate booking and booking completes successfully"
+      }
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "Booking Update and Cancellation from Owner Portal",
+    "description": "Validate that business owners can update booking details (change time/date/status) and cancel bookings correctly, with system syncing updates.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as business owner"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to booking list or calendar view"
+      },
+      {
+        "type": "action",
+        "description": "Select an existing active booking"
+      },
+      {
+        "type": "action",
+        "description": "Modify booking details (e.g. reschedule date/time or change status to canceled)"
+      },
+      {
+        "type": "action",
+        "description": "Save changes"
       },
       {
         "type": "assertion",
-        "description": "Application recovers and permits retry after failure"
+        "description": "Verify booking updates are reflected in UI and synced with Google Calendar"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify notifications related to booking update/cancellation are sent"
+      }
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "Booking Filtering and Export",
+    "description": "Verify bookings can be filtered by date, status, or service and that filtered results can be exported.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Access booking management page"
+      },
+      {
+        "type": "action",
+        "description": "Apply filters such as date range, booking status, and service type"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm displayed bookings match filter criteria"
+      },
+      {
+        "type": "action",
+        "description": "Export filtered bookings using export functionality"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify exported file contains correct booking data matching filters"
+      }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "Google Calendar OAuth Integration",
+    "description": "Test business owner can connect their Google Calendar account via OAuth successfully and permissions are granted to sync bookings.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as business owner"
+      },
+      {
+        "type": "action",
+        "description": "Go to integrations settings and select Google Calendar connection"
+      },
+      {
+        "type": "action",
+        "description": "Complete OAuth flow with Google account selection and permission grant"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify OAuth tokens are stored securely"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm bookings created or updated are reflected in Google Calendar in near real-time"
+      }
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "AI Voice Agent Latency and Accuracy",
+    "description": "Verify that the AI voice assistant responds within 2 seconds and the transcription provided is accurate compared to spoken input.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Start a sample voice interaction with the AI assistant"
+      },
+      {
+        "type": "action",
+        "description": "Speak a complex booking query or natural conversation"
+      },
+      {
+        "type": "assertion",
+        "description": "Measure response latency and ensure AI answers within 2 seconds"
+      },
+      {
+        "type": "assertion",
+        "description": "Compare AI transcription with actual spoken words for accuracy"
+      }
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "Call History Access and Transcript Search",
+    "description": "Ensure business owners can view call logs, access recordings, read transcripts, search call content, and export data.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as business owner and navigate to call history page"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify call recordings and transcripts are listed with linking to associated bookings"
+      },
+      {
+        "type": "action",
+        "description": "Search call transcripts using keywords"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm call entries shown match the search query"
+      },
+      {
+        "type": "action",
+        "description": "Export call history or transcripts data"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify exported data contains complete call log and transcript information"
+      }
+    ]
+  },
+  {
+    "id": "TC013",
+    "title": "Analytics Dashboard Data Accuracy and Refresh",
+    "description": "Verify analytics metrics including revenue, booking counts, call performance, and customer insights are accurate and update in near real-time.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Generate sample bookings, calls, and revenue events"
+      },
+      {
+        "type": "action",
+        "description": "Access analytics dashboard"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify metrics accurately reflect generated data"
+      },
+      {
+        "type": "action",
+        "description": "Wait and refresh view to simulate real-time updates"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm dashboard metrics refresh and update according to new data"
+      }
+    ]
+  },
+  {
+    "id": "TC014",
+    "title": "Business Settings Save and Apply",
+    "description": "Check that changes to business info, availability, scheduling policies, and notifications in settings are saved and applied correctly.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as business owner and navigate to business settings page"
+      },
+      {
+        "type": "action",
+        "description": "Modify business info such as timezone, currency, language"
+      },
+      {
+        "type": "action",
+        "description": "Configure availability schedules and notification preferences"
+      },
+      {
+        "type": "action",
+        "description": "Save changes"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify changes persist after page reload and take effect in booking system behavior"
+      }
+    ]
+  },
+  {
+    "id": "TC015",
+    "title": "Configure AI Assistant and Knowledge Base",
+    "description": "Verify owners can add URLs, fetch and summarize web content to train AI knowledge base, improving AI responses.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to AI assistant and knowledge base configuration page"
+      },
+      {
+        "type": "action",
+        "description": "Add a new URL for content extraction using available modes (single page, deep, crawl)"
+      },
+      {
+        "type": "action",
+        "description": "Trigger fetching and summarization of content"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify content is summarized and added to knowledge base"
+      },
+      {
+        "type": "action",
+        "description": "Test AI assistant responses incorporate updated knowledge base context"
+      }
+    ]
+  },
+  {
+    "id": "TC016",
+    "title": "AI Integrations Configuration and API Key Validation",
+    "description": "Verify that business owners can configure AI providers with API keys, select models, and assign features successfully.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Access AI integrations configuration page"
+      },
+      {
+        "type": "action",
+        "description": "Enter valid API keys for OpenAI, Google Gemini, or Anthropic"
+      },
+      {
+        "type": "action",
+        "description": "Select AI models and assign feature roles"
+      },
+      {
+        "type": "action",
+        "description": "Save the configuration"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify configurations are saved and API keys validated"
+      }
+    ]
+  },
+  {
+    "id": "TC017",
+    "title": "Responsive UI and WebRTC Microphone Access",
+    "description": "Confirm the UI is responsive across supported browsers and microphone access is properly requested and granted for WebRTC voice agent.",
+    "category": "ui",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Open the voice agent demo page in various supported browsers and device viewports"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify UI adapts correctly to different screen sizes"
+      },
+      {
+        "type": "action",
+        "description": "Trigger microphone permission request via WebRTC"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm microphone access prompt appears and permission granted"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify voice agent records audio input correctly after permission"
+      }
+    ]
+  },
+  {
+    "id": "TC018",
+    "title": "System HTTPS and Environment Configuration",
+    "description": "Verify that the system operates exclusively over HTTPS in production environment and required environment variables are correctly configured.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Deploy or run system in production mode"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify all backend and frontend traffic is served over HTTPS"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify environment variables for APIs (OpenAI, Google, Supabase) are set and loaded"
+      },
+      {
+        "type": "assertion",
+        "description": "Ensure no sensitive credentials or tokens appear in client side code"
       }
     ]
   },
   {
     "id": "TC019",
-    "title": "Realtime AI Voice Agent Low-Latency Audio Streaming",
-    "description": "Confirm that AI voice agent responds with minimal latency during real-time conversations using WebRTC.",
-    "category": "performance",
+    "title": "Error Handling for Missing or Invalid API Keys",
+    "description": "Validate system behavior and user notifications when AI or Google Calendar API keys are missing or invalid.",
+    "category": "error handling",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Initiate real-time voice interaction on Live Demo page"
+        "description": "Configure AI or Google integrations with invalid or empty API keys"
+      },
+      {
+        "type": "action",
+        "description": "Attempt AI voice agent interaction or booking calendar sync"
       },
       {
         "type": "assertion",
-        "description": "Audio streaming is established with WebRTC"
+        "description": "Verify meaningful error messages are shown to the owner/user"
       },
       {
         "type": "assertion",
-        "description": "AI responses occur with latency under defined target threshold (e.g., < 1 second)"
+        "description": "Ensure system gracefully handles request failures without crashing"
       }
     ]
   },
   {
     "id": "TC020",
-    "title": "AI Models Integration - View 3 Separate Provider Cards",
-    "description": "Verify that the Integrations page shows 3 separate AI provider cards: OpenAI, Gemini, and OpenRouter",
+    "title": "Simultaneous Booking Requests Handling",
+    "description": "Test system behavior under simultaneous booking requests to the same time slot to ensure no double bookings occur.",
     "category": "functional",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Log in as business owner"
-      },
-      {
-        "type": "action",
-        "description": "Navigate to Settings → Integrations"
+        "description": "Start two or more voice booking sessions requesting the same time slot concurrently"
       },
       {
         "type": "assertion",
-        "description": "OpenAI card is visible with icon 🤖"
+        "description": "Verify only one booking succeeds and others are prompted with availability conflict"
       },
       {
         "type": "assertion",
-        "description": "Google Gemini card is visible with icon ✨"
-      },
-      {
-        "type": "assertion",
-        "description": "OpenRouter card is visible with icon ⚡"
-      }
-    ]
-  },
-  {
-    "id": "TC021",
-    "title": "AI Models Category Tab Filter",
-    "description": "Verify that the AI Models category tab exists and filters to show only the 3 AI provider cards",
-    "category": "functional",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to Settings → Integrations"
-      },
-      {
-        "type": "assertion",
-        "description": "AI Models tab is visible in category filter"
-      },
-      {
-        "type": "action",
-        "description": "Click AI Models tab"
-      },
-      {
-        "type": "assertion",
-        "description": "Only 3 cards are displayed: OpenAI, Gemini, OpenRouter"
-      },
-      {
-        "type": "assertion",
-        "description": "Other integration cards (Google Calendar, Stripe, etc) are not visible"
-      }
-    ]
-  },
-  {
-    "id": "TC022",
-    "title": "Configure OpenAI with API Key and Model Selection",
-    "description": "Test OpenAI configuration including API key input, model selection from dropdown, and custom model support",
-    "category": "functional",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Click OpenAI card in Integrations"
-      },
-      {
-        "type": "assertion",
-        "description": "Configuration dialog opens with title 'Configure OpenAI'"
-      },
-      {
-        "type": "assertion",
-        "description": "API Key password field is present"
-      },
-      {
-        "type": "assertion",
-        "description": "Model dropdown shows official model names: gpt-4o, gpt-4o-mini, gpt-4-turbo, etc"
-      },
-      {
-        "type": "action",
-        "description": "Select a model from dropdown (e.g., gpt-4o-mini)"
-      },
-      {
-        "type": "action",
-        "description": "Select 'Custom Model...' option"
-      },
-      {
-        "type": "assertion",
-        "description": "Custom model input field appears"
-      },
-      {
-        "type": "action",
-        "description": "Enter custom model name (e.g., gpt-4o-2024-08-06)"
-      },
-      {
-        "type": "assertion",
-        "description": "Custom model name is accepted"
-      }
-    ]
-  },
-  {
-    "id": "TC023",
-    "title": "OpenAI Feature Assignment Toggles",
-    "description": "Verify that OpenAI configuration allows selecting which features (Voice Agent, Summarization, Analytics, Transcription) use OpenAI",
-    "category": "functional",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Open OpenAI configuration dialog"
-      },
-      {
-        "type": "assertion",
-        "description": "Section 'Use OpenAI For:' is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Voice Agent toggle switch is present"
-      },
-      {
-        "type": "assertion",
-        "description": "Knowledge Base Summarization toggle is present"
-      },
-      {
-        "type": "assertion",
-        "description": "Analytics Insights toggle is present"
-      },
-      {
-        "type": "assertion",
-        "description": "Call Transcription toggle is present"
-      },
-      {
-        "type": "action",
-        "description": "Toggle Voice Agent ON"
-      },
-      {
-        "type": "action",
-        "description": "Toggle Knowledge Base Summarization ON"
-      },
-      {
-        "type": "action",
-        "description": "Click Save"
-      },
-      {
-        "type": "assertion",
-        "description": "Success message appears: 'OpenAI settings updated successfully!'"
-      },
-      {
-        "type": "assertion",
-        "description": "OpenAI card status changes to 'Connected'"
-      }
-    ]
-  },
-  {
-    "id": "TC024",
-    "title": "Configure Gemini with API Key and Model Selection",
-    "description": "Test Gemini configuration with API key, official Gemini model selection (2.5-pro, 2.5-flash, etc), and feature assignment",
-    "category": "functional",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Click Gemini card in AI Models tab"
-      },
-      {
-        "type": "assertion",
-        "description": "Configuration dialog opens with title 'Configure Google Gemini'"
-      },
-      {
-        "type": "assertion",
-        "description": "Gemini API Key field is present"
-      },
-      {
-        "type": "assertion",
-        "description": "Model dropdown shows official Gemini models: gemini-2.5-pro, gemini-2.5-flash, gemini-2.0-flash, etc"
-      },
-      {
-        "type": "action",
-        "description": "Select gemini-2.5-flash from dropdown"
-      },
-      {
-        "type": "assertion",
-        "description": "Feature assignment toggles are visible"
-      },
-      {
-        "type": "action",
-        "description": "Toggle Knowledge Base Summarization ON for Gemini"
-      },
-      {
-        "type": "action",
-        "description": "Enter Gemini API key"
-      },
-      {
-        "type": "action",
-        "description": "Click Save"
-      },
-      {
-        "type": "assertion",
-        "description": "Success message appears"
-      },
-      {
-        "type": "assertion",
-        "description": "Gemini card status shows 'Connected'"
-      }
-    ]
-  },
-  {
-    "id": "TC025",
-    "title": "Configure OpenRouter with Multi-Model Selection",
-    "description": "Test OpenRouter configuration with API key, multi-provider model selection, and custom model support",
-    "category": "functional",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Click OpenRouter card"
-      },
-      {
-        "type": "assertion",
-        "description": "Configuration dialog opens"
-      },
-      {
-        "type": "assertion",
-        "description": "Model dropdown shows provider/model format: openai/gpt-4o, anthropic/claude-3.5-sonnet, etc"
-      },
-      {
-        "type": "action",
-        "description": "Select 'auto' or specific model"
-      },
-      {
-        "type": "action",
-        "description": "Select 'Custom Model...' and enter custom provider/model"
-      },
-      {
-        "type": "assertion",
-        "description": "Custom model input accepts provider/model format"
-      },
-      {
-        "type": "assertion",
-        "description": "Feature assignment toggles are present"
-      }
-    ]
-  },
-  {
-    "id": "TC026",
-    "title": "AI Provider Database Persistence",
-    "description": "Verify that AI provider configurations (keys, models, feature assignments) are saved to database and persist across sessions",
-    "category": "functional",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Configure OpenAI with API key and feature assignments"
-      },
-      {
-        "type": "action",
-        "description": "Save configuration"
-      },
-      {
-        "type": "action",
-        "description": "Refresh the page"
-      },
-      {
-        "type": "assertion",
-        "description": "OpenAI card still shows 'Connected' status"
-      },
-      {
-        "type": "action",
-        "description": "Open OpenAI configuration again"
-      },
-      {
-        "type": "assertion",
-        "description": "API key is still set (masked)"
-      },
-      {
-        "type": "assertion",
-        "description": "Model selection is preserved"
-      },
-      {
-        "type": "assertion",
-        "description": "Feature toggle states are preserved"
-      }
-    ]
-  },
-  {
-    "id": "TC027",
-    "title": "Knowledge Base Summarization with Configured AI Provider",
-    "description": "Test that Knowledge Base uses the configured AI provider (Gemini) for summarization and respects the model selection",
-    "category": "integration",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Configure Gemini as summarization provider with model gemini-2.5-flash"
-      },
-      {
-        "type": "action",
-        "description": "Navigate to Settings → AI Configuration → Knowledge Base"
-      },
-      {
-        "type": "action",
-        "description": "Add website URL"
-      },
-      {
-        "type": "action",
-        "description": "Set Max Depth to 3, Max Pages to 30"
-      },
-      {
-        "type": "action",
-        "description": "Click Fetch & Preview"
-      },
-      {
-        "type": "assertion",
-        "description": "Website content is fetched successfully"
-      },
-      {
-        "type": "action",
-        "description": "Click Summarize button"
-      },
-      {
-        "type": "assertion",
-        "description": "Summarization uses Gemini API (check server logs show 'Using AI provider for summarization: gemini Model: gemini-2.5-flash')"
-      },
-      {
-        "type": "assertion",
-        "description": "Summary is generated successfully"
-      },
-      {
-        "type": "action",
-        "description": "Save knowledge source"
-      },
-      {
-        "type": "assertion",
-        "description": "Knowledge source is saved to database"
-      }
-    ]
-  },
-  {
-    "id": "TC028",
-    "title": "Mix and Match AI Providers for Different Features",
-    "description": "Test configuring different AI providers for different features (e.g., OpenAI for voice, Gemini for summarization)",
-    "category": "functional",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Configure OpenAI: Toggle Voice Agent ON, Summarization OFF"
-      },
-      {
-        "type": "action",
-        "description": "Configure Gemini: Toggle Voice Agent OFF, Summarization ON"
-      },
-      {
-        "type": "assertion",
-        "description": "Both providers show 'Connected' status"
-      },
-      {
-        "type": "assertion",
-        "description": "Database stores ai_voice_agent_provider = 'openai'"
-      },
-      {
-        "type": "assertion",
-        "description": "Database stores ai_summarization_provider = 'gemini'"
-      },
-      {
-        "type": "action",
-        "description": "Test Knowledge Base summarization"
-      },
-      {
-        "type": "assertion",
-        "description": "Summarization uses Gemini (as configured)"
-      }
-    ]
-  },
-  {
-    "id": "TC029",
-    "title": "Custom Model Entry for Future Models",
-    "description": "Verify that custom model entry works for all providers and accepts any model identifier for future model support",
-    "category": "functional",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Open OpenAI configuration"
-      },
-      {
-        "type": "action",
-        "description": "Select 'Custom Model...' from dropdown"
-      },
-      {
-        "type": "assertion",
-        "description": "Custom model input field appears"
-      },
-      {
-        "type": "action",
-        "description": "Enter future model name (e.g., gpt-5-preview)"
-      },
-      {
-        "type": "action",
-        "description": "Save configuration"
-      },
-      {
-        "type": "assertion",
-        "description": "Custom model name is saved to database"
-      },
-      {
-        "type": "action",
-        "description": "Reopen configuration"
-      },
-      {
-        "type": "assertion",
-        "description": "Custom model name is preserved"
-      }
-    ]
-  },
-  {
-    "id": "TC030",
-    "title": "All Integrations Comprehensive Test",
-    "description": "Test all integration cards including Calendar, Payment, Communication, AI Models, and Analytics",
-    "category": "integration",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to Settings → Integrations"
-      },
-      {
-        "type": "assertion",
-        "description": "All integration categories are visible: All, AI Models, Calendar, Payment, Communication, Analytics, Other"
-      },
-      {
-        "type": "action",
-        "description": "Click each category tab"
-      },
-      {
-        "type": "assertion",
-        "description": "Each category filters cards correctly"
-      },
-      {
-        "type": "assertion",
-        "description": "All integration cards show correct status badges"
-      },
-      {
-        "type": "assertion",
-        "description": "Each card can be clicked to open configuration dialog"
+        "description": "Confirm bookings are atomic and Google Calendar sync maintains consistency"
       }
     ]
   }

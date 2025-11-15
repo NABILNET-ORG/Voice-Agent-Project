@@ -13,291 +13,289 @@
 ## 2️⃣ Requirement Validation Summary
 
 #### Test TC001
-- **Test Name:** User Login with Correct Credentials
-- **Test Code:** [TC001_User_Login_with_Correct_Credentials.py](./TC001_User_Login_with_Correct_Credentials.py)
-- **Test Error:** User successfully logged in with valid credentials and was redirected to the Account Settings dashboard. However, the Sign Out button does not function correctly and does not log the user out or redirect to the login page. This prevents verification of session token invalidation and secure session management. Stopping further testing due to this critical issue.
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/6d8feb89-9260-4502-ad6d-eb54c3ce126f/d08e3131-b5f4-4417-8123-7606ee261974
-- **Status:** ❌ Failed
+- **Test Name:** User Signup with Valid Data
+- **Test Code:** [TC001_User_Signup_with_Valid_Data.py](./TC001_User_Signup_with_Valid_Data.py)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/c9876cec-9652-4638-8af2-0b42ef50cb2b/fed3ab60-14d6-45ba-92c7-26a649b10570
+- **Status:** ✅ Passed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
 
 #### Test TC002
-- **Test Name:** User Login with Incorrect Credentials
-- **Test Code:** [TC002_User_Login_with_Incorrect_Credentials.py](./TC002_User_Login_with_Incorrect_Credentials.py)
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/6d8feb89-9260-4502-ad6d-eb54c3ce126f/84fe98e9-8e7b-4585-891f-68c376acbb2d
+- **Test Name:** User Login with Correct Credentials
+- **Test Code:** [TC002_User_Login_with_Correct_Credentials.py](./TC002_User_Login_with_Correct_Credentials.py)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/c9876cec-9652-4638-8af2-0b42ef50cb2b/98a43e29-566a-42dc-96f5-4d53ac587e8f
 - **Status:** ✅ Passed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
 
 #### Test TC003
-- **Test Name:** Password Reset Workflow
-- **Test Code:** [TC003_Password_Reset_Workflow.py](./TC003_Password_Reset_Workflow.py)
-- **Test Error:** Password reset process validation stopped due to broken 'Forgot Password' link leading to 404 error page. Issue reported for resolution.
-Browser Console Logs:
-[ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) (at http://localhost:3000/forgot-password?_rsc=vhvvv:0:0)
-[ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) (at http://localhost:3000/forgot-password?_rsc=1k7mf:0:0)
-[ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) (at http://localhost:3000/forgot-password:0:0)
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/6d8feb89-9260-4502-ad6d-eb54c3ce126f/6a355fae-91f2-4155-ac94-8e71103342ce
-- **Status:** ❌ Failed
-- **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
----
-
-#### Test TC004
-- **Test Name:** Google OAuth Integration for User Login
-- **Test Code:** [TC004_Google_OAuth_Integration_for_User_Login.py](./TC004_Google_OAuth_Integration_for_User_Login.py)
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/6d8feb89-9260-4502-ad6d-eb54c3ce126f/e0c32e98-cc9a-4941-bb92-228382c8d040
+- **Test Name:** User Login Failure with Incorrect Password
+- **Test Code:** [TC003_User_Login_Failure_with_Incorrect_Password.py](./TC003_User_Login_Failure_with_Incorrect_Password.py)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/c9876cec-9652-4638-8af2-0b42ef50cb2b/1ade8edb-7909-4940-9ab4-a57f0bbef09d
 - **Status:** ✅ Passed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
 
-#### Test TC005
-- **Test Name:** Initiate AI Voice Agent Conversation via Live Demo
-- **Test Code:** [TC005_Initiate_AI_Voice_Agent_Conversation_via_Live_Demo.py](./TC005_Initiate_AI_Voice_Agent_Conversation_via_Live_Demo.py)
-- **Test Error:** Testing stopped due to device connection error preventing voice input simulation start. Reported the issue for resolution.
+#### Test TC004
+- **Test Name:** Password Reset Flow
+- **Test Code:** [TC004_Password_Reset_Flow.py](./TC004_Password_Reset_Flow.py)
+- **Test Error:** The password reset request was successfully submitted, but the reset link leads to a 404 error page, preventing password update. The password reset flow is broken and needs developer attention to fix the reset link routing. Stopping further testing on this flow.
 Browser Console Logs:
-[ERROR] Connection error: NotFoundError: Requested device not found (at webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/globals/intercept-console-error.js:49:31)
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/6d8feb89-9260-4502-ad6d-eb54c3ce126f/575b42a2-f3e9-4b5c-9dd9-8095441d31fa
+[ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) (at http://localhost:3000/reset-password:0:0)
+[ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) (at http://localhost:3000/reset-password?_rsc=gk67x:0:0)
+[ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) (at http://localhost:3000/reset-password:0:0)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/c9876cec-9652-4638-8af2-0b42ef50cb2b/c7f3f036-9478-4fa9-b370-053cdd253290
+- **Status:** ❌ Failed
+- **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
+---
+
+#### Test TC005
+- **Test Name:** Secure Session Management and Logout
+- **Test Code:** [TC005_Secure_Session_Management_and_Logout.py](./TC005_Secure_Session_Management_and_Logout.py)
+- **Test Error:** Tested login with valid credentials successfully. Attempted to verify session security via 'View Sessions' button but no session details were shown. Attempted to logout using 'Sign Out' button but logout did not work; user remained logged in and was redirected back to Account Settings page. Reported issues with session security verification and logout functionality. Task stopped due to critical issues preventing further testing.
+Browser Console Logs:
+[WARNING] [Fast Refresh] performing full reload
+
+Fast Refresh will perform a full reload when you edit a file that's imported by modules outside of the React rendering tree.
+You might have a file which exports a React component but also exports a value that is imported by a non-React component file.
+Consider migrating the non-React component export to a separate file and importing it into both files.
+
+It is also possible the parent component of the component you edited is a class component, which disables Fast Refresh.
+Fast Refresh requires at least one parent function component in your React tree. (at webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:112:24)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/c9876cec-9652-4638-8af2-0b42ef50cb2b/41baf071-202a-4462-b537-a83a24de4ced
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
 
 #### Test TC006
-- **Test Name:** Book Appointment through AI Voice Agent
-- **Test Code:** [TC006_Book_Appointment_through_AI_Voice_Agent.py](./TC006_Book_Appointment_through_AI_Voice_Agent.py)
-- **Test Error:** Testing stopped due to voice connection error preventing AI voice agent interaction. Reported issue for developer attention.
+- **Test Name:** Initiate Live Voice Booking via Demo
+- **Test Code:** [TC006_Initiate_Live_Voice_Booking_via_Demo.py](./TC006_Initiate_Live_Voice_Booking_via_Demo.py)
+- **Test Error:** Test stopped due to critical issues: microphone device not found error blocking voice interaction, and 404 error on manual booking page preventing fallback booking flow testing. These issues must be resolved to continue testing the booking flow successfully.
 Browser Console Logs:
+[ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) (at http://localhost:3000/api/voice-agent/context:0:0)
+[ERROR] Failed to fetch voice agent context (at webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/globals/intercept-console-error.js:49:31)
 [ERROR] Connection error: NotFoundError: Requested device not found (at webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/globals/intercept-console-error.js:49:31)
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/6d8feb89-9260-4502-ad6d-eb54c3ce126f/41058a72-fb17-4a15-9031-bdcdbc7bade1
+[ERROR] Connection error: NotFoundError: Requested device not found (at webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/globals/intercept-console-error.js:49:31)
+[ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) (at http://localhost:3000/bookings/new:0:0)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/c9876cec-9652-4638-8af2-0b42ef50cb2b/c99798de-a6fd-41a4-a623-46b9f2cf1f94
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
 
 #### Test TC007
-- **Test Name:** Handle Booking Conflict Scenario
-- **Test Code:** [TC007_Handle_Booking_Conflict_Scenario.py](./TC007_Handle_Booking_Conflict_Scenario.py)
-- **Test Error:** Testing stopped due to connection error preventing voice interaction. Reported issue for resolution.
+- **Test Name:** Handle Booking Attempt for Unavailable Slot
+- **Test Code:** [TC007_Handle_Booking_Attempt_for_Unavailable_Slot.py](./TC007_Handle_Booking_Attempt_for_Unavailable_Slot.py)
+- **Test Error:** The voice booking interaction could not be initiated due to a device connection error ('Requested device not found'). This prevents completing the test to verify the AI voice agent's handling of unavailable booking times. The issue has been reported for further investigation.
 Browser Console Logs:
+[ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) (at http://localhost:3000/api/voice-agent/context:0:0)
+[ERROR] Failed to fetch voice agent context (at webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/globals/intercept-console-error.js:49:31)
 [ERROR] Connection error: NotFoundError: Requested device not found (at webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/globals/intercept-console-error.js:49:31)
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/6d8feb89-9260-4502-ad6d-eb54c3ce126f/5690457a-ed68-416e-9756-89fada2d573f
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/c9876cec-9652-4638-8af2-0b42ef50cb2b/09029387-cd05-463b-94a4-f857a146e8b1
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
 
 #### Test TC008
-- **Test Name:** Manage Bookings List View and Filtering
-- **Test Code:** [TC008_Manage_Bookings_List_View_and_Filtering.py](./TC008_Manage_Bookings_List_View_and_Filtering.py)
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/6d8feb89-9260-4502-ad6d-eb54c3ce126f/8d524c8f-c8be-4597-8ac0-07501c65704e
-- **Status:** ✅ Passed
+- **Test Name:** Booking Update and Cancellation from Owner Portal
+- **Test Code:** [TC008_Booking_Update_and_Cancellation_from_Owner_Portal.py](./TC008_Booking_Update_and_Cancellation_from_Owner_Portal.py)
+- **Test Error:** Testing stopped due to critical issue: Booking creation page returns 404 error. Cannot proceed with booking update and cancellation validation without existing bookings or booking creation functionality. Please fix the booking creation page to continue testing.
+Browser Console Logs:
+[WARNING] [Fast Refresh] performing full reload
+
+Fast Refresh will perform a full reload when you edit a file that's imported by modules outside of the React rendering tree.
+You might have a file which exports a React component but also exports a value that is imported by a non-React component file.
+Consider migrating the non-React component export to a separate file and importing it into both files.
+
+It is also possible the parent component of the component you edited is a class component, which disables Fast Refresh.
+Fast Refresh requires at least one parent function component in your React tree. (at webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:112:24)
+[WARNING] [Fast Refresh] performing full reload
+
+Fast Refresh will perform a full reload when you edit a file that's imported by modules outside of the React rendering tree.
+You might have a file which exports a React component but also exports a value that is imported by a non-React component file.
+Consider migrating the non-React component export to a separate file and importing it into both files.
+
+It is also possible the parent component of the component you edited is a class component, which disables Fast Refresh.
+Fast Refresh requires at least one parent function component in your React tree. (at webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:112:24)
+[ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) (at http://localhost:3000/bookings/new:0:0)
+[ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) (at http://localhost:3000/bookings/new?_rsc=tbc4i:0:0)
+[ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) (at http://localhost:3000/bookings/new:0:0)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/c9876cec-9652-4638-8af2-0b42ef50cb2b/c9793323-c1e6-437c-8973-1a8ed2733d55
+- **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
 
 #### Test TC009
-- **Test Name:** Synchronize Google Calendar with Booking Events
-- **Test Code:** [TC009_Synchronize_Google_Calendar_with_Booking_Events.py](./TC009_Synchronize_Google_Calendar_with_Booking_Events.py)
-- **Test Error:** Unable to proceed with testing bidirectional sync with Google Calendar because the booking creation interface is missing or inaccessible on the Bookings Calendar View page. OAuth integration is connected, but without creating bookings, sync cannot be verified. Please fix the booking creation UI to continue testing.
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/6d8feb89-9260-4502-ad6d-eb54c3ce126f/61597510-3301-440e-832f-cadb25e1386a
+- **Test Name:** Booking Filtering and Export
+- **Test Code:** [TC009_Booking_Filtering_and_Export.py](./TC009_Booking_Filtering_and_Export.py)
+- **Test Error:** Booking creation page is broken with 404 error, preventing creation of bookings. Cannot fully test filtering and export of bookings without sample bookings. Task stopped due to critical issue.
+Browser Console Logs:
+[ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) (at http://localhost:3000/bookings/new:0:0)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/c9876cec-9652-4638-8af2-0b42ef50cb2b/55459768-03cc-44c9-a791-c48e49852860
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
 
 #### Test TC010
-- **Test Name:** View and Search Call History and Transcripts
-- **Test Code:** [TC010_View_and_Search_Call_History_and_Transcripts.py](./TC010_View_and_Search_Call_History_and_Transcripts.py)
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/6d8feb89-9260-4502-ad6d-eb54c3ce126f/877da4ec-4bc1-4482-ac32-86fb3bc9c02d
-- **Status:** ✅ Passed
+- **Test Name:** Google Calendar OAuth Integration
+- **Test Code:** [TC010_Google_Calendar_OAuth_Integration.py](./TC010_Google_Calendar_OAuth_Integration.py)
+- **Test Error:** Testing stopped due to Google OAuth flow failure caused by browser or app security restrictions. OAuth connection could not be completed, so token storage and booking sync verification could not be performed.
+Browser Console Logs:
+[WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. (at https://accounts.youtube.com/accounts/CheckConnection?pmpo=https%3A%2F%2Faccounts.google.com&v=671563204&timestamp=1763234406202:0:0)
+[WARNING] [GroupMarkerNotSet(crbug.com/242999)!:A06C3A000C0F0000]Automatic fallback to software WebGL has been deprecated. Please use the --enable-unsafe-swiftshader flag to opt in to lower security guarantees for trusted content. (at https://accounts.google.com/v3/signin/identifier?opparams=%253F&dsh=S-1306564214%3A1763234402411639&access_type=offline&client_id=684152116790-dabuk77qqiglvtvglb5486283580l43k.apps.googleusercontent.com&o2v=2&prompt=consent&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fapi%2Fauth%2Fgoogle%2Fcallback&response_type=code&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcalendar.events+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcalendar.readonly+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email&service=lso&state=b2721f19-331a-4eb8-8c3d-184153e42faf&flowName=GeneralOAuthFlow&continue=https%3A%2F%2Faccounts.google.com%2Fsignin%2Foauth%2Fconsent%3Fauthuser%3Dunknown%26part%3DAJi8hAM2FuulyO1GHKCs5Oaip9B7q3_CmnhmSBNSmPZ4vCLTX-G1AfxJCBu_XwkdK09qdoGJucfaF7NBi5fMnCiBRsCYd0j_jneHqEElFV-ScJcDS7ZPpxBNDnO1MNqZuOH2kIqZuJgHzGzH8ow_EsBpwKi0kpa258mR1eO0wkhlx8E_EW6-AIUvurjoSGq5sv5kOpdtU0nZjgKkxI5aYsZ9FSs2MU5E-cwrSylyqyw-uyiPJJSGzgKomkxX_N2pKiKT2a7Zc8u0POM7oIN4e6xG1hpntXxAebi0tVEn3Kr09ZsefXQAT1k7cynKwuaRarEmYhR4cX2wnZTo7wqI_TLZTNHMhx5R3BCChpNDWdqk7-BfKZRgrjQ9z64Sesc_6CJWKd7xnFbmKNTSgRbyVMNGMZu3oLGE7n5J0huJZQzE7k_smBeeZNRCBJnJIj6XHnWF9nBt0mOg8e0oNrclr4qzCqajAENSjaIzfs0N6ZiSi29MyccRX4o%26flowName%3DGeneralOAuthFlow%26as%3DS-1306564214%253A1763234402411639%26client_id%3D684152116790-dabuk77qqiglvtvglb5486283580l43k.apps.googleusercontent.com%23&app_domain=http%3A%2F%2Flocalhost%3A3000&rart=ANgoxcecqRAIuW_bWhKS4e7lkakZgK2nPaNjsiCohRTK9dhDD-vQOhl7gsXHdw0bfSF4g92lmAGgy3NLukzeQgnp0V2Cb8T1YARTl80nK0R6cg96SnA7kLs:0:0)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/c9876cec-9652-4638-8af2-0b42ef50cb2b/5efcf578-cc6b-46a3-9bec-8d938a221112
+- **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
 
 #### Test TC011
-- **Test Name:** Analytics Dashboard Data Visualization and Export
-- **Test Code:** [TC011_Analytics_Dashboard_Data_Visualization_and_Export.py](./TC011_Analytics_Dashboard_Data_Visualization_and_Export.py)
-- **Test Error:** Testing stopped due to inability to access the analytics dashboard. The Analytics button does not navigate to the dashboard as expected, blocking further test steps.
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/6d8feb89-9260-4502-ad6d-eb54c3ce126f/3a3c8145-9a30-46c1-a933-06038f0a01cb
+- **Test Name:** AI Voice Agent Latency and Accuracy
+- **Test Code:** [TC011_AI_Voice_Agent_Latency_and_Accuracy.py](./TC011_AI_Voice_Agent_Latency_and_Accuracy.py)
+- **Test Error:** Testing stopped due to device connection error preventing voice interaction start. Cannot verify AI voice assistant response time or transcription accuracy without microphone access. Please resolve device issues and retry.
+Browser Console Logs:
+[ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) (at http://localhost:3000/api/voice-agent/context:0:0)
+[ERROR] Failed to fetch voice agent context (at webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/globals/intercept-console-error.js:49:31)
+[ERROR] Connection error: NotFoundError: Requested device not found (at webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/globals/intercept-console-error.js:49:31)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/c9876cec-9652-4638-8af2-0b42ef50cb2b/4a9ec497-bd42-46ef-a49e-c9e1073094d0
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
 
 #### Test TC012
-- **Test Name:** Business Settings Configuration and Persistence
-- **Test Code:** [TC012_Business_Settings_Configuration_and_Persistence.py](./TC012_Business_Settings_Configuration_and_Persistence.py)
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/6d8feb89-9260-4502-ad6d-eb54c3ce126f/72e8b8fc-6f1d-4c64-b4d8-e6ccce0c7bb4
-- **Status:** ✅ Passed
+- **Test Name:** Call History Access and Transcript Search
+- **Test Code:** [TC012_Call_History_Access_and_Transcript_Search.py](./TC012_Call_History_Access_and_Transcript_Search.py)
+- **Test Error:** Testing completed with limitation: No call logs or call data available to fully verify business owner features for viewing call logs, accessing recordings, reading transcripts, searching call content, and exporting data. Please provide test call data to enable full testing.
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/c9876cec-9652-4638-8af2-0b42ef50cb2b/6c0083bf-312d-49c7-8223-3bbfebf5a0f7
+- **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
 
 #### Test TC013
-- **Test Name:** Manage Service Offerings with Add/Edit/Delete
-- **Test Code:** [TC013_Manage_Service_Offerings_with_AddEditDelete.py](./TC013_Manage_Service_Offerings_with_AddEditDelete.py)
-- **Test Error:** Reported critical issue with services management page: services cannot be added, edited, or displayed correctly. Stopping further testing until issue is resolved.
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/6d8feb89-9260-4502-ad6d-eb54c3ce126f/1afecb1c-09e8-4867-8e65-0c89a49b4933
+- **Test Name:** Analytics Dashboard Data Accuracy and Refresh
+- **Test Code:** [TC013_Analytics_Dashboard_Data_Accuracy_and_Refresh.py](./TC013_Analytics_Dashboard_Data_Accuracy_and_Refresh.py)
+- **Test Error:** Stopped testing due to critical issue: Unable to generate sample bookings as the 'New Booking' button is unresponsive. Analytics metrics verification cannot proceed without sample data. Please fix this issue and retry.
+Browser Console Logs:
+[WARNING] [Fast Refresh] performing full reload
+
+Fast Refresh will perform a full reload when you edit a file that's imported by modules outside of the React rendering tree.
+You might have a file which exports a React component but also exports a value that is imported by a non-React component file.
+Consider migrating the non-React component export to a separate file and importing it into both files.
+
+It is also possible the parent component of the component you edited is a class component, which disables Fast Refresh.
+Fast Refresh requires at least one parent function component in your React tree. (at webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:112:24)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/c9876cec-9652-4638-8af2-0b42ef50cb2b/164ad81f-6327-4f9f-936f-9ccad82fbda2
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
 
 #### Test TC014
-- **Test Name:** Twilio Integration for Incoming Customer Calls
-- **Test Code:** [TC014_Twilio_Integration_for_Incoming_Customer_Calls.py](./TC014_Twilio_Integration_for_Incoming_Customer_Calls.py)
-- **Test Error:** Testing stopped due to critical issue: login leads to 404 error page, blocking access to backend or logs to verify Twilio edge function invocation and AI session creation. Recommend fixing the login redirect issue before retrying tests.
+- **Test Name:** Business Settings Save and Apply
+- **Test Code:** [TC014_Business_Settings_Save_and_Apply.py](./TC014_Business_Settings_Save_and_Apply.py)
+- **Test Error:** Testing stopped due to login failure with 'Failed to fetch' error. Unable to proceed with verifying changes to business info, availability, scheduling policies, and notifications in settings.
 Browser Console Logs:
-[ERROR] Connection error: NotFoundError: Requested device not found (at webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/globals/intercept-console-error.js:49:31)
-[ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) (at http://localhost:3000/business-settings:0:0)
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/6d8feb89-9260-4502-ad6d-eb54c3ce126f/28838779-c474-47c3-ad1f-520ce1f3c171
+[ERROR] Failed to load resource: net::ERR_EMPTY_RESPONSE (at https://hixuvycqekjxbplddykt.supabase.co/auth/v1/token?grant_type=password:0:0)
+[ERROR] TypeError: Failed to fetch
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/@supabase/auth-js/dist/module/lib/helpers.js:120:25)
+    at _handleRequest (webpack-internal:///(app-pages-browser)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:106:24)
+    at _request (webpack-internal:///(app-pages-browser)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:96:24)
+    at SupabaseAuthClient.signInWithPassword (webpack-internal:///(app-pages-browser)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:432:81)
+    at handleLogin (webpack-internal:///(app-pages-browser)/./src/app/(auth)/login/page.tsx:44:100)
+    at executeDispatch (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:16502:9)
+    at runWithFiberInDEV (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:845:30)
+    at processDispatchQueue (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:16552:19)
+    at eval (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:17150:9)
+    at batchedUpdates$1 (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:3263:40)
+    at dispatchEventForPluginEventSystem (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:16706:7)
+    at dispatchEvent (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:20816:11)
+    at dispatchDiscreteEvent (webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:20784:11) (at webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/globals/intercept-console-error.js:49:31)
+[ERROR] Login error: AuthRetryableFetchError: Failed to fetch
+    at _handleRequest (webpack-internal:///(app-pages-browser)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:111:15)
+    at async _request (webpack-internal:///(app-pages-browser)/./node_modules/@supabase/auth-js/dist/module/lib/fetch.js:96:18)
+    at async SupabaseAuthClient.signInWithPassword (webpack-internal:///(app-pages-browser)/./node_modules/@supabase/auth-js/dist/module/GoTrueClient.js:432:23)
+    at async handleLogin (webpack-internal:///(app-pages-browser)/./src/app/(auth)/login/page.tsx:44:37) (at webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/globals/intercept-console-error.js:49:31)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/c9876cec-9652-4638-8af2-0b42ef50cb2b/80f52bb9-2248-41a9-8bcd-96766a474fb6
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
 
 #### Test TC015
-- **Test Name:** Knowledge Base Website Crawling and Summarization
-- **Test Code:** [TC015_Knowledge_Base_Website_Crawling_and_Summarization.py](./TC015_Knowledge_Base_Website_Crawling_and_Summarization.py)
-- **Test Error:** The knowledge base management page required for testing adding a website, crawling content, summarizing, and saving is missing from the application navigation. This issue has been reported. Further testing cannot proceed until this is resolved. Task is now complete.
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/6d8feb89-9260-4502-ad6d-eb54c3ce126f/1b6998a9-b814-4660-a192-f2bc82ad13f2
+- **Test Name:** Configure AI Assistant and Knowledge Base
+- **Test Code:** [TC015_Configure_AI_Assistant_and_Knowledge_Base.py](./TC015_Configure_AI_Assistant_and_Knowledge_Base.py)
+- **Test Error:** Reported the content extraction failure issue on the Services Management page. Unable to proceed with testing URL addition, content fetching, summarization, and AI response verification due to this blocking issue. Stopping further testing as per instructions.
+Browser Console Logs:
+[ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) (at http://localhost:3000/api/services/extract-from-url:0:0)
+[ERROR] Error fetching services: Error: Internal server error
+    at fetchFromUrl (webpack-internal:///(app-pages-browser)/./src/app/settings/services/page.tsx:169:23) (at webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/globals/intercept-console-error.js:49:31)
+[ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) (at http://localhost:3000/api/services/extract-from-url:0:0)
+[ERROR] Error fetching services: Error: Internal server error
+    at fetchFromUrl (webpack-internal:///(app-pages-browser)/./src/app/settings/services/page.tsx:169:23) (at webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/globals/intercept-console-error.js:49:31)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/c9876cec-9652-4638-8af2-0b42ef50cb2b/491a949f-7b43-40af-8559-0ec8800e139e
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
 
 #### Test TC016
-- **Test Name:** Session Handling and Secure Route Protection
-- **Test Code:** [TC016_Session_Handling_and_Secure_Route_Protection.py](./TC016_Session_Handling_and_Secure_Route_Protection.py)
-- **Test Error:** Protected routes are not enforcing authentication as expected. User is not redirected to login page when accessing protected routes without login. Stopping further testing until this issue is resolved.
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/6d8feb89-9260-4502-ad6d-eb54c3ce126f/cc5bafcd-5f30-4ea2-995b-46e7186da1b4
+- **Test Name:** AI Integrations Configuration and API Key Validation
+- **Test Code:** [TC016_AI_Integrations_Configuration_and_API_Key_Validation.py](./TC016_AI_Integrations_Configuration_and_API_Key_Validation.py)
+- **Test Error:** Testing stopped due to unexpected redirect to login page when accessing AI integrations configuration. Cannot verify AI provider configuration as required.
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/c9876cec-9652-4638-8af2-0b42ef50cb2b/8474764a-df7a-4923-a0b7-c34d438e58b3
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
 
 #### Test TC017
-- **Test Name:** UI Responsiveness on Desktop and Mobile Devices
-- **Test Code:** [TC017_UI_Responsiveness_on_Desktop_and_Mobile_Devices.py](./TC017_UI_Responsiveness_on_Desktop_and_Mobile_Devices.py)
-- **Test Error:** Testing stopped due to navigation failure when clicking 'Bookings' button. Layout and responsiveness verified on desktop and mobile views. Navigation issue prevents further testing. Please fix the navigation issue to continue comprehensive testing.
-Browser Console Logs:
-[ERROR] Connection error: NotFoundError: Requested device not found (at webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/globals/intercept-console-error.js:49:31)
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/6d8feb89-9260-4502-ad6d-eb54c3ce126f/a9f5089d-02ed-45c8-97d6-7b0524214978
-- **Status:** ❌ Failed
+- **Test Name:** Responsive UI and WebRTC Microphone Access
+- **Test Code:** [TC017_Responsive_UI_and_WebRTC_Microphone_Access.py](./TC017_Responsive_UI_and_WebRTC_Microphone_Access.py)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/c9876cec-9652-4638-8af2-0b42ef50cb2b/94d6d497-f677-4a67-af5a-1610c28c229b
+- **Status:** ✅ Passed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
 
 #### Test TC018
-- **Test Name:** Error Handling and Loading States Throughout Application
-- **Test Code:** [TC018_Error_Handling_and_Loading_States_Throughout_Application.py](./TC018_Error_Handling_and_Loading_States_Throughout_Application.py)
-- **Test Error:** Testing stopped due to missing booking creation UI elements preventing further testing of loading states and error handling in booking creation flows. All other tested features related to API failure handling, login, navigation, and loading states in views were successful.
-Browser Console Logs:
-[ERROR] Connection error: NotFoundError: Requested device not found (at webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/globals/intercept-console-error.js:49:31)
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/6d8feb89-9260-4502-ad6d-eb54c3ce126f/37be7984-3e19-43ff-b317-a17dc14baee7
+- **Test Name:** System HTTPS and Environment Configuration
+- **Test Code:** [TC018_System_HTTPS_and_Environment_Configuration.py](./TC018_System_HTTPS_and_Environment_Configuration.py)
+- **Test Error:** Verification of environment variables for APIs succeeded with no sensitive data exposed. However, unable to verify HTTPS enforcement in production environment due to missing or inaccessible production URL. Task stopped as per instructions.
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/c9876cec-9652-4638-8af2-0b42ef50cb2b/71ab9805-07b7-49f3-9aaf-d8775b32ce19
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
 
 #### Test TC019
-- **Test Name:** Realtime AI Voice Agent Low-Latency Audio Streaming
-- **Test Code:** [TC019_Realtime_AI_Voice_Agent_Low_Latency_Audio_Streaming.py](./TC019_Realtime_AI_Voice_Agent_Low_Latency_Audio_Streaming.py)
-- **Test Error:** The AI voice agent could not be tested for minimal latency during real-time conversations because the microphone device was not detected and no permission prompt appeared to enable microphone access. Testing stopped due to this hardware access issue.
+- **Test Name:** Error Handling for Missing or Invalid API Keys
+- **Test Code:** [TC019_Error_Handling_for_Missing_or_Invalid_API_Keys.py](./TC019_Error_Handling_for_Missing_or_Invalid_API_Keys.py)
+- **Test Error:** Testing stopped due to critical navigation issue preventing access to Integrations settings. AI integration error handling was tested successfully, but Google Calendar integration testing is blocked. Please fix the navigation bug to continue comprehensive testing.
 Browser Console Logs:
+[WARNING] [Fast Refresh] performing full reload
+
+Fast Refresh will perform a full reload when you edit a file that's imported by modules outside of the React rendering tree.
+You might have a file which exports a React component but also exports a value that is imported by a non-React component file.
+Consider migrating the non-React component export to a separate file and importing it into both files.
+
+It is also possible the parent component of the component you edited is a class component, which disables Fast Refresh.
+Fast Refresh requires at least one parent function component in your React tree. (at webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:112:24)
+[WARNING] Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}. (at webpack-internal:///(app-pages-browser)/./node_modules/@radix-ui/react-dialog/dist/index.mjs:476:45)
 [ERROR] Connection error: NotFoundError: Requested device not found (at webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/globals/intercept-console-error.js:49:31)
-[ERROR] Connection error: NotFoundError: Requested device not found (at webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/globals/intercept-console-error.js:49:31)
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/6d8feb89-9260-4502-ad6d-eb54c3ce126f/4d2c9aae-64ca-4c79-a980-3dc0ce8b1c6f
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/c9876cec-9652-4638-8af2-0b42ef50cb2b/f7acb8f2-ab21-4f05-aa3b-c98ccbf2ad88
 - **Status:** ❌ Failed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
 
 #### Test TC020
-- **Test Name:** AI Models Integration - View 3 Separate Provider Cards
-- **Test Code:** [TC020_AI_Models_Integration___View_3_Separate_Provider_Cards.py](./TC020_AI_Models_Integration___View_3_Separate_Provider_Cards.py)
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/6d8feb89-9260-4502-ad6d-eb54c3ce126f/ee16f39a-e216-4f76-bc59-baad2ed40938
-- **Status:** ✅ Passed
-- **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
----
-
-#### Test TC021
-- **Test Name:** AI Models Category Tab Filter
-- **Test Code:** [TC021_AI_Models_Category_Tab_Filter.py](./TC021_AI_Models_Category_Tab_Filter.py)
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/6d8feb89-9260-4502-ad6d-eb54c3ce126f/b91f3848-7d42-4a2b-892d-757605483d9a
-- **Status:** ✅ Passed
-- **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
----
-
-#### Test TC022
-- **Test Name:** Configure OpenAI with API Key and Model Selection
-- **Test Code:** [TC022_Configure_OpenAI_with_API_Key_and_Model_Selection.py](./TC022_Configure_OpenAI_with_API_Key_and_Model_Selection.py)
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/6d8feb89-9260-4502-ad6d-eb54c3ce126f/be0b8470-db07-4b05-835b-674efe725a9b
-- **Status:** ✅ Passed
-- **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
----
-
-#### Test TC023
-- **Test Name:** OpenAI Feature Assignment Toggles
-- **Test Code:** [TC023_OpenAI_Feature_Assignment_Toggles.py](./TC023_OpenAI_Feature_Assignment_Toggles.py)
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/6d8feb89-9260-4502-ad6d-eb54c3ce126f/19c1c4e1-9ed7-4421-8785-6801806f95b7
-- **Status:** ✅ Passed
-- **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
----
-
-#### Test TC024
-- **Test Name:** Configure Gemini with API Key and Model Selection
-- **Test Code:** [TC024_Configure_Gemini_with_API_Key_and_Model_Selection.py](./TC024_Configure_Gemini_with_API_Key_and_Model_Selection.py)
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/6d8feb89-9260-4502-ad6d-eb54c3ce126f/ef4057d2-aaad-44bb-be1b-e973f56981f1
-- **Status:** ✅ Passed
-- **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
----
-
-#### Test TC025
-- **Test Name:** Configure OpenRouter with Multi-Model Selection
-- **Test Code:** [TC025_Configure_OpenRouter_with_Multi_Model_Selection.py](./TC025_Configure_OpenRouter_with_Multi_Model_Selection.py)
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/6d8feb89-9260-4502-ad6d-eb54c3ce126f/a4a80404-1ad8-4eee-9dbc-668944966762
-- **Status:** ✅ Passed
-- **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
----
-
-#### Test TC026
-- **Test Name:** AI Provider Database Persistence
-- **Test Code:** [TC026_AI_Provider_Database_Persistence.py](./TC026_AI_Provider_Database_Persistence.py)
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/6d8feb89-9260-4502-ad6d-eb54c3ce126f/3ae82603-6e3a-473c-bd0e-742abbf57679
-- **Status:** ✅ Passed
-- **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
----
-
-#### Test TC027
-- **Test Name:** Knowledge Base Summarization with Configured AI Provider
-- **Test Code:** [TC027_Knowledge_Base_Summarization_with_Configured_AI_Provider.py](./TC027_Knowledge_Base_Summarization_with_Configured_AI_Provider.py)
-- **Test Error:** Test stopped due to navigation issue preventing access to Knowledge Base settings. Gemini is configured as summarization provider with model gemini-2.5-flash, but Knowledge Base summarization test could not be completed due to UI navigation problems.
+- **Test Name:** Simultaneous Booking Requests Handling
+- **Test Code:** [TC020_Simultaneous_Booking_Requests_Handling.py](./TC020_Simultaneous_Booking_Requests_Handling.py)
+- **Test Error:** Testing stopped due to inability to start voice booking sessions caused by device connection error. Concurrency test for simultaneous booking requests cannot proceed. Issue reported for resolution.
 Browser Console Logs:
-[WARNING] Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}. (at webpack-internal:///(app-pages-browser)/./node_modules/@radix-ui/react-dialog/dist/index.mjs:476:45)
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/6d8feb89-9260-4502-ad6d-eb54c3ce126f/cf884292-96c9-4ae4-8871-defae9dfd2a0
+[ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) (at http://localhost:3000/api/voice-agent/context:0:0)
+[ERROR] Failed to fetch voice agent context (at webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/globals/intercept-console-error.js:49:31)
+[ERROR] Connection error: NotFoundError: Requested device not found (at webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/globals/intercept-console-error.js:49:31)
+- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/c9876cec-9652-4638-8af2-0b42ef50cb2b/25537673-f232-4acd-bd0a-3f616ad4978d
 - **Status:** ❌ Failed
-- **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
----
-
-#### Test TC028
-- **Test Name:** Mix and Match AI Providers for Different Features
-- **Test Code:** [TC028_Mix_and_Match_AI_Providers_for_Different_Features.py](./TC028_Mix_and_Match_AI_Providers_for_Different_Features.py)
-- **Test Error:** Configured OpenAI as voice agent provider and Google Gemini as summarization provider successfully. Both providers show 'Connected' status. However, unable to test Knowledge Base summarization feature due to navigation issue preventing access. Task partially completed.
-Browser Console Logs:
-[WARNING] Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}. (at webpack-internal:///(app-pages-browser)/./node_modules/@radix-ui/react-dialog/dist/index.mjs:476:45)
-[WARNING] Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}. (at webpack-internal:///(app-pages-browser)/./node_modules/@radix-ui/react-dialog/dist/index.mjs:476:45)
-[ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) (at http://localhost:3000/api/configuration:0:0)
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/6d8feb89-9260-4502-ad6d-eb54c3ce126f/c102fc69-d678-4654-bab0-2a6a2e001cc5
-- **Status:** ❌ Failed
-- **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
----
-
-#### Test TC029
-- **Test Name:** Custom Model Entry for Future Models
-- **Test Code:** [TC029_Custom_Model_Entry_for_Future_Models.py](./TC029_Custom_Model_Entry_for_Future_Models.py)
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/6d8feb89-9260-4502-ad6d-eb54c3ce126f/3406cadb-afcf-49bd-8ced-47c7451b9499
-- **Status:** ✅ Passed
-- **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
----
-
-#### Test TC030
-- **Test Name:** All Integrations Comprehensive Test
-- **Test Code:** [TC030_All_Integrations_Comprehensive_Test.py](./TC030_All_Integrations_Comprehensive_Test.py)
-- **Test Visualization and Result:** https://www.testsprite.com/dashboard/mcp/tests/6d8feb89-9260-4502-ad6d-eb54c3ce126f/35b5ed78-140c-4737-873b-654676515acb
-- **Status:** ✅ Passed
 - **Analysis / Findings:** {{TODO:AI_ANALYSIS}}.
 ---
 
 
 ## 3️⃣ Coverage & Matching Metrics
 
-- **46.67** of tests passed
+- **20.00** of tests passed
 
 | Requirement        | Total Tests | ✅ Passed | ❌ Failed  |
 |--------------------|-------------|-----------|------------|
