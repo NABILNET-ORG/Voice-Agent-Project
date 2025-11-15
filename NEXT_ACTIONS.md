@@ -1,63 +1,68 @@
 # Next Actions
 
-## Immediate (Do Now)
+## Immediate (Do Now - Next Session)
 
-### 1. Test Knowledge Base End-to-End
-```
-Settings → AI Configuration → Knowledge Base
-- Fetch website with Max Depth 3, Max Pages 100
-- Verify no duplicates
-- Test Gemini summarization
-- Try batch operations (select all, re-summarize selected)
-```
+### 1. Fix Service Extraction Token Limits ⚠️ HIGH PRIORITY
+**Problem**: Only extracting 2/16 (KB) or 7/16 (URL) services due to 8192 token limit
 
-### 2. Manually Test Voice Agent
-- Browser with real microphone
-- Test booking flow
-- Verify transcription
+**Solution**:
+- Implement batch processing (1 source at a time)
+- Add real-time progress: "Extracting 5/25 (20%)"
+- Aggregate all results
+- Keep ALL bilingual fields (don't reduce data)
 
-### 3. Review Test Failures
-- Check testsprite_tests/testsprite-mcp-test-report.html
-- Address any critical bugs found
+### 2. Add 3 Extraction Modes
+- **Single Page Only**: Current URL extraction
+- **Smart Full Website Crawl**: Discover + extract from all pages, deduplicate
+- **Knowledge Base (All Sources)**: Extract from all 25 KB sources
+
+### 3. Fix Bilingual Extraction
+- Ensure both name_ar AND name_en extracted
+- Ensure both description_ar AND description_en extracted
+- Fix category extraction (currently wrong/missing)
 
 ---
 
 ## Short Term (This Week)
 
-### 1. Integrate Knowledge into Voice Agent
-- Update useRealtimeAPI.ts to load knowledge sources
-- Inject summaries into AI context
-- Test voice agent uses business knowledge
+### 1. Service Deduplication
+- Implement duplicate detection (same name + price = duplicate)
+- Merge descriptions (keep longest)
+- Show "X duplicates removed" message
 
-### 2. Configure External Services
-- Add Google OAuth test user
-- Configure Twilio for phone calls
-- Set up Resend for emails
+### 2. Progress Indicator UI
+- Animated progress bar during extraction
+- Display: "Extracting service 12/25 (48%)"
+- Show current service name being processed
+- Estimated time remaining
 
-### 3. Fix Remaining Test Failures
-- Analytics navigation
-- Loading indicators
-- Any automation-fixable issues
+### 3. Test Voice Agent with Services
+- Add services via extraction
+- Test voice agent mentions services correctly
+- Verify bilingual responses
 
 ---
 
 ## Medium Term (This Month)
 
-### 1. Production Deployment
+### 1. Enhanced Service Management
+- Drag-and-drop reordering
+- Service categories/filtering
+- Bulk operations (delete, edit multiple)
+- Service templates
+
+### 2. Full Website Crawl Implementation
+- Discover links from starting URL
+- Crawl discovered pages
+- Extract services from all pages
+- Deduplicate across pages
+- Show: "Crawled 15 pages, found 45 services, 12 unique"
+
+### 3. Production Deployment
 ```bash
 vercel --prod
 ```
 
-### 2. Performance Optimization
-- Add caching for knowledge base
-- Optimize website crawler speed
-- Pagination for large datasets
-
-### 3. Additional AI Providers
-- Test OpenRouter integration
-- Compare provider quality/cost
-- Implement fallback logic
-
 ---
 
-**Priority**: Test Knowledge Base thoroughly → Configure external services → Production deployment
+**Priority**: Fix token limit (batching) → Add progress UI → Implement 3 modes → Test end-to-end
