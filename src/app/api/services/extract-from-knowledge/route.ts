@@ -47,7 +47,7 @@ export async function POST(request: Request) {
     }
 
     // Fetch all knowledge sources with summaries
-    const { data: knowledgeSources, error: knowledgeError } = await supabase
+    const { data: allSources, error: knowledgeError } = await supabase
       .from("knowledge_sources")
       .select("url, title, summary, content")
       .eq("user_id", user.id)
@@ -61,6 +61,21 @@ export async function POST(request: Request) {
         { status: 500 }
       );
     }
+
+    if (!allSources || allSources.length === 0) {
+      return NextResponse.json({
+        success: true,
+        services: [],
+        count: 0,
+        message: "No knowledge sources available",
+        mode,
+      });
+    }
+
+    // Filter to only product/service pages
+    const knowledgeSources = allSources.filter(source => isProductServiceSource(source));
+
+    console.log(`[KB Extraction] Filtered ${allSources.length} sources to ${knowledgeSources.length} product/service pages`);
 
     if (!knowledgeSources || knowledgeSources.length === 0) {
       return NextResponse.json({
@@ -371,4 +386,50 @@ async function callGeminiExtraction(
     });
 
   return validServices;
+}
+
+/**
+ * Filter function: Check if KB source is a product/service page
+ */
+function isProductServiceSource(source: any): boolean {
+  const title = source.title?.toLowerCase() || '';
+  const url = source.url?.toLowerCase() || '';
+
+  // Exclude non-service pages by title/URL keywords
+  const excludeKeywords = [
+    'registration', 'register', 'sign up', 'login',
+    'refund', 'policy', 'privacy', 'terms', 'conditions',
+    'about', 'contact', 'faq', 'help', 'support',
+    'blog', 'article', 'news', 'post',
+    'cart', 'checkout', 'account', 'my account'
+  ];
+
+  for (const keyword of excludeKeywords) {
+    if (title.includes(keyword) || url.includes(keyword)) {
+      return false;
+    }
+  }
+
+  // Include pages with product/service indicators
+  const includeKeywords = [
+    'product', 'service', 'menu', 'package', 'plan',
+    'pricing', 'price', 'offer', 'deal',
+    'consultation', 'reading', 'session',
+    // Arabic keywords
+    'خدمة', 'منتج', 'مكالمة', 'قراءة', 'جلسة'
+  ];
+
+  for (const keyword of includeKeywords) {
+    if (title.includes(keyword) || url.includes(keyword)) {
+      return true;
+    }
+  }
+
+  // If URL contains /product/ or /service/ path, include it
+  if (url.includes('/product/') || url.includes('/service/') || url.includes('/menu/')) {
+    return true;
+  }
+
+  // Default: exclude if no indicators found
+  return false;
 }
