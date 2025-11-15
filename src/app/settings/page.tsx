@@ -1061,39 +1061,80 @@ export default function BusinessSettings() {
                   {/* Appointment-based Settings */}
                   <div>
                     <h3 className="text-lg font-semibold text-white mb-4">Appointment Settings</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="bookingBuffer" className="text-gray-300">Booking Buffer Time</Label>
-                        <Select defaultValue="15">
-                          <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className="bg-[#1A1A1A] border-gray-700">
-                            <SelectItem value="0">No buffer</SelectItem>
-                            <SelectItem value="5">5 minutes</SelectItem>
-                            <SelectItem value="10">10 minutes</SelectItem>
-                            <SelectItem value="15">15 minutes</SelectItem>
-                            <SelectItem value="30">30 minutes</SelectItem>
-                            <SelectItem value="60">60 minutes</SelectItem>
-                          </SelectContent>
-                        </Select>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="bookingBuffer" className="text-gray-300">Booking Buffer Time</Label>
+                          <Select defaultValue="15">
+                            <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-[#1A1A1A] border-gray-700">
+                              <SelectItem value="0">No buffer</SelectItem>
+                              <SelectItem value="5">5 minutes</SelectItem>
+                              <SelectItem value="10">10 minutes</SelectItem>
+                              <SelectItem value="15">15 minutes</SelectItem>
+                              <SelectItem value="30">30 minutes</SelectItem>
+                              <SelectItem value="60">60 minutes</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <p className="text-xs text-gray-500">Time between consecutive appointments</p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="maxAdvanceBooking" className="text-gray-300">Maximum Advance Booking</Label>
+                          <Select defaultValue="30">
+                            <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-[#1A1A1A] border-gray-700">
+                              <SelectItem value="7">1 week</SelectItem>
+                              <SelectItem value="14">2 weeks</SelectItem>
+                              <SelectItem value="30">1 month</SelectItem>
+                              <SelectItem value="60">2 months</SelectItem>
+                              <SelectItem value="90">3 months</SelectItem>
+                              <SelectItem value="180">6 months</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <p className="text-xs text-gray-500">How far in advance customers can book</p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="minAdvanceHours" className="text-gray-300">Minimum Advance Notice</Label>
+                          <Select defaultValue="2">
+                            <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-[#1A1A1A] border-gray-700">
+                              <SelectItem value="0">No minimum</SelectItem>
+                              <SelectItem value="1">1 hour</SelectItem>
+                              <SelectItem value="2">2 hours</SelectItem>
+                              <SelectItem value="4">4 hours</SelectItem>
+                              <SelectItem value="24">24 hours</SelectItem>
+                              <SelectItem value="48">48 hours</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <p className="text-xs text-gray-500">Minimum notice required before appointment</p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="maxPerDay" className="text-gray-300">Maximum Appointments Per Day</Label>
+                          <Input
+                            id="maxPerDay"
+                            type="number"
+                            min="1"
+                            max="100"
+                            defaultValue="10"
+                            placeholder="10"
+                            className="bg-gray-800 border-gray-700 text-white"
+                          />
+                          <p className="text-xs text-gray-500">Daily booking limit</p>
+                        </div>
                       </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="maxAdvanceBooking" className="text-gray-300">Maximum Advance Booking</Label>
-                        <Select defaultValue="30">
-                          <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className="bg-[#1A1A1A] border-gray-700">
-                            <SelectItem value="7">1 week</SelectItem>
-                            <SelectItem value="14">2 weeks</SelectItem>
-                            <SelectItem value="30">1 month</SelectItem>
-                            <SelectItem value="60">2 months</SelectItem>
-                            <SelectItem value="90">3 months</SelectItem>
-                            <SelectItem value="180">6 months</SelectItem>
-                          </SelectContent>
-                        </Select>
+
+                      <div className="flex items-center space-x-2">
+                        <Switch id="allowSameDay" defaultChecked />
+                        <Label htmlFor="allowSameDay" className="text-gray-300">Allow same-day bookings</Label>
                       </div>
                     </div>
                   </div>
