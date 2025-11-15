@@ -6,7 +6,8 @@
       "Bash(mkdir:*)",
       "Bash(supabase link:*)",
       "Bash(ls:*)",
-      "Bash(powershell -File:*)"
+      "Bash(powershell -File:*)",
+      "Bash(pwsh:*)"
     ],
     "deny": [],
     "ask": []
