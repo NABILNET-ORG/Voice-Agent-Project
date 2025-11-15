@@ -511,12 +511,8 @@ export function useRealtimeAPI() {
           if (event.item.content) {
             event.item.content.forEach((content: any) => {
               if (content.type === 'text') {
-                // Use typing animation for assistant messages
-                if (role === 'assistant') {
-                  addMessageWithTyping(role, content.text);
-                } else {
-                  addMessage(role, content.text);
-                }
+                // Use regular message (audio_transcript.delta handles typing)
+                addMessage(role, content.text);
               }
             });
           }
@@ -530,31 +526,41 @@ export function useRealtimeAPI() {
         break;
 
       case 'response.audio_transcript.delta':
+        // Real-time transcript deltas as agent speaks
         if (event.delta) {
           setTranscript(prev => {
             const last = prev[prev.length - 1];
-            if (last && last.role === 'assistant') {
+            if (last && last.role === 'assistant' && last.isTyping !== false) {
+              // Append delta to existing assistant message
               return [
                 ...prev.slice(0, -1),
-                { ...last, text: last.text + event.delta }
+                { ...last, text: last.text + event.delta, isTyping: true }
               ];
             } else {
-              return [...prev, { role: 'assistant', text: event.delta, timestamp: Date.now() }];
+              // Start new assistant message with typing indicator
+              return [...prev, {
+                role: 'assistant',
+                text: event.delta,
+                timestamp: Date.now(),
+                isTyping: true
+              }];
             }
           });
         }
         break;
 
       case 'response.audio_transcript.done':
-        if (event.transcript) {
-          setTranscript(prev => {
-            const last = prev[prev.length - 1];
-            if (last && last.role === 'assistant' && !last.text.trim()) {
-              return [...prev.slice(0, -1), { ...last, text: event.transcript }];
-            }
-            return prev;
-          });
-        }
+        // Finalize transcript - remove typing indicator
+        setTranscript(prev => {
+          const last = prev[prev.length - 1];
+          if (last && last.role === 'assistant') {
+            return [
+              ...prev.slice(0, -1),
+              { ...last, isTyping: false, fullText: undefined }
+            ];
+          }
+          return prev;
+        });
         break;
 
       case 'response.done':
