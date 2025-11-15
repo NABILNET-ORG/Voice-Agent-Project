@@ -12,10 +12,15 @@ interface FetchOptions {
 
 export async function POST(request: Request) {
   try {
-    const { url, method = 'smart_crawl', options = {} } = await request.json();
+    let { url, method = 'smart_crawl', options = {} } = await request.json();
 
     if (!url) {
       return NextResponse.json({ error: 'URL is required' }, { status: 400 });
+    }
+
+    // Auto-add https:// if protocol missing
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = 'https://' + url;
     }
 
     const {
