@@ -178,13 +178,38 @@ export function KnowledgeBaseManager({ userId }: Props) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-white">Knowledge Sources</CardTitle>
-            <Button
-              onClick={() => setFetchDialogOpen(true)}
-              className="bg-[#84CC16] text-black hover:bg-[#65A30D]"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Website
-            </Button>
+            <div className="flex gap-2">
+              {sources.length > 0 && (
+                <Button
+                  onClick={async () => {
+                    for (const source of sources.filter(s => s.content)) {
+                      try {
+                        const result = await knowledgeApi.summarize(source.content!);
+                        await supabase
+                          .from('knowledge_sources')
+                          .update({ summary: result.summary })
+                          .eq('id', source.id);
+                      } catch (err) {
+                        console.error(`Failed to re-summarize ${source.title}:`, err);
+                      }
+                    }
+                    loadSources();
+                  }}
+                  variant="outline"
+                  className="border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white"
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Re-summarize All
+                </Button>
+              )}
+              <Button
+                onClick={() => setFetchDialogOpen(true)}
+                className="bg-[#84CC16] text-black hover:bg-[#65A30D]"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Website
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
