@@ -70,6 +70,13 @@ export async function POST(request: Request) {
       )
       .join("\n\n");
 
+    // DEBUG: Log what we're sending to Gemini
+    console.log("=== SENDING TO GEMINI ===");
+    console.log("Knowledge sources count:", knowledgeSources.length);
+    console.log("Combined content length:", combinedContent.length);
+    console.log("First source sample:", combinedContent.substring(0, 300));
+    console.log("=== END SEND DATA ===");
+
     // Use AI to extract services/products from all knowledge
     const aiResponse = await fetch(
       "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
