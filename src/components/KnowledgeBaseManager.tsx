@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Globe, FileText, Loader2, Eye, Download, Search } from "lucide-react";
+import { Plus, Trash2, Globe, FileText, Loader2, Eye, Download, Search, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { knowledgeApi, type KnowledgeSource } from "@/lib/api";
+import { supabase } from "@/lib/supabase";
 
 interface Props {
   userId: string;
@@ -220,6 +221,25 @@ export function KnowledgeBaseManager({ userId }: Props) {
                         checked={source.is_active}
                         onCheckedChange={(checked) => handleToggleActive(source.id, checked)}
                       />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-gray-400 hover:text-[#84CC16]"
+                        onClick={async () => {
+                          if (source.content) {
+                            const result = await knowledgeApi.summarize(source.content);
+                            // Update the source with new summary
+                            await supabase
+                              .from('knowledge_sources')
+                              .update({ summary: result.summary })
+                              .eq('id', source.id);
+                            loadSources();
+                          }
+                        }}
+                        title="Re-summarize content"
+                      >
+                        <Sparkles className="h-4 w-4" />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="sm"
