@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Globe, FileText, Loader2, Eye, Download, Search, Sparkles } from "lucide-react";
+import { Plus, Trash2, Globe, FileText, Loader2, Eye, Download, Search, Sparkles, CheckSquare, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,7 @@ export function KnowledgeBaseManager({ userId }: Props) {
   const [fetching, setFetching] = useState(false);
   const [summarizing, setSummarizing] = useState(false);
   const [resummaryProgress, setResummaryProgress] = useState<{current: number, total: number, title: string} | null>(null);
+  const [selectedSources, setSelectedSources] = useState<Set<string>>(new Set());
 
   // Add website form
   const [newUrl, setNewUrl] = useState('');
@@ -209,8 +210,61 @@ export function KnowledgeBaseManager({ userId }: Props) {
       <Card className="bg-gray-800 border-gray-700">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-white">Knowledge Sources</CardTitle>
+            <div className="flex items-center gap-3">
+              <CardTitle className="text-white">Knowledge Sources</CardTitle>
+              {selectedSources.size > 0 && (
+                <Badge className="bg-[#84CC16] text-black">
+                  {selectedSources.size} selected
+                </Badge>
+              )}
+            </div>
             <div className="flex gap-2">
+              {selectedSources.size > 0 && (
+                <>
+                  <Button
+                    onClick={async () => {
+                      const selectedArray = Array.from(selectedSources);
+                      const sourcesToProcess = sources.filter(s => selectedArray.includes(s.id) && s.content);
+                      setResummaryProgress({ current: 0, total: sourcesToProcess.length, title: 'Starting...' });
+
+                      for (let i = 0; i < sourcesToProcess.length; i++) {
+                        const source = sourcesToProcess[i];
+                        setResummaryProgress({ current: i + 1, total: sourcesToProcess.length, title: source.title });
+                        try {
+                          const result = await knowledgeApi.summarize(source.content!);
+                          await supabase.from('knowledge_sources').update({ summary: result.summary }).eq('id', source.id);
+                        } catch (err) {
+                          console.error(`Failed:`, err);
+                        }
+                      }
+                      setResummaryProgress(null);
+                      setSelectedSources(new Set());
+                      loadSources();
+                    }}
+                    variant="outline"
+                    className="border-blue-700 text-blue-400 hover:bg-blue-700 hover:text-white"
+                    size="sm"
+                  >
+                    <Sparkles className="h-4 w-4 mr-1" />
+                    Summarize Selected
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      for (const id of selectedSources) {
+                        await supabase.from('knowledge_sources').delete().eq('id', id);
+                      }
+                      setSelectedSources(new Set());
+                      loadSources();
+                    }}
+                    variant="outline"
+                    className="border-red-700 text-red-400 hover:bg-red-700 hover:text-white"
+                    size="sm"
+                  >
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    Delete Selected
+                  </Button>
+                </>
+              )}
               {sources.length > 0 && (
                 <Button
                   onClick={async () => {
@@ -275,7 +329,27 @@ export function KnowledgeBaseManager({ userId }: Props) {
             <div className="space-y-3">
               {sources.map(source => (
                 <div key={source.id} className="bg-gray-900 rounded-lg p-4 border border-gray-700">
-                  <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-3">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="p-0 h-auto hover:bg-transparent"
+                      onClick={() => {
+                        const newSelected = new Set(selectedSources);
+                        if (newSelected.has(source.id)) {
+                          newSelected.delete(source.id);
+                        } else {
+                          newSelected.add(source.id);
+                        }
+                        setSelectedSources(newSelected);
+                      }}
+                    >
+                      {selectedSources.has(source.id) ? (
+                        <CheckSquare className="h-5 w-5 text-[#84CC16]" />
+                      ) : (
+                        <Square className="h-5 w-5 text-gray-500" />
+                      )}
+                    </Button>
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <Globe className="h-4 w-4 text-[#84CC16]" />
