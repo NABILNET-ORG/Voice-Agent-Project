@@ -26,6 +26,7 @@ export function KnowledgeBaseManager({ userId }: Props) {
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
   const [fetching, setFetching] = useState(false);
   const [summarizing, setSummarizing] = useState(false);
+  const [resummaryProgress, setResummaryProgress] = useState<{current: number, total: number, title: string} | null>(null);
 
   // Add website form
   const [newUrl, setNewUrl] = useState('');
@@ -173,6 +174,25 @@ export function KnowledgeBaseManager({ userId }: Props) {
         </Card>
       </div>
 
+      {/* Re-summary Progress Banner */}
+      {resummaryProgress && (
+        <Card className="bg-blue-500/10 border-blue-500">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <Loader2 className="h-5 w-5 animate-spin text-blue-400" />
+              <div className="flex-1">
+                <p className="text-blue-400 font-medium">
+                  Re-summarizing: {resummaryProgress.title}
+                </p>
+                <p className="text-blue-300 text-sm">
+                  Progress: {resummaryProgress.current} of {resummaryProgress.total} ({Math.round(resummaryProgress.current / resummaryProgress.total * 100)}%)
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Sources List */}
       <Card className="bg-gray-800 border-gray-700">
         <CardHeader>
@@ -182,7 +202,13 @@ export function KnowledgeBaseManager({ userId }: Props) {
               {sources.length > 0 && (
                 <Button
                   onClick={async () => {
-                    for (const source of sources.filter(s => s.content)) {
+                    const sourcesToProcess = sources.filter(s => s.content);
+                    setResummaryProgress({ current: 0, total: sourcesToProcess.length, title: 'Starting...' });
+
+                    for (let i = 0; i < sourcesToProcess.length; i++) {
+                      const source = sourcesToProcess[i];
+                      setResummaryProgress({ current: i + 1, total: sourcesToProcess.length, title: source.title });
+
                       try {
                         const result = await knowledgeApi.summarize(source.content!);
                         await supabase
@@ -193,13 +219,25 @@ export function KnowledgeBaseManager({ userId }: Props) {
                         console.error(`Failed to re-summarize ${source.title}:`, err);
                       }
                     }
+
+                    setResummaryProgress(null);
                     loadSources();
                   }}
                   variant="outline"
                   className="border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white"
+                  disabled={resummaryProgress !== null}
                 >
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  Re-summarize All
+                  {resummaryProgress ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      {resummaryProgress.current}/{resummaryProgress.total}
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Re-summarize All
+                    </>
+                  )}
                 </Button>
               )}
               <Button
