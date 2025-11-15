@@ -57,13 +57,12 @@ export async function POST(request: Request) {
 
     const html = await response.text();
 
-    // Extract text content from HTML (simple version)
-    const textContent = html
+    // Send full HTML to Gemini (it can parse HTML structure)
+    // This preserves layout, headings, lists, and descriptions better
+    const cleanedHtml = html
       .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
       .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
-      .replace(/<[^>]+>/g, " ")
-      .replace(/\s+/g, " ")
-      .trim();
+      .substring(0, 100000); // Send more content (100KB limit)
 
     // Use AI to extract services/products
     const aiResponse = await fetch(
@@ -79,43 +78,54 @@ export async function POST(request: Request) {
             {
               parts: [
                 {
-                  text: `Extract ALL services or products from this website content.
+                  text: `Analyze this HTML page and extract ALL services/products with COMPLETE details.
 
 Business category: ${businessCategory || "general"}
-
 Website URL: ${url}
 
-Content:
-${textContent.substring(0, 50000)}
+HTML Content (analyze structure, headings, paragraphs, lists):
+${cleanedHtml}
 
-CRITICAL INSTRUCTIONS:
-1. Preserve the ORIGINAL LANGUAGE - DO NOT TRANSLATE (if Arabic, keep Arabic; if French, keep French, etc.)
-2. Extract COMPLETE descriptions - include ALL details found on the page
-3. Look for ANY items that could be products or services
-4. Extract prices in any currency format
+CRAWLING INSTRUCTIONS:
+1. Analyze the FULL HTML structure (headings, paragraphs, lists, divs)
+2. Find ALL services/products on the entire page
+3. Extract BOTH short AND long descriptions:
+   - Short description: Brief summary (1-2 sentences)
+   - Long description: Complete details, benefits, features, what's included
+4. Look in multiple places:
+   - Product titles/headings
+   - Short descriptions (excerpts, summaries)
+   - Long descriptions (full content sections, expandable text)
+   - Feature lists, bullet points
+   - "What you get" or "Includes" sections
+5. Preserve ORIGINAL LANGUAGE - DO NOT translate
+6. Extract ALL pricing information
+7. Look for duration/timing information
 
 Extract each service/product with:
 - name: Primary name in ORIGINAL language (required)
 - name_ar: Arabic name if available
 - name_en: English translation (you can provide this)
-- description: Full description in ORIGINAL language (required)
-- description_ar: Arabic description if available
-- description_en: English translation of description (you can provide this)
+- description_short: Brief 1-2 sentence summary in ORIGINAL language
+- description: Complete full description in ORIGINAL language (required)
+- description_ar: Arabic full description if available
+- description_en: English full description translation
 - category: Category in original language
 - category_ar: Arabic category if available
 - category_en: English category translation
 - price: Numeric only, no currency symbols
 - duration: Minutes only
 
-Return ONLY a valid JSON array. Example:
+Return ONLY a valid JSON array. Example showing SHORT + LONG descriptions:
 [
   {
     "name": "قراءة التاروت الشاملة",
     "name_ar": "قراءة التاروت الشاملة",
     "name_en": "Comprehensive Tarot Reading",
-    "description": "جلسة قراءة تاروت كاملة لمدة 30 دقيقة تشمل تفسير البطاقات وتوجيهات شخصية للمستقبل",
-    "description_ar": "جلسة قراءة تاروت كاملة لمدة 30 دقيقة تشمل تفسير البطاقات وتوجيهات شخصية للمستقبل",
-    "description_en": "Complete 30-minute tarot reading session including card interpretation and personal guidance for the future",
+    "description_short": "جلسة قراءة تاروت شخصية لمدة 30 دقيقة",
+    "description": "جلسة قراءة تاروت كاملة لمدة 30 دقيقة تشمل تفسير شامل للبطاقات، توجيهات شخصية للمستقبل، تحليل عميق للوضع الحالي، والإجابة على جميع أسئلتك الروحانية مع نصائح وإرشادات مخصصة",
+    "description_ar": "جلسة قراءة تاروت كاملة لمدة 30 دقيقة تشمل تفسير شامل للبطاقات، توجيهات شخصية للمستقبل، تحليل عميق للوضع الحالي، والإجابة على جميع أسئلتك الروحانية مع نصائح وإرشادات مخصصة",
+    "description_en": "Complete 30-minute tarot reading session including comprehensive card interpretation, personal future guidance, deep analysis of current situation, and answers to all your spiritual questions with personalized advice and guidance",
     "price": 150,
     "duration": 30,
     "category": "تاروت",
@@ -125,9 +135,11 @@ Return ONLY a valid JSON array. Example:
 ]
 
 CRITICAL:
-- Keep Arabic as primary
-- Provide English translations for bilingual support
-- Extract FULL descriptions
+- Analyze FULL HTML structure to find all details
+- Extract short description (excerpt/summary) AND long description (full details)
+- Keep Arabic as primary language
+- Auto-generate English translations
+- Extract EVERYTHING from the page
 - If no services found, return []`,
                 },
               ],
