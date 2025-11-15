@@ -188,6 +188,13 @@ CRITICAL - DO NOT RETURN EMPTY ARRAY:
     const extractedText =
       aiData.candidates?.[0]?.content?.parts?.[0]?.text || "[]";
 
+    // DEBUG: Log what Gemini returned
+    console.log("=== GEMINI RAW RESPONSE ===");
+    console.log("Response length:", extractedText.length);
+    console.log("First 500 chars:", extractedText.substring(0, 500));
+    console.log("Last 200 chars:", extractedText.substring(extractedText.length - 200));
+    console.log("=== END RAW RESPONSE ===");
+
     // Parse the JSON response
     let services = [];
     try {
@@ -195,13 +202,16 @@ CRITICAL - DO NOT RETURN EMPTY ARRAY:
       const jsonMatch = extractedText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
       const jsonText = jsonMatch ? jsonMatch[1] : extractedText;
       services = JSON.parse(jsonText.trim());
+
+      console.log("Parsed services count:", services.length);
     } catch (parseError) {
       console.error("Failed to parse AI response:", parseError);
       console.log("AI Response:", extractedText);
       return NextResponse.json(
         {
           error: "Failed to parse extracted services",
-          rawResponse: extractedText,
+          rawResponse: extractedText.substring(0, 1000),
+          parseError: parseError.message
         },
         { status: 500 }
       );
