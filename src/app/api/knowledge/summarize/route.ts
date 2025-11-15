@@ -4,17 +4,11 @@ import { cookies } from 'next/headers';
 
 export async function POST(request: Request) {
   try {
-    const { content, maxTokens = 500, provider = 'openai' } = await request.json();
+    const { content, maxTokens = 500 } = await request.json();
 
     if (!content) {
       return NextResponse.json({ error: 'Content is required' }, { status: 400 });
     }
-
-    console.log('Summarizing content:', {
-      contentLength: content.length,
-      maxTokens,
-      provider
-    });
 
     // Get Supabase client to fetch API key from business_config
     const cookieStore = await cookies();
@@ -51,6 +45,13 @@ export async function POST(request: Request) {
       apiKey = config.openrouter_api_key;
       modelToUse = config.ai_model_name || 'auto';
     }
+
+    console.log('Summarizing content:', {
+      contentLength: content.length,
+      provider: summarizationProvider,
+      model: modelToUse,
+      maxTokens
+    });
 
     if (!apiKey) {
       return NextResponse.json(
