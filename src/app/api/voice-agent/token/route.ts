@@ -157,17 +157,17 @@ export async function POST(request: NextRequest) {
       {
         type: 'function',
         name: 'check_availability',
-        description: 'Check if a specific time slot is available for booking',
+        description: 'Check if a specific time slot is available for booking. ALWAYS ask user for specific time if not provided.',
         parameters: {
           type: 'object',
           properties: {
             date: {
               type: 'string',
-              description: 'Date in YYYY-MM-DD format'
+              description: 'Date in YYYY-MM-DD format (e.g., 2025-11-17 for tomorrow). Convert "لبكرة" to tomorrow\'s date.'
             },
             time: {
               type: 'string',
-              description: 'Time in HH:MM format (24-hour)'
+              description: 'Time in HH:MM 24-hour format (e.g., 11:00 for 11 AM, 15:30 for 3:30 PM, 19:00 for 7 PM). Convert "عشرة ونص" to 10:30, "تلاتة" to 15:00.'
             }
           },
           required: ['date', 'time']
