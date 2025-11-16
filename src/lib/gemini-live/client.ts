@@ -85,21 +85,26 @@ export function buildGeminiSetupMessage(config: GeminiLiveConfig): any {
     }
   };
 
+  // Start with minimal setup
   const setupMessage: any = {
     setup: {
       model: `models/${config.model || 'gemini-2.0-flash-exp'}`,
       generationConfig: {
-        responseModalities: ['AUDIO', 'TEXT'], // Include TEXT for transcription
-        speechConfig: {
-          voiceConfig: {
-            prebuiltVoiceConfig: {
-              voiceName: speechConfig.voiceConfig?.prebuiltVoiceConfig?.voiceName || 'Puck'
-            }
-          }
-        }
+        responseModalities: ['AUDIO'] // Start with just AUDIO, add TEXT later if this works
       }
     }
   };
+
+  // Add speech config separately if provided
+  if (config.speechConfig) {
+    setupMessage.setup.generationConfig.speechConfig = {
+      voiceConfig: {
+        prebuiltVoiceConfig: {
+          voiceName: speechConfig.voiceConfig?.prebuiltVoiceConfig?.voiceName || 'Puck'
+        }
+      }
+    };
+  }
 
   // Add system instruction if provided
   if (config.systemInstruction) {
