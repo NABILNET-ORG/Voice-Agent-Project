@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase";
 import { cookies } from "next/headers";
+import { createCalendarEvent } from "@/lib/google-calendar/client";
 
 /**
  * Calculate pricing for a booking
@@ -209,9 +210,80 @@ export async function POST(request: Request) {
       );
     }
 
+    // Sync to Google Calendar if enabled
+    let calendarEventId = null;
+    let calendarEventLink = null;
+
+    const { data: fullConfig } = await supabase
+      .from("business_config")
+      .select("google_calendar_sync_enabled, google_calendar_id, calendar_event_title_template, timezone")
+      .eq("user_id", user.id)
+      .single();
+
+    if (fullConfig?.google_calendar_sync_enabled) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("google_calendar_access_token, google_calendar_refresh_token")
+        .eq("id", user.id)
+        .single();
+
+      if (profile?.google_calendar_access_token) {
+        try {
+          // Calculate end time
+          const startDateTime = `${date}T${time}:00`;
+          const startTime = new Date(startDateTime);
+          const endTime = new Date(startTime.getTime() + (duration_minutes || 60) * 60000);
+
+          // Format event title using template or default
+          const eventTitle = fullConfig.calendar_event_title_template
+            ?.replace('{service}', service_name)
+            ?.replace('{customer_name}', customer_name)
+            || `${service_name} - ${customer_name}`;
+
+          const calendarEvent = await createCalendarEvent(
+            profile.google_calendar_access_token,
+            profile.google_calendar_refresh_token,
+            fullConfig.google_calendar_id || 'primary',
+            {
+              summary: eventTitle,
+              description: `Booking ID: ${booking.id}${notes ? `\n\nNotes: ${notes}` : ''}`,
+              start_time: startDateTime,
+              end_time: endTime.toISOString().split('.')[0],
+              timezone: fullConfig.timezone || 'UTC',
+              attendees: customer_email ? [{
+                email: customer_email,
+                displayName: customer_name
+              }] : []
+            }
+          );
+
+          calendarEventId = calendarEvent.event_id;
+          calendarEventLink = calendarEvent.event_link;
+
+          // Update booking with calendar event ID
+          await supabase
+            .from("bookings")
+            .update({ google_calendar_event_id: calendarEventId })
+            .eq("id", booking.id);
+
+          console.log('[Booking] Calendar event created:', calendarEventId);
+        } catch (calendarError) {
+          console.error('[Booking] Calendar sync failed:', calendarError);
+          // Don't fail the booking if calendar sync fails
+        }
+      }
+    }
+
     return NextResponse.json({
       success: true,
-      booking,
+      booking: {
+        ...booking,
+        google_calendar_event_id: calendarEventId
+      },
+      calendar: calendarEventId ? {
+        event_id: calendarEventId,
+        event_link: calendarEventLink
+      } : null,
       message: `Booking confirmed for ${customer_name} on ${date} at ${time}`,
       confirmation: {
         booking_id: booking.id,
