@@ -91,10 +91,6 @@ export function buildGeminiSetupMessage(config: GeminiLiveConfig): any {
       model: `models/${config.model || 'gemini-2.0-flash-exp'}`,
       generationConfig: {
         responseModalities: ['AUDIO'] // Gemini only allows ONE modality (AUDIO or TEXT, not both)
-      },
-      // Enable output audio transcription to get text alongside audio
-      outputAudioTranscription: {
-        model: 'models/gemini-2.0-flash-exp'
       }
     }
   };
