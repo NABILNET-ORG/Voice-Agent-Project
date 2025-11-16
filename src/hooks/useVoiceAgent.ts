@@ -224,6 +224,11 @@ export function useVoiceAgent() {
       let audioChunkCount = 0;
       processor.onaudioprocess = (e) => {
         if (websocketRef.current?.readyState === WebSocket.OPEN) {
+          // For OpenAI: Don't send audio while AI is responding (prevents echo/feedback loop)
+          if (detectedProvider === 'openai' && isRespondingRef.current) {
+            return; // Skip sending audio while AI is talking
+          }
+
           const inputData = e.inputBuffer.getChannelData(0);
           const pcm16 = convertFloat32ToPCM16(inputData);
 
@@ -302,6 +307,13 @@ export function useVoiceAgent() {
         } else {
           console.log("[VoiceAgent] Speech stopped but already responding, skipping");
         }
+        break;
+
+      case "response.created":
+        // AI started responding - stop sending audio to prevent echo/feedback
+        console.log("[VoiceAgent] Response started, pausing audio input");
+        isRespondingRef.current = true;
+        setStatus('processing');
         break;
 
       case "response.done":
