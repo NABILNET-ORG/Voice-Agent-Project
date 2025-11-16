@@ -126,11 +126,17 @@ export function useRealtimeAPI() {
       }
 
       const data = await response.json();
+
+      // Check if using Gemini (which doesn't support WebRTC)
+      if (data.provider === 'gemini') {
+        throw new Error('Home page voice agent currently supports OpenAI only. Please visit /voice-demo for Gemini support, or switch to OpenAI in Settings → Integrations.');
+      }
+
       if (!data?.client_secret) {
         throw new Error('No session token received');
       }
 
-      const EPHEMERAL_KEY = data.client_secret.value;
+      const EPHEMERAL_KEY = data.client_secret;
 
       // Create peer connection
       const pc = new RTCPeerConnection();
