@@ -1195,7 +1195,7 @@ export default function BusinessSettings() {
               businessConfig={rawDbConfig}
               onSave={() => {
                 // Refresh config after save
-                fetchBusinessConfig();
+                loadConfig();
               }}
             />
           </div>
