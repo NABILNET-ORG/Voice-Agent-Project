@@ -35,8 +35,8 @@ export async function POST(request: NextRequest) {
       .from('business_config')
       .select(`
         openai_api_key,
-        openai_model_provider,
-        openai_model_name,
+        ai_model_provider,
+        ai_model_name,
         gemini_api_key,
         ai_voice_agent_provider,
         ai_voice
@@ -208,7 +208,7 @@ export async function POST(request: NextRequest) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: config.openai_model_name || 'gpt-4o-realtime-preview-2024-12-17',
+          model: config.ai_model_name || 'gpt-4o-realtime-preview-2024-12-17',
           voice: 'alloy', // Options: alloy, echo, fable, onyx, nova, shimmer
           instructions: instructions,
           input_audio_format: 'pcm16',
