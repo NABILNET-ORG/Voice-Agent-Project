@@ -35,10 +35,19 @@ export async function POST(request: NextRequest) {
       .from('business_config')
       .select(`
         openai_api_key,
-        ai_model_provider,
-        ai_model_name,
+        openai_api_key_general,
+        openai_api_key_voice,
         gemini_api_key,
+        gemini_api_key_general,
+        gemini_api_key_voice,
+        openrouter_api_key,
+        openrouter_api_key_general,
+        openrouter_api_key_voice,
         ai_voice_agent_provider,
+        voice_agent_provider,
+        voice_agent_model,
+        voice_agent_voice_name,
+        voice_agent_personality,
         ai_voice
       `)
       .eq('user_id', user.id)
@@ -47,7 +56,7 @@ export async function POST(request: NextRequest) {
     console.log('[Voice Agent Token] Config query result:', {
       hasConfig: !!config,
       configError: configError?.message,
-      provider: config?.ai_voice_agent_provider
+      provider: config?.voice_agent_provider || config?.ai_voice_agent_provider
     });
 
     if (configError || !config) {
@@ -55,7 +64,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: 'Business configuration not found',
-          message: 'Please configure your voice agent settings in Settings > AI Integrations',
+          message: 'Please configure your voice agent settings in Settings > AI Assistant Configuration',
           debug: {
             userId: user.id,
             error: configError?.message
@@ -65,23 +74,43 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Determine which provider to use (default to Gemini for cost savings)
-    const provider = config.ai_voice_agent_provider || 'gemini';
-    console.log('[Voice Agent Token] Provider selected:', provider);
+    // Determine which provider to use (new schema first, fallback to old)
+    const provider = config.voice_agent_provider || config.ai_voice_agent_provider || 'gemini';
+    const voiceModel = config.voice_agent_model || (provider === 'openai' ? 'gpt-4o-realtime-preview-2024-12-17' : 'gemini-2.0-flash-exp');
+    const voiceName = config.voice_agent_voice_name || config.ai_voice || (provider === 'gemini' ? GEMINI_VOICES.PUCK : 'alloy');
 
-    // Get API key based on provider
+    console.log('[Voice Agent Token] Voice configuration:', {
+      provider,
+      model: voiceModel,
+      voice: voiceName,
+      personality: config.voice_agent_personality
+    });
+
+    // Get API key based on provider (with fallback chain for backward compatibility)
     let apiKey: string | null = null;
     if (provider === 'openai') {
-      apiKey = process.env.OPENAI_API_KEY || config.openai_api_key;
+      apiKey = config.openai_api_key_voice || config.openai_api_key_general || config.openai_api_key || process.env.OPENAI_API_KEY;
       console.log('[Voice Agent Token] OpenAI key check:', {
-        hasEnvKey: !!process.env.OPENAI_API_KEY,
-        hasDbKey: !!config.openai_api_key
+        hasVoiceKey: !!config.openai_api_key_voice,
+        hasGeneralKey: !!config.openai_api_key_general,
+        hasLegacyKey: !!config.openai_api_key,
+        hasEnvKey: !!process.env.OPENAI_API_KEY
       });
     } else if (provider === 'gemini') {
-      apiKey = process.env.GEMINI_API_KEY || config.gemini_api_key;
+      apiKey = config.gemini_api_key_voice || config.gemini_api_key_general || config.gemini_api_key || process.env.GEMINI_API_KEY;
       console.log('[Voice Agent Token] Gemini key check:', {
-        hasEnvKey: !!process.env.GEMINI_API_KEY,
-        hasDbKey: !!config.gemini_api_key
+        hasVoiceKey: !!config.gemini_api_key_voice,
+        hasGeneralKey: !!config.gemini_api_key_general,
+        hasLegacyKey: !!config.gemini_api_key,
+        hasEnvKey: !!process.env.GEMINI_API_KEY
+      });
+    } else if (provider === 'openrouter') {
+      apiKey = config.openrouter_api_key_voice || config.openrouter_api_key_general || config.openrouter_api_key || process.env.OPENROUTER_API_KEY;
+      console.log('[Voice Agent Token] OpenRouter key check:', {
+        hasVoiceKey: !!config.openrouter_api_key_voice,
+        hasGeneralKey: !!config.openrouter_api_key_general,
+        hasLegacyKey: !!config.openrouter_api_key,
+        hasEnvKey: !!process.env.OPENROUTER_API_KEY
       });
     }
 
@@ -208,8 +237,8 @@ export async function POST(request: NextRequest) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: config.ai_model_name || 'gpt-4o-realtime-preview-2024-12-17',
-          voice: 'alloy', // Options: alloy, echo, fable, onyx, nova, shimmer
+          model: voiceModel,
+          voice: voiceName, // Provider-specific voice
           instructions: instructions,
           input_audio_format: 'pcm16',
           output_audio_format: 'pcm16',
@@ -257,23 +286,23 @@ export async function POST(request: NextRequest) {
     } else if (provider === 'gemini') {
       console.log('[Voice Agent Token] Creating Gemini session...');
 
-      // Validate voice is Gemini-compatible
+      // Validate voice is Gemini-compatible (already done above in voiceName)
       const geminiVoices = Object.values(GEMINI_VOICES);
-      const selectedVoice = geminiVoices.includes(config.ai_voice as any)
-        ? config.ai_voice
+      const selectedVoice = geminiVoices.includes(voiceName as any)
+        ? voiceName
         : GEMINI_VOICES.PUCK;
 
-      console.log('[Voice Agent Token] Voice selection:', {
-        configVoice: config.ai_voice,
-        isGeminiVoice: geminiVoices.includes(config.ai_voice as any),
-        selectedVoice
+      console.log('[Voice Agent Token] Gemini voice validation:', {
+        requestedVoice: voiceName,
+        isGeminiVoice: geminiVoices.includes(voiceName as any),
+        finalVoice: selectedVoice
       });
 
       // Gemini doesn't use ephemeral tokens - client connects directly with API key
       // We return WebSocket URL and setup configuration
       const wsUrl = await createGeminiLiveSession({
         apiKey,
-        model: 'gemini-2.0-flash-exp',
+        model: voiceModel,
         systemInstruction: instructions,
         tools: convertOpenAIToolsToGemini(tools),
         speechConfig: {
@@ -288,7 +317,7 @@ export async function POST(request: NextRequest) {
       // Build setup message for client
       const setupMessage = buildGeminiSetupMessage({
         apiKey,
-        model: 'gemini-2.0-flash-exp',
+        model: voiceModel,
         systemInstruction: instructions,
         tools: convertOpenAIToolsToGemini(tools),
         speechConfig: {
@@ -306,8 +335,9 @@ export async function POST(request: NextRequest) {
         provider: 'gemini',
         ws_url: wsUrl,
         setup_message: setupMessage,
-        model: 'gemini-2.0-flash-exp',
-        voice: config.ai_voice || GEMINI_VOICES.PUCK,
+        model: voiceModel,
+        voice: selectedVoice,
+        personality: config.voice_agent_personality,
         session_id: `gemini-${Date.now()}`
       });
     }
