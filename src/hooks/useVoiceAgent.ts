@@ -192,10 +192,16 @@ export function useVoiceAgent() {
       const source = audioContext.createMediaStreamSource(stream);
       const processor = audioContext.createScriptProcessor(4096, 1, 1);
 
+      let audioChunkCount = 0;
       processor.onaudioprocess = (e) => {
         if (websocketRef.current?.readyState === WebSocket.OPEN) {
           const inputData = e.inputBuffer.getChannelData(0);
           const pcm16 = convertFloat32ToPCM16(inputData);
+
+          audioChunkCount++;
+          if (audioChunkCount % 50 === 0) {
+            console.log(`[VoiceAgent] Sent ${audioChunkCount} audio chunks to ${detectedProvider}`);
+          }
 
           if (detectedProvider === 'openai') {
             websocketRef.current.send(
@@ -300,9 +306,14 @@ export function useVoiceAgent() {
       // Extract text transcript
       if (content.modelTurn) {
         const parts = content.modelTurn.parts || [];
+        console.log("[VoiceAgent] modelTurn parts:", parts.length, "parts");
+
         const textPart = parts.find((p: any) => p.text);
         if (textPart) {
+          console.log("[VoiceAgent] Found text transcript:", textPart.text);
           addMessage('assistant', textPart.text);
+        } else {
+          console.log("[VoiceAgent] No text part found, only audio");
         }
       }
 
