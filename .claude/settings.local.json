@@ -7,7 +7,8 @@
       "Bash(supabase link:*)",
       "Bash(ls:*)",
       "Bash(powershell -File:*)",
-      "Bash(pwsh:*)"
+      "Bash(pwsh:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []

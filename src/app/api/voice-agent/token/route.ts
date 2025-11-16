@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import {
+  createGeminiLiveSession,
+  buildGeminiSetupMessage,
+  convertOpenAIToolsToGemini,
+  GEMINI_VOICES
+} from '@/lib/gemini-live/client';
 
 /**
  * POST /api/voice-agent/token
- * Generate ephemeral OpenAI Realtime API token
+ * Generate session credentials for voice agent (OpenAI or Gemini)
+ * Supports dual-provider architecture based on business_config.ai_voice_agent_provider
  */
 export async function POST(request: NextRequest) {
   try {
@@ -18,10 +25,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get business config to retrieve OpenAI API key
+    // Get business config to retrieve API keys and provider preference
     const { data: config, error: configError } = await supabase
       .from('business_config')
-      .select('openai_api_key, openai_model_provider, openai_model_name')
+      .select(`
+        openai_api_key,
+        openai_model_provider,
+        openai_model_name,
+        gemini_api_key,
+        ai_voice_agent_provider,
+        ai_voice
+      `)
       .eq('user_id', user.id)
       .single();
 
@@ -29,20 +43,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: 'Business configuration not found',
-          message: 'Please configure your OpenAI API key in Settings > AI Integrations'
+          message: 'Please configure your voice agent settings in Settings > AI Integrations'
         },
         { status: 404 }
       );
     }
 
-    // Get OpenAI API key from environment or database
-    const openaiApiKey = process.env.OPENAI_API_KEY || config.openai_api_key;
+    // Determine which provider to use (default to Gemini for cost savings)
+    const provider = config.ai_voice_agent_provider || 'gemini';
 
-    if (!openaiApiKey) {
+    // Get API key based on provider
+    let apiKey: string | null = null;
+    if (provider === 'openai') {
+      apiKey = process.env.OPENAI_API_KEY || config.openai_api_key;
+    } else if (provider === 'gemini') {
+      apiKey = process.env.GEMINI_API_KEY || config.gemini_api_key;
+    }
+
+    if (!apiKey) {
       return NextResponse.json(
         {
-          error: 'OpenAI API key not configured',
-          message: 'Please add your OpenAI API key in Settings > AI Integrations or set OPENAI_API_KEY environment variable'
+          error: `${provider.toUpperCase()} API key not configured`,
+          message: `Please add your ${provider.toUpperCase()} API key in Settings > AI Integrations or set ${provider.toUpperCase()}_API_KEY environment variable`,
+          provider
         },
         { status: 400 }
       );
@@ -63,122 +86,181 @@ export async function POST(request: NextRequest) {
       instructions = buildInstructions(contextData);
     }
 
-    // Create ephemeral token using OpenAI's realtime session endpoint
-    const response = await fetch('https://api.openai.com/v1/realtime/sessions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openaiApiKey}`,
-        'Content-Type': 'application/json',
+    // Define function tools (same for both providers)
+    const tools = [
+      {
+        type: 'function',
+        name: 'check_availability',
+        description: 'Check if a specific time slot is available for booking',
+        parameters: {
+          type: 'object',
+          properties: {
+            date: {
+              type: 'string',
+              description: 'Date in YYYY-MM-DD format'
+            },
+            time: {
+              type: 'string',
+              description: 'Time in HH:MM format (24-hour)'
+            }
+          },
+          required: ['date', 'time']
+        }
       },
-      body: JSON.stringify({
-        model: config.openai_model_name || 'gpt-4o-realtime-preview-2024-12-17',
-        voice: 'alloy', // Options: alloy, echo, fable, onyx, nova, shimmer
-        instructions: instructions,
-        input_audio_format: 'pcm16',
-        output_audio_format: 'pcm16',
-        input_audio_transcription: {
-          model: 'whisper-1'
-        },
-        turn_detection: {
-          type: 'server_vad',
-          threshold: 0.5,
-          prefix_padding_ms: 300,
-          silence_duration_ms: 200
-        },
-        tools: [
-          {
-            type: 'function',
-            name: 'check_availability',
-            description: 'Check if a specific time slot is available for booking',
-            parameters: {
-              type: 'object',
-              properties: {
-                date: {
-                  type: 'string',
-                  description: 'Date in YYYY-MM-DD format'
-                },
-                time: {
-                  type: 'string',
-                  description: 'Time in HH:MM format (24-hour)'
-                }
-              },
-              required: ['date', 'time']
+      {
+        type: 'function',
+        name: 'create_booking',
+        description: 'Create a new booking appointment',
+        parameters: {
+          type: 'object',
+          properties: {
+            customer_name: {
+              type: 'string',
+              description: 'Customer full name'
+            },
+            customer_email: {
+              type: 'string',
+              description: 'Customer email address'
+            },
+            customer_phone: {
+              type: 'string',
+              description: 'Customer phone number (optional)'
+            },
+            service_name: {
+              type: 'string',
+              description: 'Name of the service to book'
+            },
+            date: {
+              type: 'string',
+              description: 'Booking date in YYYY-MM-DD format'
+            },
+            time: {
+              type: 'string',
+              description: 'Booking time in HH:MM format (24-hour)'
+            },
+            notes: {
+              type: 'string',
+              description: 'Optional booking notes or special requests'
             }
           },
-          {
-            type: 'function',
-            name: 'create_booking',
-            description: 'Create a new booking appointment',
-            parameters: {
-              type: 'object',
-              properties: {
-                customer_name: {
-                  type: 'string',
-                  description: 'Customer full name'
-                },
-                customer_email: {
-                  type: 'string',
-                  description: 'Customer email address'
-                },
-                customer_phone: {
-                  type: 'string',
-                  description: 'Customer phone number (optional)'
-                },
-                service_name: {
-                  type: 'string',
-                  description: 'Name of the service to book'
-                },
-                date: {
-                  type: 'string',
-                  description: 'Booking date in YYYY-MM-DD format'
-                },
-                time: {
-                  type: 'string',
-                  description: 'Booking time in HH:MM format (24-hour)'
-                },
-                notes: {
-                  type: 'string',
-                  description: 'Optional booking notes or special requests'
-                }
-              },
-              required: ['customer_name', 'customer_email', 'service_name', 'date', 'time']
-            }
+          required: ['customer_name', 'customer_email', 'service_name', 'date', 'time']
+        }
+      },
+      {
+        type: 'function',
+        name: 'get_available_services',
+        description: 'Get list of available services with prices',
+        parameters: {
+          type: 'object',
+          properties: {},
+          required: []
+        }
+      }
+    ];
+
+    // Handle provider-specific session creation
+    if (provider === 'openai') {
+      // Create ephemeral token using OpenAI's realtime session endpoint
+      const response = await fetch('https://api.openai.com/v1/realtime/sessions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: config.openai_model_name || 'gpt-4o-realtime-preview-2024-12-17',
+          voice: 'alloy', // Options: alloy, echo, fable, onyx, nova, shimmer
+          instructions: instructions,
+          input_audio_format: 'pcm16',
+          output_audio_format: 'pcm16',
+          input_audio_transcription: {
+            model: 'whisper-1'
           },
+          turn_detection: {
+            type: 'server_vad',
+            threshold: 0.5,
+            prefix_padding_ms: 300,
+            silence_duration_ms: 200
+          },
+          tools
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('OpenAI Realtime API error:', errorData);
+        return NextResponse.json(
           {
-            type: 'function',
-            name: 'get_available_services',
-            description: 'Get list of available services with prices',
-            parameters: {
-              type: 'object',
-              properties: {},
-              required: []
+            error: 'Failed to create realtime session',
+            details: errorData,
+            provider: 'openai'
+          },
+          { status: response.status }
+        );
+      }
+
+      const data = await response.json();
+
+      return NextResponse.json({
+        provider: 'openai',
+        client_secret: data.client_secret.value,
+        expires_at: data.client_secret.expires_at,
+        session_id: data.id,
+        model: data.model,
+        voice: data.voice,
+        ws_url: `wss://api.openai.com/v1/realtime?model=${data.model}`
+      });
+
+    } else if (provider === 'gemini') {
+      // Gemini doesn't use ephemeral tokens - client connects directly with API key
+      // We return WebSocket URL and setup configuration
+      const wsUrl = await createGeminiLiveSession({
+        apiKey,
+        model: 'gemini-2.0-flash-live-001',
+        systemInstruction: instructions,
+        tools: convertOpenAIToolsToGemini(tools),
+        speechConfig: {
+          voiceConfig: {
+            prebuiltVoiceConfig: {
+              voiceName: config.ai_voice || GEMINI_VOICES.PUCK
             }
           }
-        ]
-      })
-    });
+        }
+      });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('OpenAI Realtime API error:', errorData);
-      return NextResponse.json(
-        {
-          error: 'Failed to create realtime session',
-          details: errorData
-        },
-        { status: response.status }
-      );
+      // Build setup message for client
+      const setupMessage = buildGeminiSetupMessage({
+        apiKey,
+        model: 'gemini-2.0-flash-live-001',
+        systemInstruction: instructions,
+        tools: convertOpenAIToolsToGemini(tools),
+        speechConfig: {
+          voiceConfig: {
+            prebuiltVoiceConfig: {
+              voiceName: config.ai_voice || GEMINI_VOICES.PUCK
+            }
+          }
+        }
+      });
+
+      return NextResponse.json({
+        provider: 'gemini',
+        ws_url: wsUrl,
+        setup_message: setupMessage,
+        model: 'gemini-2.0-flash-live-001',
+        voice: config.ai_voice || GEMINI_VOICES.PUCK,
+        session_id: `gemini-${Date.now()}`
+      });
     }
 
-    const data = await response.json();
-
-    return NextResponse.json({
-      client_secret: data.client_secret.value,
-      expires_at: data.client_secret.expires_at,
-      session_id: data.id,
-      model: data.model,
-      voice: data.voice
-    });
+    // Unsupported provider
+    return NextResponse.json(
+      {
+        error: `Unsupported provider: ${provider}`,
+        message: 'Please select either "openai" or "gemini" as your voice agent provider'
+      },
+      { status: 400 }
+    );
 
   } catch (error: any) {
     console.error('Unexpected error in POST /api/voice-agent/token:', error);

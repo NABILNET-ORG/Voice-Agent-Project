@@ -2,25 +2,34 @@
 
 ## Immediate (Do Now - Next Session)
 
-### 1. Add Gemini Live API for Voice Agent ⚠️ HIGH PRIORITY
-**Why**: Gemini is 19x cheaper ($0.016/min vs $0.30/min for OpenAI)
-**Status**: User wants dual-provider support (OpenAI + Gemini)
+### 1. ~~Add Gemini Live API for Voice Agent~~ ✅ COMPLETE
+**Status**: Fully implemented with dual-provider support
+**Completion Date**: November 16, 2025
+
+**Delivered**:
+- ✅ Installed `@google/generative-ai` package
+- ✅ Created Gemini Live API client (`src/lib/gemini-live/client.ts`)
+- ✅ Updated `/api/voice-agent/token` to support both providers
+- ✅ Updated `/voice-demo` page with provider detection
+- ✅ Audio formats: 16kHz (Gemini) and 24kHz (OpenAI)
+- ✅ Function calling for booking operations
+- ✅ Comprehensive documentation (`GEMINI_LIVE_API.md`)
+- ✅ Build: 100% SUCCESS
+
+**Cost Savings**: 94.7% cheaper with Gemini!
+
+### 2. Test Voice Agent with Real API Keys ⚠️ HIGH PRIORITY
+**Why**: Verify both providers work in production
+**Status**: Implementation complete, needs testing
 
 **Tasks**:
-- Install `@google/generative-ai` package
-- Create Gemini Live API integration alongside OpenAI
-- Support provider selection from business_config.ai_voice_agent_provider
-- Audio: PCM 16-bit, 16kHz input, 24kHz output
-- Models: gemini-2.0-flash-live-001, gemini-2.5-flash-native-audio
+- Add Gemini API key to business_config
+- Test Gemini voice agent with real conversations
+- Compare quality, latency, and cost
+- Verify function calling works correctly
+- Test provider switching
 
-**Effort**: 8-12 hours
-
-### 2. Debug Voice Agent Token Endpoint 404
-**Issue**: `/api/voice-agent/token` compiles but returns 404
-**Root Cause**: Likely runtime error (missing API key)
-**Fix**: Add proper error handling, test with database API keys
-
-**Effort**: 1-2 hours
+**Effort**: 2-3 hours
 
 ### 3. Production Deployment
 **Prerequisites**: Voice agent working, migration run

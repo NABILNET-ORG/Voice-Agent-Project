@@ -4,8 +4,10 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Mic, MicOff, Phone, PhoneOff } from "lucide-react";
+import { Mic, MicOff, Phone, PhoneOff, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+
+type Provider = 'openai' | 'gemini';
 
 export default function VoiceDemoPage() {
   const [isConnected, setIsConnected] = useState(false);
@@ -13,10 +15,12 @@ export default function VoiceDemoPage() {
   const [transcript, setTranscript] = useState<string[]>([]);
   const [status, setStatus] = useState<string>("Disconnected");
   const [error, setError] = useState<string | null>(null);
+  const [provider, setProvider] = useState<Provider | null>(null);
 
   const websocketRef = useRef<WebSocket | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
+  const setupMessageRef = useRef<any>(null);
 
   useEffect(() => {
     // Cleanup on unmount
@@ -30,7 +34,7 @@ export default function VoiceDemoPage() {
       setError(null);
       setStatus("Connecting...");
 
-      // Get ephemeral token from backend
+      // Get session credentials from backend
       const tokenResponse = await fetch("/api/voice-agent/token", {
         method: "POST",
       });
@@ -40,54 +44,104 @@ export default function VoiceDemoPage() {
         throw new Error(errorData.error || "Failed to get session token");
       }
 
-      const { client_secret } = await tokenResponse.json();
+      const sessionData = await tokenResponse.json();
+      const detectedProvider: Provider = sessionData.provider;
+      setProvider(detectedProvider);
 
-      // Connect to OpenAI Realtime API via WebSocket
-      const ws = new WebSocket(
-        `wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17`,
-        {
-          headers: {
-            Authorization: `Bearer ${client_secret}`,
-            "OpenAI-Beta": "realtime=v1",
-          },
-        } as any
-      );
+      if (detectedProvider === 'openai') {
+        await connectOpenAI(sessionData);
+      } else if (detectedProvider === 'gemini') {
+        await connectGemini(sessionData);
+      } else {
+        throw new Error(`Unsupported provider: ${detectedProvider}`);
+      }
 
-      ws.onopen = () => {
-        setIsConnected(true);
-        setStatus("Connected");
-        toast.success("Connected to voice agent");
-
-        // Start audio capture
-        startAudioCapture();
-      };
-
-      ws.onmessage = (event) => {
-        const message = JSON.parse(event.data);
-        handleRealtimeMessage(message);
-      };
-
-      ws.onerror = (error) => {
-        console.error("WebSocket error:", error);
-        setError("Connection error occurred");
-        setStatus("Error");
-        toast.error("Connection error");
-      };
-
-      ws.onclose = () => {
-        setIsConnected(false);
-        setIsRecording(false);
-        setStatus("Disconnected");
-        stopAudioCapture();
-      };
-
-      websocketRef.current = ws;
     } catch (err: any) {
       console.error("Connection error:", err);
       setError(err.message);
       setStatus("Error");
       toast.error(err.message);
     }
+  };
+
+  const connectOpenAI = async (sessionData: any) => {
+    const { client_secret, ws_url } = sessionData;
+
+    // Connect to OpenAI Realtime API via WebSocket
+    const ws = new WebSocket(ws_url, {
+      headers: {
+        Authorization: `Bearer ${client_secret}`,
+        "OpenAI-Beta": "realtime=v1",
+      },
+    } as any);
+
+    ws.onopen = () => {
+      setIsConnected(true);
+      setStatus("Connected (OpenAI)");
+      toast.success("Connected to OpenAI voice agent");
+
+      // Start audio capture (24kHz for OpenAI)
+      startAudioCapture(24000, 'openai');
+    };
+
+    ws.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+      handleOpenAIMessage(message);
+    };
+
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
+      setError("Connection error occurred");
+      setStatus("Error");
+      toast.error("Connection error");
+    };
+
+    ws.onclose = () => {
+      setIsConnected(false);
+      setIsRecording(false);
+      setStatus("Disconnected");
+      stopAudioCapture();
+    };
+
+    websocketRef.current = ws;
+  };
+
+  const connectGemini = async (sessionData: any) => {
+    const { ws_url, setup_message } = sessionData;
+
+    // Store setup message for later
+    setupMessageRef.current = setup_message;
+
+    // Connect to Gemini Live API via WebSocket
+    const ws = new WebSocket(ws_url);
+
+    ws.onopen = () => {
+      console.log("Gemini WebSocket opened, sending setup...");
+
+      // Send setup message
+      ws.send(JSON.stringify(setup_message));
+    };
+
+    ws.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+      handleGeminiMessage(message, ws);
+    };
+
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
+      setError("Connection error occurred");
+      setStatus("Error");
+      toast.error("Connection error");
+    };
+
+    ws.onclose = () => {
+      setIsConnected(false);
+      setIsRecording(false);
+      setStatus("Disconnected");
+      stopAudioCapture();
+    };
+
+    websocketRef.current = ws;
   };
 
   const disconnect = () => {
@@ -99,14 +153,16 @@ export default function VoiceDemoPage() {
     setIsConnected(false);
     setIsRecording(false);
     setStatus("Disconnected");
+    setProvider(null);
   };
 
-  const startAudioCapture = async () => {
+  const startAudioCapture = async (sampleRate: number, detectedProvider: Provider) => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStreamRef.current = stream;
 
-      const audioContext = new AudioContext({ sampleRate: 24000 });
+      // OpenAI uses 24kHz, Gemini uses 16kHz
+      const audioContext = new AudioContext({ sampleRate });
       audioContextRef.current = audioContext;
 
       const source = audioContext.createMediaStreamSource(stream);
@@ -117,13 +173,29 @@ export default function VoiceDemoPage() {
           const inputData = e.inputBuffer.getChannelData(0);
           const pcm16 = convertFloat32ToPCM16(inputData);
 
-          // Send audio data to OpenAI Realtime API
-          websocketRef.current.send(
-            JSON.stringify({
-              type: "input_audio_buffer.append",
-              audio: arrayBufferToBase64(pcm16),
-            })
-          );
+          if (detectedProvider === 'openai') {
+            // Send audio data to OpenAI Realtime API
+            websocketRef.current.send(
+              JSON.stringify({
+                type: "input_audio_buffer.append",
+                audio: arrayBufferToBase64(pcm16),
+              })
+            );
+          } else if (detectedProvider === 'gemini') {
+            // Send audio data to Gemini Live API
+            websocketRef.current.send(
+              JSON.stringify({
+                realtime_input: {
+                  media_chunks: [
+                    {
+                      mime_type: 'audio/pcm',
+                      data: arrayBufferToBase64(pcm16)
+                    }
+                  ]
+                }
+              })
+            );
+          }
         }
       };
 
@@ -153,7 +225,7 @@ export default function VoiceDemoPage() {
     setIsRecording(false);
   };
 
-  const handleRealtimeMessage = (message: any) => {
+  const handleOpenAIMessage = (message: any) => {
     switch (message.type) {
       case "conversation.item.created":
         if (message.item.type === "message") {
@@ -183,6 +255,10 @@ export default function VoiceDemoPage() {
       case "response.function_call_arguments.done":
         // Function call completed
         console.log("Function called:", message.name, message.arguments);
+        setTranscript((prev) => [
+          ...prev,
+          `[Function: ${message.name}]`,
+        ]);
         break;
 
       case "error":
@@ -190,6 +266,124 @@ export default function VoiceDemoPage() {
         setError(message.error.message);
         toast.error(message.error.message);
         break;
+    }
+  };
+
+  const handleGeminiMessage = (message: any, ws: WebSocket) => {
+    console.log("Gemini message:", message);
+
+    // Setup complete
+    if (message.setupComplete) {
+      setIsConnected(true);
+      setStatus("Connected (Gemini)");
+      toast.success("Connected to Gemini voice agent (19x cheaper!)");
+
+      // Start audio capture (16kHz for Gemini)
+      startAudioCapture(16000, 'gemini');
+      return;
+    }
+
+    // Server content (audio, transcript, function calls)
+    if (message.serverContent) {
+      const content = message.serverContent;
+
+      // Model turn (contains audio and/or text)
+      if (content.modelTurn) {
+        const parts = content.modelTurn.parts || [];
+
+        // Extract text (transcript/response)
+        const textPart = parts.find((p: any) => p.text);
+        if (textPart) {
+          setTranscript((prev) => [
+            ...prev,
+            `Assistant: ${textPart.text}`,
+          ]);
+        }
+
+        // Extract audio (play it back)
+        const audioPart = parts.find((p: any) => p.inlineData?.mimeType === 'audio/pcm');
+        if (audioPart) {
+          // TODO: Play audio back to user
+          console.log("Received audio from Gemini");
+        }
+      }
+
+      // Function calls
+      if (content.functionCalls) {
+        content.functionCalls.forEach((call: any) => {
+          console.log("Gemini function call:", call.name, call.args);
+          setTranscript((prev) => [
+            ...prev,
+            `[Function: ${call.name}]`,
+          ]);
+
+          // Execute function and send response
+          executeFunctionCall(call, ws);
+        });
+      }
+
+      // Turn complete
+      if (content.turnComplete !== undefined) {
+        console.log("Turn complete");
+      }
+    }
+
+    // Tool call (alternative structure)
+    if (message.toolCall) {
+      const functionCalls = message.toolCall.functionCalls || [];
+      functionCalls.forEach((call: any) => {
+        console.log("Gemini tool call:", call.name, call.args);
+        executeFunctionCall(call, ws);
+      });
+    }
+
+    // Error
+    if (message.error) {
+      console.error("Gemini API error:", message.error);
+      setError(message.error.message || "Gemini API error");
+      toast.error(message.error.message || "Gemini API error");
+    }
+  };
+
+  const executeFunctionCall = async (call: any, ws: WebSocket) => {
+    try {
+      // Call backend function execution endpoint
+      const response = await fetch("/api/voice-agent/session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          function_name: call.name,
+          arguments: call.args,
+          call_id: call.id,
+        }),
+      });
+
+      const result = await response.json();
+
+      // Send function response back to Gemini
+      ws.send(
+        JSON.stringify({
+          tool_response: {
+            function_responses: [
+              {
+                id: call.id,
+                name: call.name,
+                response: result.result,
+              },
+            ],
+          },
+        })
+      );
+
+      setTranscript((prev) => [
+        ...prev,
+        `[Function Result: ${JSON.stringify(result.result)}]`,
+      ]);
+    } catch (error: any) {
+      console.error("Function execution error:", error);
+      toast.error(`Function execution failed: ${error.message}`);
     }
   };
 
@@ -219,9 +413,20 @@ export default function VoiceDemoPage() {
           <CardTitle className="flex items-center gap-2">
             <Phone className="h-6 w-6" />
             Voice Agent Demo
+            {provider && (
+              <Badge variant="outline" className="ml-2">
+                {provider === 'gemini' && <Sparkles className="h-3 w-3 mr-1" />}
+                {provider === 'openai' ? 'OpenAI' : 'Gemini (19x cheaper!)'}
+              </Badge>
+            )}
           </CardTitle>
           <CardDescription>
             Test the AI voice booking agent. Click "Start Call" to begin a voice conversation.
+            {provider === 'gemini' && (
+              <span className="block mt-1 text-green-600 font-medium">
+                Using Gemini Live API - $0.016/min vs $0.30/min (OpenAI)
+              </span>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -287,6 +492,8 @@ export default function VoiceDemoPage() {
                       className={`text-sm ${
                         line.startsWith("User:")
                           ? "text-blue-700 font-medium"
+                          : line.startsWith("[Function")
+                          ? "text-purple-600 italic"
                           : "text-slate-700"
                       }`}
                     >
@@ -309,6 +516,7 @@ export default function VoiceDemoPage() {
               <li>Speak naturally with the AI agent</li>
               <li>Try asking about services, prices, or booking an appointment</li>
               <li>The AI can check availability and create bookings for you</li>
+              <li>Provider selection is based on your Settings → AI Integrations</li>
             </ul>
           </div>
         </CardContent>
