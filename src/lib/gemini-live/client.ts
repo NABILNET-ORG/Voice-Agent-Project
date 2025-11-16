@@ -11,12 +11,12 @@
  * - Audio streaming with base64 encoding
  *
  * Cost: ~$0.016/min (19x cheaper than OpenAI Realtime API)
- * Models: gemini-2.0-flash-live-001, gemini-2.5-flash-native-audio
+ * Models: gemini-2.0-flash-exp (recommended for voice)
  */
 
 export interface GeminiLiveConfig {
   apiKey: string;
-  model?: string; // Default: gemini-2.0-flash-live-001
+  model?: string; // Default: gemini-2.0-flash-exp
   systemInstruction?: string;
   tools?: GeminiTool[];
   generationConfig?: {
@@ -64,7 +64,7 @@ export interface GeminiLiveSession {
 export async function createGeminiLiveSession(
   config: GeminiLiveConfig
 ): Promise<string> {
-  const model = config.model || 'gemini-2.0-flash-live-001';
+  const model = config.model || 'gemini-2.0-flash-exp';
 
   // Gemini Live API uses wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent
   const wsUrl = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent?key=${config.apiKey}`;
@@ -78,7 +78,7 @@ export async function createGeminiLiveSession(
 export function buildGeminiSetupMessage(config: GeminiLiveConfig): any {
   const setupMessage: any = {
     setup: {
-      model: `models/${config.model || 'gemini-2.0-flash-live-001'}`,
+      model: `models/${config.model || 'gemini-2.0-flash-exp'}`,
       generation_config: {
         response_modalities: ['AUDIO'],
         speech_config: config.speechConfig || {

@@ -260,7 +260,7 @@ export async function POST(request: NextRequest) {
       // We return WebSocket URL and setup configuration
       const wsUrl = await createGeminiLiveSession({
         apiKey,
-        model: 'gemini-2.0-flash-live-001',
+        model: 'gemini-2.0-flash-exp',
         systemInstruction: instructions,
         tools: convertOpenAIToolsToGemini(tools),
         speechConfig: {
@@ -275,7 +275,7 @@ export async function POST(request: NextRequest) {
       // Build setup message for client
       const setupMessage = buildGeminiSetupMessage({
         apiKey,
-        model: 'gemini-2.0-flash-live-001',
+        model: 'gemini-2.0-flash-exp',
         systemInstruction: instructions,
         tools: convertOpenAIToolsToGemini(tools),
         speechConfig: {
@@ -293,7 +293,7 @@ export async function POST(request: NextRequest) {
         provider: 'gemini',
         ws_url: wsUrl,
         setup_message: setupMessage,
-        model: 'gemini-2.0-flash-live-001',
+        model: 'gemini-2.0-flash-exp',
         voice: config.ai_voice || GEMINI_VOICES.PUCK,
         session_id: `gemini-${Date.now()}`
       });
