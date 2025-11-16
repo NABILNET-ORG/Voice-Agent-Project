@@ -85,12 +85,13 @@ export function useVoiceAgent() {
   const connectOpenAI = async (sessionData: any) => {
     const { client_secret, ws_url } = sessionData;
 
-    const ws = new WebSocket(ws_url, {
-      headers: {
-        Authorization: `Bearer ${client_secret}`,
-        "OpenAI-Beta": "realtime=v1",
-      },
-    } as any);
+    // OpenAI Realtime API uses query parameter for authentication
+    const authenticatedUrl = `${ws_url}?model=${sessionData.model}`;
+    const ws = new WebSocket(authenticatedUrl, [
+      'realtime',
+      `openai-insecure-api-key.${client_secret.value}`,
+      'openai-beta.realtime-v1'
+    ]);
 
     ws.onopen = () => {
       setIsConnected(true);

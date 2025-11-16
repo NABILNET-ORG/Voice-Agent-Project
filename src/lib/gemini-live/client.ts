@@ -80,7 +80,7 @@ export function buildGeminiSetupMessage(config: GeminiLiveConfig): any {
     setup: {
       model: `models/${config.model || 'gemini-2.0-flash-exp'}`,
       generation_config: {
-        response_modalities: ['AUDIO'],
+        response_modalities: ['AUDIO', 'TEXT'], // Include TEXT for transcription
         speech_config: config.speechConfig || {
           voice_config: {
             prebuilt_voice_config: {

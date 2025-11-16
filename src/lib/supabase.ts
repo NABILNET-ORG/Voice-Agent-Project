@@ -111,6 +111,18 @@ export interface BusinessConfig {
   require_payment_upfront: boolean
   deposit_amount: number | null
   deposit_type: string
+  // Dual API keys for each provider (added 2025-11-16)
+  openai_api_key_general: string | null
+  openai_api_key_voice: string | null
+  gemini_api_key_general: string | null
+  gemini_api_key_voice: string | null
+  openrouter_api_key_general: string | null
+  openrouter_api_key_voice: string | null
+  // Voice agent configuration (added 2025-11-16)
+  voice_agent_provider: string | null
+  voice_agent_model: string | null
+  voice_agent_voice_name: string | null
+  voice_agent_personality: string | null
   created_at: string
   updated_at: string
 }
