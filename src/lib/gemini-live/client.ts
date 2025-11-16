@@ -76,16 +76,25 @@ export async function createGeminiLiveSession(
  * Build setup message for Gemini Live API
  */
 export function buildGeminiSetupMessage(config: GeminiLiveConfig): any {
+  // Convert camelCase to snake_case for Gemini API
+  const speechConfig = config.speechConfig || {
+    voiceConfig: {
+      prebuiltVoiceConfig: {
+        voiceName: 'Puck'
+      }
+    }
+  };
+
   const setupMessage: any = {
     setup: {
       model: `models/${config.model || 'gemini-2.0-flash-exp'}`,
       generation_config: {
         response_modalities: ['AUDIO', 'TEXT'] // Include TEXT for transcription
       },
-      speech_config: config.speechConfig || {
+      speech_config: {
         voice_config: {
           prebuilt_voice_config: {
-            voice_name: 'Puck' // Friendly, professional voice
+            voice_name: speechConfig.voiceConfig?.prebuiltVoiceConfig?.voiceName || 'Puck'
           }
         }
       }
