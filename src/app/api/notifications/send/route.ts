@@ -45,10 +45,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get business info
+    // Get business info and API keys from database
     const { data: businessInfo } = await supabase
       .from('business_config')
-      .select('business_name, phone_number, address, customer_notification_email, customer_notification_sms')
+      .select('business_name, phone_number, address, customer_notification_email, customer_notification_sms, resend_api_key, twilio_account_sid, twilio_auth_token, twilio_phone_number')
       .eq('user_id', user.id)
       .single();
 
@@ -85,6 +85,7 @@ export async function POST(request: NextRequest) {
         const emailResult = await sendEmail({
           to: booking.customer_email,
           ...emailContent,
+          resendApiKey: businessInfo?.resend_api_key,
         });
 
         results.email = {
@@ -141,6 +142,11 @@ export async function POST(request: NextRequest) {
         const smsResult = await sendSMS({
           to: booking.customer_phone,
           ...smsContent,
+          twilioConfig: businessInfo?.twilio_account_sid ? {
+            account_sid: businessInfo.twilio_account_sid,
+            auth_token: businessInfo.twilio_auth_token,
+            phone_number: businessInfo.twilio_phone_number
+          } : undefined,
         });
 
         results.sms = {

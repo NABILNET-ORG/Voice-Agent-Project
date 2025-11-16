@@ -1,23 +1,30 @@
 /**
  * SMS notification service using Twilio
+ * Reads credentials from business_config table (database-first architecture)
  */
 
 export interface SMSOptions {
   to: string;
   message: string;
   from?: string;
+  twilioConfig?: {
+    account_sid: string;
+    auth_token: string;
+    phone_number: string;
+  };
 }
 
 /**
  * Send SMS using Twilio
+ * NOTE: twilioConfig must be passed from API route after fetching from database
  */
 export async function sendSMS(options: SMSOptions) {
-  const accountSid = process.env.TWILIO_ACCOUNT_SID;
-  const authToken = process.env.TWILIO_AUTH_TOKEN;
-  const fromNumber = options.from || process.env.TWILIO_PHONE_NUMBER;
+  const accountSid = options.twilioConfig?.account_sid || process.env.TWILIO_ACCOUNT_SID;
+  const authToken = options.twilioConfig?.auth_token || process.env.TWILIO_AUTH_TOKEN;
+  const fromNumber = options.from || options.twilioConfig?.phone_number || process.env.TWILIO_PHONE_NUMBER;
 
   if (!accountSid || !authToken || !fromNumber) {
-    throw new Error('Twilio credentials not configured. Set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_PHONE_NUMBER');
+    throw new Error('Twilio credentials not configured. Please add them in Settings → Integrations');
   }
 
   const auth = Buffer.from(`${accountSid}:${authToken}`).toString('base64');

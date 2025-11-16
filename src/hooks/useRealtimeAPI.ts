@@ -112,8 +112,8 @@ export function useRealtimeAPI() {
       });
       audioStreamRef.current = stream;
 
-      // Get ephemeral token from our API route
-      const response = await fetch('/api', {
+      // Get ephemeral token from our voice agent API
+      const response = await fetch('/api/voice-agent/token', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -126,7 +126,7 @@ export function useRealtimeAPI() {
       }
 
       const data = await response.json();
-      if (!data?.client_secret?.value) {
+      if (!data?.client_secret) {
         throw new Error('No session token received');
       }
 

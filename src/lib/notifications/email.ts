@@ -1,6 +1,6 @@
 /**
  * Email notification service
- * Supports multiple providers: Resend, SendGrid
+ * Reads API key from business_config table (database-first architecture)
  */
 
 export interface EmailOptions {
@@ -8,16 +8,18 @@ export interface EmailOptions {
   subject: string;
   html: string;
   from?: string;
+  resendApiKey?: string;
 }
 
 /**
  * Send email using Resend (recommended)
+ * NOTE: resendApiKey should be passed from API route after fetching from database
  */
 export async function sendEmailWithResend(options: EmailOptions) {
-  const apiKey = process.env.RESEND_API_KEY;
+  const apiKey = options.resendApiKey || process.env.RESEND_API_KEY;
 
   if (!apiKey) {
-    throw new Error('RESEND_API_KEY not configured');
+    throw new Error('Resend API key not configured. Please add it in Settings → Integrations');
   }
 
   const response = await fetch('https://api.resend.com/emails', {
