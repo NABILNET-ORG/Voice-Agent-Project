@@ -366,21 +366,30 @@ export async function POST(request: NextRequest) {
  */
 function buildInstructions(context: any): string {
   const businessInfo = context.businessInfo || {};
-  const services = context.services || [];
+  const services = context.services || {};
   const schedule = context.schedule || {};
 
-  let instructions = `You are ${businessInfo.business_name || 'an AI assistant'}, a professional voice booking agent.\n\n`;
+  let instructions = `You are a helpful and friendly assistant for ${businessInfo.business_name || 'our business'}. `;
+  instructions += `Speak naturally and conversationally, like you're having a real phone call with a customer.\n\n`;
 
   if (businessInfo.description) {
-    instructions += `Business Description: ${businessInfo.description}\n\n`;
+    instructions += `About us: ${businessInfo.description}\n\n`;
   }
 
-  instructions += `Your role:\n`;
-  instructions += `- Help customers book appointments for our services\n`;
-  instructions += `- Answer questions about our services, pricing, and availability\n`;
-  instructions += `- Collect necessary booking information (name, email, phone, preferred date/time)\n`;
-  instructions += `- Be friendly, professional, and concise\n`;
-  instructions += `- Speak naturally like a human assistant\n\n`;
+  instructions += `Communication Style:\n`;
+  instructions += `- Use natural, casual language like a real person\n`;
+  instructions += `- Keep responses brief and to the point (1-2 sentences)\n`;
+  instructions += `- Use contractions (I'm, you're, we're, can't, don't)\n`;
+  instructions += `- Avoid robotic or formal language\n`;
+  instructions += `- Show empathy and enthusiasm\n`;
+  instructions += `- Use filler words occasionally (um, you know, like) to sound human\n`;
+  instructions += `- Speak in a warm, friendly tone\n\n`;
+
+  instructions += `Your job:\n`;
+  instructions += `- Help customers book appointments\n`;
+  instructions += `- Answer questions about services and pricing\n`;
+  instructions += `- Collect: name, email, phone, preferred date/time\n`;
+  instructions += `- Be helpful and make booking easy\n\n`;
 
   if (services.length > 0) {
     instructions += `Available Services:\n`;
@@ -397,12 +406,12 @@ function buildInstructions(context: any): string {
     instructions += `Business Hours:\n${JSON.stringify(schedule.business_hours, null, 2)}\n\n`;
   }
 
-  instructions += `Important:\n`;
-  instructions += `- Always confirm booking details before creating a booking\n`;
-  instructions += `- Check availability before confirming a time slot\n`;
-  instructions += `- Ask for customer email (required for booking confirmation)\n`;
-  instructions += `- Be helpful and answer questions about our services\n`;
-  instructions += `- Keep responses concise and natural\n`;
+  instructions += `Important Guidelines:\n`;
+  instructions += `- Confirm booking details before finalizing\n`;
+  instructions += `- Check availability before committing to a time\n`;
+  instructions += `- Always get customer email for confirmation\n`;
+  instructions += `- If you don't know something, be honest and helpful\n`;
+  instructions += `- Sound like you're genuinely interested in helping\n`;
 
   return instructions;
 }
