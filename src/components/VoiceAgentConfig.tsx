@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/select";
 import { Sparkles, DollarSign, Zap, Volume2 } from "lucide-react";
 import { toast } from "sonner";
+import { businessConfigApi } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
 import {
   VOICE_MODELS,
   VOICE_NAMES,
@@ -33,6 +35,7 @@ interface VoiceAgentConfigProps {
 }
 
 export function VoiceAgentConfig({ businessConfig, onSave }: VoiceAgentConfigProps) {
+  const { user } = useAuth();
   const [provider, setProvider] = useState<VoiceProvider>('gemini');
   const [model, setModel] = useState('');
   const [voice, setVoice] = useState('');
@@ -72,22 +75,17 @@ export function VoiceAgentConfig({ businessConfig, onSave }: VoiceAgentConfigPro
     try {
       setIsSaving(true);
 
-      const response = await fetch('/api/profile', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          voice_agent_provider: provider,
-          voice_agent_model: model,
-          voice_agent_voice_name: voice,
-          voice_agent_personality: personality,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to save configuration');
+      if (!user?.id) {
+        throw new Error('User not authenticated');
       }
+
+      // Use businessConfigApi to update business_config table
+      await businessConfigApi.update(user.id, {
+        voice_agent_provider: provider,
+        voice_agent_model: model,
+        voice_agent_voice_name: voice,
+        voice_agent_personality: personality,
+      });
 
       toast.success('Voice agent configuration saved!');
       onSave?.();
