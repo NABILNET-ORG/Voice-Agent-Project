@@ -53,7 +53,8 @@ export function useVoiceAgent() {
 
       if (!tokenResponse.ok) {
         const errorData = await tokenResponse.json();
-        throw new Error(errorData.error || "Failed to get session token");
+        console.error("[VoiceAgent] Token endpoint error:", errorData);
+        throw new Error(errorData.error || errorData.message || "Failed to get session token");
       }
 
       const sessionData = await tokenResponse.json();
