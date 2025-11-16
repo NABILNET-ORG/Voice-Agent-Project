@@ -88,12 +88,12 @@ export function buildGeminiSetupMessage(config: GeminiLiveConfig): any {
   const setupMessage: any = {
     setup: {
       model: `models/${config.model || 'gemini-2.0-flash-exp'}`,
-      generation_config: {
-        response_modalities: ['AUDIO', 'TEXT'], // Include TEXT for transcription
-        speech_config: {
-          voice_config: {
-            prebuilt_voice_config: {
-              voice_name: speechConfig.voiceConfig?.prebuiltVoiceConfig?.voiceName || 'Puck'
+      generationConfig: {
+        responseModalities: ['AUDIO', 'TEXT'], // Include TEXT for transcription
+        speechConfig: {
+          voiceConfig: {
+            prebuiltVoiceConfig: {
+              voiceName: speechConfig.voiceConfig?.prebuiltVoiceConfig?.voiceName || 'Puck'
             }
           }
         }
@@ -103,7 +103,7 @@ export function buildGeminiSetupMessage(config: GeminiLiveConfig): any {
 
   // Add system instruction if provided
   if (config.systemInstruction) {
-    setupMessage.setup.system_instruction = {
+    setupMessage.setup.systemInstruction = {
       parts: [
         {
           text: config.systemInstruction
@@ -119,8 +119,8 @@ export function buildGeminiSetupMessage(config: GeminiLiveConfig): any {
 
   // Add generation config
   if (config.generationConfig) {
-    setupMessage.setup.generation_config = {
-      ...setupMessage.setup.generation_config,
+    setupMessage.setup.generationConfig = {
+      ...setupMessage.setup.generationConfig,
       ...config.generationConfig
     };
   }
