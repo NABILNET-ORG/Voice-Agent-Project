@@ -256,6 +256,19 @@ export async function POST(request: NextRequest) {
 
     } else if (provider === 'gemini') {
       console.log('[Voice Agent Token] Creating Gemini session...');
+
+      // Validate voice is Gemini-compatible
+      const geminiVoices = Object.values(GEMINI_VOICES);
+      const selectedVoice = geminiVoices.includes(config.ai_voice as any)
+        ? config.ai_voice
+        : GEMINI_VOICES.PUCK;
+
+      console.log('[Voice Agent Token] Voice selection:', {
+        configVoice: config.ai_voice,
+        isGeminiVoice: geminiVoices.includes(config.ai_voice as any),
+        selectedVoice
+      });
+
       // Gemini doesn't use ephemeral tokens - client connects directly with API key
       // We return WebSocket URL and setup configuration
       const wsUrl = await createGeminiLiveSession({
@@ -266,7 +279,7 @@ export async function POST(request: NextRequest) {
         speechConfig: {
           voiceConfig: {
             prebuiltVoiceConfig: {
-              voiceName: config.ai_voice || GEMINI_VOICES.PUCK
+              voiceName: selectedVoice
             }
           }
         }
@@ -281,7 +294,7 @@ export async function POST(request: NextRequest) {
         speechConfig: {
           voiceConfig: {
             prebuiltVoiceConfig: {
-              voiceName: config.ai_voice || GEMINI_VOICES.PUCK
+              voiceName: selectedVoice
             }
           }
         }
