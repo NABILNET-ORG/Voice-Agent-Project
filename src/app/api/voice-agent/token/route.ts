@@ -14,11 +14,15 @@ import {
  */
 export async function POST(request: NextRequest) {
   try {
+    console.log('[Voice Agent Token] Request received');
     const supabase = await createClient();
 
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
+    console.log('[Voice Agent Token] Auth check:', { hasUser: !!user, authError: authError?.message });
+
     if (authError || !user) {
+      console.error('[Voice Agent Token] Unauthorized:', authError);
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -26,6 +30,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get business config to retrieve API keys and provider preference
+    console.log('[Voice Agent Token] Fetching business config for user:', user.id);
     const { data: config, error: configError } = await supabase
       .from('business_config')
       .select(`
@@ -39,11 +44,22 @@ export async function POST(request: NextRequest) {
       .eq('user_id', user.id)
       .single();
 
+    console.log('[Voice Agent Token] Config query result:', {
+      hasConfig: !!config,
+      configError: configError?.message,
+      provider: config?.ai_voice_agent_provider
+    });
+
     if (configError || !config) {
+      console.error('[Voice Agent Token] Config error:', configError);
       return NextResponse.json(
         {
           error: 'Business configuration not found',
-          message: 'Please configure your voice agent settings in Settings > AI Integrations'
+          message: 'Please configure your voice agent settings in Settings > AI Integrations',
+          debug: {
+            userId: user.id,
+            error: configError?.message
+          }
         },
         { status: 404 }
       );
@@ -51,27 +67,43 @@ export async function POST(request: NextRequest) {
 
     // Determine which provider to use (default to Gemini for cost savings)
     const provider = config.ai_voice_agent_provider || 'gemini';
+    console.log('[Voice Agent Token] Provider selected:', provider);
 
     // Get API key based on provider
     let apiKey: string | null = null;
     if (provider === 'openai') {
       apiKey = process.env.OPENAI_API_KEY || config.openai_api_key;
+      console.log('[Voice Agent Token] OpenAI key check:', {
+        hasEnvKey: !!process.env.OPENAI_API_KEY,
+        hasDbKey: !!config.openai_api_key
+      });
     } else if (provider === 'gemini') {
       apiKey = process.env.GEMINI_API_KEY || config.gemini_api_key;
+      console.log('[Voice Agent Token] Gemini key check:', {
+        hasEnvKey: !!process.env.GEMINI_API_KEY,
+        hasDbKey: !!config.gemini_api_key
+      });
     }
 
     if (!apiKey) {
+      console.error('[Voice Agent Token] No API key found for provider:', provider);
       return NextResponse.json(
         {
           error: `${provider.toUpperCase()} API key not configured`,
           message: `Please add your ${provider.toUpperCase()} API key in Settings > AI Integrations or set ${provider.toUpperCase()}_API_KEY environment variable`,
-          provider
+          provider,
+          debug: {
+            provider,
+            hasEnvKey: provider === 'openai' ? !!process.env.OPENAI_API_KEY : !!process.env.GEMINI_API_KEY,
+            hasDbKey: provider === 'openai' ? !!config.openai_api_key : !!config.gemini_api_key
+          }
         },
         { status: 400 }
       );
     }
 
     // Get voice agent context
+    console.log('[Voice Agent Token] Fetching context from:', `${request.nextUrl.origin}/api/voice-agent/context`);
     const contextResponse = await fetch(`${request.nextUrl.origin}/api/voice-agent/context`, {
       method: 'GET',
       headers: {
@@ -79,11 +111,16 @@ export async function POST(request: NextRequest) {
       }
     });
 
+    console.log('[Voice Agent Token] Context response status:', contextResponse.status);
+
     let instructions = 'You are a helpful AI assistant for booking appointments and answering questions.';
 
     if (contextResponse.ok) {
       const contextData = await contextResponse.json();
       instructions = buildInstructions(contextData);
+      console.log('[Voice Agent Token] Instructions built, length:', instructions.length);
+    } else {
+      console.warn('[Voice Agent Token] Context fetch failed, using default instructions');
     }
 
     // Define function tools (same for both providers)
@@ -159,8 +196,11 @@ export async function POST(request: NextRequest) {
     ];
 
     // Handle provider-specific session creation
+    console.log('[Voice Agent Token] Creating session for provider:', provider);
+
     if (provider === 'openai') {
       // Create ephemeral token using OpenAI's realtime session endpoint
+      console.log('[Voice Agent Token] Calling OpenAI Realtime API...');
       const response = await fetch('https://api.openai.com/v1/realtime/sessions', {
         method: 'POST',
         headers: {
@@ -186,9 +226,11 @@ export async function POST(request: NextRequest) {
         })
       });
 
+      console.log('[Voice Agent Token] OpenAI response status:', response.status);
+
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('OpenAI Realtime API error:', errorData);
+        console.error('[Voice Agent Token] OpenAI Realtime API error:', errorData);
         return NextResponse.json(
           {
             error: 'Failed to create realtime session',
@@ -200,6 +242,7 @@ export async function POST(request: NextRequest) {
       }
 
       const data = await response.json();
+      console.log('[Voice Agent Token] OpenAI session created:', data.id);
 
       return NextResponse.json({
         provider: 'openai',
@@ -212,6 +255,7 @@ export async function POST(request: NextRequest) {
       });
 
     } else if (provider === 'gemini') {
+      console.log('[Voice Agent Token] Creating Gemini session...');
       // Gemini doesn't use ephemeral tokens - client connects directly with API key
       // We return WebSocket URL and setup configuration
       const wsUrl = await createGeminiLiveSession({
@@ -243,6 +287,8 @@ export async function POST(request: NextRequest) {
         }
       });
 
+      console.log('[Voice Agent Token] Gemini session created, returning credentials');
+
       return NextResponse.json({
         provider: 'gemini',
         ws_url: wsUrl,
@@ -254,6 +300,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Unsupported provider
+    console.error('[Voice Agent Token] Unsupported provider:', provider);
     return NextResponse.json(
       {
         error: `Unsupported provider: ${provider}`,
