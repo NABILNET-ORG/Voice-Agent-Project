@@ -152,14 +152,25 @@ export default function VoiceDemoPage() {
       }
     };
 
-    ws.onmessage = (event) => {
-      console.log("[Gemini] ⬇️ Message RECEIVED:", event.data);
+    ws.onmessage = async (event) => {
+      console.log("[Gemini] ⬇️ Message RECEIVED, type:", typeof event.data, event.data instanceof Blob ? `Blob(${event.data.size} bytes)` : 'String');
+
       try {
-        const message = JSON.parse(event.data);
+        let messageText = event.data;
+
+        // If it's a Blob, convert to text first
+        if (event.data instanceof Blob) {
+          console.log("[Gemini] Converting Blob to text...");
+          messageText = await event.data.text();
+          console.log("[Gemini] Blob converted, text:", messageText);
+        }
+
+        const message = JSON.parse(messageText);
         console.log("[Gemini] Parsed message:", message);
         handleGeminiMessage(message, ws);
       } catch (err) {
         console.error("[Gemini] ❌ Failed to parse message:", err);
+        console.error("[Gemini] Raw data:", event.data);
       }
     };
 
