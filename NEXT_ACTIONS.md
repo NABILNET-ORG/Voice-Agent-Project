@@ -1,112 +1,136 @@
 # Next Actions
 
-## Immediate (Do Now - Next Session)
+## Immediate (Do This Week - Sprint 1 Completion)
 
-### 1. ~~Add Gemini Live API for Voice Agent~~ ✅ COMPLETE
-**Status**: Fully implemented with dual-provider support
-**Completion Date**: November 16, 2025
+### 1. Complete Calendar Sync (1 hour)
+**Status**: 50% done (CREATE works, UPDATE/DELETE pending)
 
-**Delivered**:
-- ✅ Installed `@google/generative-ai` package
-- ✅ Created Gemini Live API client (`src/lib/gemini-live/client.ts`)
-- ✅ Updated `/api/voice-agent/token` to support both providers
-- ✅ Updated `/voice-demo` page with provider detection
-- ✅ Audio formats: 16kHz (Gemini) and 24kHz (OpenAI)
-- ✅ Function calling for booking operations
-- ✅ Comprehensive documentation (`GEMINI_LIVE_API.md`)
-- ✅ Build: 100% SUCCESS
+**Tasks:**
+- [ ] Add UPDATE calendar sync to `PATCH /api/bookings/[id]`
+- [ ] Add DELETE calendar sync to `DELETE /api/bookings/[id]`
+- [ ] Test: Update booking → calendar updates
+- [ ] Test: Delete booking → calendar event deleted
 
-**Cost Savings**: 94.7% cheaper with Gemini!
-
-### 2. ~~Phase 2/3 Architecture Implementation~~ ✅ COMPLETE
-**Status**: Fully implemented
-**Completion Date**: November 16, 2025
-
-**Delivered**:
-- ✅ Database migration for dual API keys
-- ✅ Dual API key support with fallback chain
-- ✅ Voice constants library (models, voices, personalities)
-- ✅ New `useVoiceAgent` hook (WebSocket, dual-provider)
-- ✅ Home page updated (WebSocket replaces WebRTC)
-- ✅ VoiceAgentConfig component in Settings
-- ✅ Provider-specific dropdowns
-- ✅ Cost comparison UI
-- ✅ Build: 100% SUCCESS
-
-**Architecture**:
-- Voice agent config in Settings → AI Assistant Configuration
-- Dual API keys per provider (general + voice)
-- Works on HOME PAGE (not separate /voice-demo)
-- Fully backward compatible
-
-### 3. ~~Database Migration~~ ✅ EXECUTED
-**Status**: Migration executed successfully via psycopg2
-**Completion Date**: November 16, 2025
-- 11 new columns created
-- Existing data migrated
-- Dual API key UI implemented in Integrations page
-
-### 4. Fix Minor Issues ⚠️ HIGH PRIORITY
-**Why**: Complete remaining 5% before production deployment
-**Effort**: 1 hour
-
-**Tasks**:
-1. Add TEXT to Gemini response_modalities (transcription fix)
-2. Update BusinessConfig TypeScript interface (save button fix)
-3. Test end-to-end conversation
-4. Verify dual API keys work
-
-### 5. Production Deployment
-**Prerequisites**: Voice agent working, migration run
-**Command**: `vercel --prod`
-**Note**: All code ready, database migration will auto-run
+**Files:** See `SPRINT_1_IMPLEMENTATION.md` for code snippets
 
 ---
 
-## Short Term (This Week)
+### 2. Implement Email Service (2 hours)
+**Status**: NOT STARTED
 
-### 4. Auto-Sync Bookings to Google Calendar
-- On booking create → create calendar event
-- On update → update event
-- On delete → delete event
-- Store google_calendar_event_id
-
-**Effort**: 3-4 hours
-
-### 5. Scheduled Reminder System
-- Cron job: Query bookings 24h before
-- Send email/SMS reminders
-- Mark reminder_sent = true
-
-**Effort**: 4-6 hours
+**Tasks:**
+- [ ] `npm install resend`
+- [ ] Create `src/lib/email-service.ts`
+- [ ] Create HTML email templates
+- [ ] Implement `/api/notifications/send` endpoint
+- [ ] Test email delivery
 
 ---
 
-## Medium Term (This Month)
+### 3. Implement SMS Service (1 hour)
+**Status**: NOT STARTED
 
-### 6. Stripe Payment Integration
-- Database columns exist (stripe_*)
-- Implement payment processing
-- Webhook handling
-- Deposit/upfront payments
-
-**Effort**: 12-15 hours
-
-### 7. Service Deduplication
-- Detect duplicates (name + price matching)
-- Merge entries, show "X duplicates removed"
-
-**Effort**: 2-3 hours
+**Tasks:**
+- [ ] `npm install twilio`
+- [ ] Create `src/lib/sms-service.ts`
+- [ ] Test SMS delivery
 
 ---
 
-**Priority**: Gemini Live API → Debug 404 → Deploy → Calendar auto-sync → Reminders
+### 4. Add Notification Triggers (2 hours)
+**Status**: NOT STARTED
 
-**Completed This Session**:
-✅ 22 new API endpoints (backend complete)
-✅ Voice Agent (OpenAI Realtime API)
-✅ Google Calendar integration
-✅ Notification system (Email + SMS)
-✅ Database-first security (API keys in DB)
-✅ TestSprite testing + 6 critical fixes
-✅ Build: 100% success, 43 pages, 33 endpoints
+**Tasks:**
+- [ ] Call notifications after booking created
+- [ ] Call notifications after booking updated
+- [ ] Call notifications after booking cancelled
+- [ ] Test end-to-end booking flow with notifications
+
+**Result:** Complete booking workflow (book → calendar → email/SMS)
+
+---
+
+## Short Term (Next Week - Sprint 2)
+
+### 5. Stripe Payment Integration (10 hours)
+**Why**: Revenue generation (critical blocker)
+
+**Tasks:**
+- [ ] `npm install stripe @stripe/stripe-js`
+- [ ] Create `/api/payments/create-intent` endpoint
+- [ ] Create `/api/payments/webhook` for Stripe events
+- [ ] Add payment UI to booking flow
+- [ ] Add `payment_status`, `payment_intent_id` columns to bookings
+- [ ] Test payment processing
+
+---
+
+## Medium Term (Week 3 - Sprint 3)
+
+### 6. Twilio Phone Integration (8 hours)
+**Why**: Production voice agent (currently web demo only)
+
+**Tasks:**
+- [ ] Buy Twilio phone number
+- [ ] Create `/api/voice-agent/twilio-webhook` endpoint
+- [ ] Implement call routing to OpenAI/Gemini
+- [ ] Test incoming calls end-to-end
+
+---
+
+### 7. Call Recording & Transcription (2 hours)
+**Tasks:**
+- [ ] Enable Twilio recording
+- [ ] Implement Whisper transcription
+- [ ] Store in call_logs table
+
+---
+
+## Long Term (Week 4 - Sprint 4-6)
+
+### 8. Server-Side Business Config API (2 hours)
+- [ ] Create `/api/business-config` GET/PATCH routes
+- [ ] Migrate Settings UI to use server routes
+
+### 9. Testing & Security (10 hours)
+- [ ] End-to-end testing
+- [ ] API key encryption
+- [ ] Rate limiting
+- [ ] Security audit
+
+### 10. Production Deployment (3 hours)
+- [ ] Environment setup
+- [ ] Deploy to Vercel
+- [ ] Set up monitoring (Sentry)
+
+---
+
+## Priority Order
+
+**This Week:**
+1. Complete Sprint 1 (Calendar + Notifications) → 75% ready
+2. Start Sprint 2 (Payments) → 80% ready
+
+**Next Week:**
+3. Complete Sprint 2 (Payments)
+4. Sprint 3 (Phone integration) → 90% ready
+
+**Week 3-4:**
+5. Testing, security, deployment → 100% ready
+
+**Target Production Date**: December 15, 2025
+
+---
+
+## Documentation Available
+
+- `AUDIT_REPORT_2025-11-16.md` - Complete system analysis
+- `SPRINT_1_IMPLEMENTATION.md` - Sprint 1 guide with code snippets
+- `GEMINI_LIVE_API.md` - Gemini integration docs
+- Session notes and handoff documents
+
+---
+
+**Last Updated**: November 16, 2025, 7:30 PM
+**Current Sprint**: Sprint 1 (40% complete)
+**Next Sprint**: Complete Sprint 1, then Sprint 2 (Payments)
