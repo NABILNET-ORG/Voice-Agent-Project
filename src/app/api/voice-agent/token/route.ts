@@ -365,11 +365,37 @@ export async function POST(request: NextRequest) {
  * Build instructions for the voice agent based on business context
  */
 function buildInstructions(context: any): string {
-  const businessInfo = context.businessInfo || {};
-  const services = context.services || {};
+  const aiConfig = context.aiConfig || {};
+  const businessInfo = context.business || {};
+  const services = context.services || [];
   const schedule = context.schedule || {};
 
-  let instructions = `You are a helpful and friendly assistant for ${businessInfo.business_name || 'our business'}. `;
+  // Use custom instructions from Settings if available
+  if (aiConfig.systemInstructions && aiConfig.systemInstructions.trim()) {
+    let instructions = aiConfig.systemInstructions + '\n\n';
+
+    // Add greeting template if available
+    if (aiConfig.greetingTemplate && aiConfig.greetingTemplate.trim()) {
+      instructions += `Greeting: ${aiConfig.greetingTemplate}\n\n`;
+    }
+
+    // Append available services
+    if (services.length > 0) {
+      instructions += `Available Services:\n`;
+      services.forEach((service: any) => {
+        const name = service.name_en || service.name || 'Unknown';
+        const price = service.price ? ` - $${service.price}` : '';
+        const duration = service.duration ? ` (${service.duration} min)` : '';
+        instructions += `- ${name}${price}${duration}\n`;
+      });
+      instructions += `\n`;
+    }
+
+    return instructions;
+  }
+
+  // Fallback to auto-generated instructions if no custom instructions
+  let instructions = `You are a helpful and friendly assistant for ${businessInfo.name || 'our business'}. `;
   instructions += `Speak naturally and conversationally, like you're having a real phone call with a customer.\n\n`;
 
   if (businessInfo.description) {
@@ -382,7 +408,6 @@ function buildInstructions(context: any): string {
   instructions += `- Use contractions (I'm, you're, we're, can't, don't)\n`;
   instructions += `- Avoid robotic or formal language\n`;
   instructions += `- Show empathy and enthusiasm\n`;
-  instructions += `- Use filler words occasionally (um, you know, like) to sound human\n`;
   instructions += `- Speak in a warm, friendly tone\n\n`;
 
   instructions += `Your job:\n`;

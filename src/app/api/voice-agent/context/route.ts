@@ -51,7 +51,19 @@ export async function GET(request: Request) {
 
     // Build comprehensive context for voice agent (ALL settings data)
     const context = {
-      business: {
+      businessInfo: {  // Changed from 'business' to 'businessInfo' to match buildInstructions
+        business_name: businessConfig.business_name,
+        business_type: businessConfig.business_type,
+        business_category: businessConfig.business_category,
+        description: businessConfig.business_description,
+        phone_number: businessConfig.phone_number,
+        address: businessConfig.address,
+        website: businessConfig.website,
+        primary_language: businessConfig.primary_language,
+        currency: businessConfig.currency,
+        timezone: businessConfig.timezone,
+      },
+      business: {  // Keep this for backward compatibility
         name: businessConfig.business_name,
         type: businessConfig.business_type,
         category: businessConfig.business_category,
