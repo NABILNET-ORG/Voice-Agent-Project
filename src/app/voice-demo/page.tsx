@@ -31,33 +31,48 @@ export default function VoiceDemoPage() {
 
   const connect = async () => {
     try {
+      console.log("[Connect] Starting connection...");
       setError(null);
       setStatus("Connecting...");
 
       // Get session credentials from backend
+      console.log("[Connect] Fetching session token...");
       const tokenResponse = await fetch("/api/voice-agent/token", {
         method: "POST",
       });
 
+      console.log("[Connect] Token response status:", tokenResponse.status);
+
       if (!tokenResponse.ok) {
         const errorData = await tokenResponse.json();
+        console.error("[Connect] Token request failed:", errorData);
         throw new Error(errorData.error || "Failed to get session token");
       }
 
       const sessionData = await tokenResponse.json();
+      console.log("[Connect] Session data received:", {
+        provider: sessionData.provider,
+        hasWsUrl: !!sessionData.ws_url,
+        hasClientSecret: !!sessionData.client_secret,
+        model: sessionData.model
+      });
+
       const detectedProvider: Provider = sessionData.provider;
       setProvider(detectedProvider);
 
       if (detectedProvider === 'openai') {
+        console.log("[Connect] Using OpenAI provider");
         await connectOpenAI(sessionData);
       } else if (detectedProvider === 'gemini') {
+        console.log("[Connect] Using Gemini provider");
         await connectGemini(sessionData);
       } else {
         throw new Error(`Unsupported provider: ${detectedProvider}`);
       }
 
     } catch (err: any) {
-      console.error("Connection error:", err);
+      console.error("[Connect] ❌ Connection error:", err);
+      console.error("[Connect] Error stack:", err.stack);
       setError(err.message);
       setStatus("Error");
       toast.error(err.message);
@@ -109,36 +124,72 @@ export default function VoiceDemoPage() {
   const connectGemini = async (sessionData: any) => {
     const { ws_url, setup_message } = sessionData;
 
+    console.log("[Gemini] Session data received:", {
+      hasWsUrl: !!ws_url,
+      hasSetupMessage: !!setup_message,
+      wsUrl: ws_url?.substring(0, 80) + "..."
+    });
+
     // Store setup message for later
     setupMessageRef.current = setup_message;
 
     // Connect to Gemini Live API via WebSocket
+    console.log("[Gemini] Creating WebSocket connection...");
     const ws = new WebSocket(ws_url);
 
     ws.onopen = () => {
-      console.log("Gemini WebSocket opened, sending setup...");
+      console.log("[Gemini] ✅ WebSocket OPENED successfully");
+      console.log("[Gemini] Sending setup message:", setup_message);
 
       // Send setup message
-      ws.send(JSON.stringify(setup_message));
+      try {
+        const setupString = JSON.stringify(setup_message);
+        console.log("[Gemini] Setup message size:", setupString.length, "bytes");
+        ws.send(setupString);
+        console.log("[Gemini] ✅ Setup message SENT");
+      } catch (err) {
+        console.error("[Gemini] ❌ Failed to send setup message:", err);
+      }
     };
 
     ws.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      handleGeminiMessage(message, ws);
+      console.log("[Gemini] ⬇️ Message RECEIVED:", event.data);
+      try {
+        const message = JSON.parse(event.data);
+        console.log("[Gemini] Parsed message:", message);
+        handleGeminiMessage(message, ws);
+      } catch (err) {
+        console.error("[Gemini] ❌ Failed to parse message:", err);
+      }
     };
 
     ws.onerror = (error) => {
-      console.error("WebSocket error:", error);
+      console.error("[Gemini] ❌ WebSocket ERROR:", error);
+      console.error("[Gemini] Error details:", {
+        type: error.type,
+        target: error.target,
+        currentTarget: error.currentTarget
+      });
       setError("Connection error occurred");
       setStatus("Error");
       toast.error("Connection error");
     };
 
-    ws.onclose = () => {
+    ws.onclose = (event) => {
+      console.log("[Gemini] ❌ WebSocket CLOSED:", {
+        code: event.code,
+        reason: event.reason,
+        wasClean: event.wasClean
+      });
       setIsConnected(false);
       setIsRecording(false);
       setStatus("Disconnected");
       stopAudioCapture();
+
+      // Show reason to user if available
+      if (event.reason) {
+        toast.error(`Disconnected: ${event.reason}`);
+      }
     };
 
     websocketRef.current = ws;
@@ -270,16 +321,26 @@ export default function VoiceDemoPage() {
   };
 
   const handleGeminiMessage = (message: any, ws: WebSocket) => {
-    console.log("Gemini message:", message);
+    console.log("[Gemini Handler] ⬇️ Received message type:", Object.keys(message));
+    console.log("[Gemini Handler] Full message:", message);
 
     // Setup complete
     if (message.setupComplete) {
+      console.log("[Gemini Handler] ✅ SETUP COMPLETE!");
       setIsConnected(true);
       setStatus("Connected (Gemini)");
       toast.success("Connected to Gemini voice agent (19x cheaper!)");
 
       // Start audio capture (16kHz for Gemini)
       startAudioCapture(16000, 'gemini');
+      return;
+    }
+
+    // Check for errors in setup
+    if (message.error) {
+      console.error("[Gemini Handler] ❌ ERROR in message:", message.error);
+      setError(message.error.message || JSON.stringify(message.error));
+      toast.error(message.error.message || "Gemini API error");
       return;
     }
 
