@@ -144,6 +144,12 @@ export function useVoiceAgent() {
         }
         const message = JSON.parse(messageText);
         console.log("[VoiceAgent] Parsed Gemini message:", message);
+
+        // Log errors in detail
+        if (message.error) {
+          console.error("[VoiceAgent] Gemini error details:", JSON.stringify(message.error, null, 2));
+        }
+
         handleGeminiMessage(message, ws);
       } catch (err) {
         console.error("[VoiceAgent] Failed to parse Gemini message:", err);
@@ -156,7 +162,11 @@ export function useVoiceAgent() {
     };
 
     ws.onclose = (event) => {
-      console.log("[VoiceAgent] Gemini disconnected:", event.code, event.reason);
+      console.error("[VoiceAgent] Gemini disconnected:", {
+        code: event.code,
+        reason: event.reason,
+        wasClean: event.wasClean
+      });
       setIsConnected(false);
       setStatus('ready');
       stopAudioCapture();
