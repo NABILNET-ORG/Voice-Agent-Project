@@ -247,9 +247,14 @@ export async function POST(request: Request) {
             {
               summary: eventTitle,
               description: `Booking ID: ${booking.id}${notes ? `\n\nNotes: ${notes}` : ''}`,
-              start_time: startDateTime,
-              end_time: endTime.toISOString().split('.')[0],
-              timezone: fullConfig.timezone || 'UTC',
+              start: {
+                dateTime: startDateTime,
+                timeZone: fullConfig.timezone || 'UTC'
+              },
+              end: {
+                dateTime: endTime.toISOString().split('.')[0],
+                timeZone: fullConfig.timezone || 'UTC'
+              },
               attendees: customer_email ? [{
                 email: customer_email,
                 displayName: customer_name
@@ -257,8 +262,8 @@ export async function POST(request: Request) {
             }
           );
 
-          calendarEventId = calendarEvent.event_id;
-          calendarEventLink = calendarEvent.event_link;
+          calendarEventId = calendarEvent.id || null;
+          calendarEventLink = calendarEvent.htmlLink || null;
 
           // Update booking with calendar event ID
           await supabase

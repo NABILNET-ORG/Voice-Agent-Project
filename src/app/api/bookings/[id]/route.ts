@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { updateCalendarEvent, deleteCalendarEvent } from '@/lib/google-calendar/client';
 
 /**
  * GET /api/bookings/[id]
@@ -184,6 +185,59 @@ export async function PATCH(
       );
     }
 
+    // Sync to Google Calendar if date/time/duration changed and has calendar event
+    if ((updateData.date || updateData.time || updateData.duration_minutes) && data.google_calendar_event_id) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("google_calendar_access_token, google_calendar_refresh_token")
+        .eq("id", user.id)
+        .single();
+
+      const { data: config } = await supabase
+        .from("business_config")
+        .select("google_calendar_id, timezone, calendar_event_title_template")
+        .eq("user_id", user.id)
+        .single();
+
+      if (profile?.google_calendar_access_token) {
+        try {
+          // Calculate start and end times
+          const startDateTime = `${data.date}T${data.time}:00`;
+          const startTime = new Date(startDateTime);
+          const endTime = new Date(startTime.getTime() + data.duration_minutes * 60000);
+
+          // Format event title using template or default
+          const eventTitle = config?.calendar_event_title_template
+            ?.replace('{service}', data.service_or_item)
+            ?.replace('{customer_name}', data.customer_name)
+            || `${data.service_or_item} - ${data.customer_name}`;
+
+          await updateCalendarEvent(
+            profile.google_calendar_access_token,
+            profile.google_calendar_refresh_token,
+            config?.google_calendar_id || 'primary',
+            data.google_calendar_event_id,
+            {
+              summary: eventTitle,
+              description: `Booking ID: ${data.id}${data.notes ? `\n\nNotes: ${data.notes}` : ''}`,
+              start: {
+                dateTime: startDateTime,
+                timeZone: config?.timezone || 'UTC'
+              },
+              end: {
+                dateTime: endTime.toISOString().split('.')[0],
+                timeZone: config?.timezone || 'UTC'
+              }
+            }
+          );
+          console.log('[Update Booking] Calendar event updated:', data.google_calendar_event_id);
+        } catch (calendarError) {
+          console.error('[Update Booking] Calendar sync failed:', calendarError);
+          // Continue with booking update even if calendar sync fails
+        }
+      }
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Booking updated successfully',
@@ -240,10 +294,35 @@ export async function DELETE(
       );
     }
 
-    // TODO: If Google Calendar integration is active, delete the calendar event
-    // if (booking.google_calendar_event_id) {
-    //   await deleteGoogleCalendarEvent(booking.google_calendar_event_id);
-    // }
+    // Delete from Google Calendar if it exists
+    if (booking.google_calendar_event_id) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("google_calendar_access_token, google_calendar_refresh_token")
+        .eq("id", user.id)
+        .single();
+
+      const { data: config } = await supabase
+        .from("business_config")
+        .select("google_calendar_id")
+        .eq("user_id", user.id)
+        .single();
+
+      if (profile?.google_calendar_access_token) {
+        try {
+          await deleteCalendarEvent(
+            profile.google_calendar_access_token,
+            profile.google_calendar_refresh_token,
+            config?.google_calendar_id || 'primary',
+            booking.google_calendar_event_id
+          );
+          console.log('[Delete Booking] Calendar event deleted:', booking.google_calendar_event_id);
+        } catch (calendarError) {
+          console.error('[Delete Booking] Calendar deletion failed:', calendarError);
+          // Continue with booking deletion even if calendar fails
+        }
+      }
+    }
 
     const { error } = await supabase
       .from('bookings')
