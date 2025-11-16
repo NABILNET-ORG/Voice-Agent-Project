@@ -296,6 +296,29 @@ export function useVoiceAgent() {
         console.log("[VoiceAgent] OpenAI session ready");
         break;
 
+      case "input_audio_buffer.speech_started":
+        // User started speaking - if AI is responding, cancel it (interruption)
+        if (isRespondingRef.current && websocketRef.current?.readyState === WebSocket.OPEN) {
+          console.log("[VoiceAgent] User interrupted AI, canceling response");
+          websocketRef.current.send(JSON.stringify({
+            type: "response.cancel"
+          }));
+          isRespondingRef.current = false;
+          setStatus('listening');
+
+          // Clear audio queue to stop playing
+          audioQueueRef.current.forEach(source => {
+            try {
+              source.stop();
+            } catch (e) {
+              // Already stopped
+            }
+          });
+          audioQueueRef.current = [];
+          nextPlayTimeRef.current = 0;
+        }
+        break;
+
       case "input_audio_buffer.speech_stopped":
         // Speech stopped - don't manually trigger, Server VAD handles it automatically
         console.log("[VoiceAgent] Speech stopped detected (Server VAD will auto-respond)");
