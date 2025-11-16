@@ -89,7 +89,7 @@ export function useVoiceAgent() {
     const authenticatedUrl = `${ws_url}?model=${sessionData.model}`;
     const ws = new WebSocket(authenticatedUrl, [
       'realtime',
-      `openai-insecure-api-key.${client_secret.value}`,
+      `openai-insecure-api-key.${client_secret}`,
       'openai-beta.realtime-v1'
     ]);
 
@@ -128,7 +128,9 @@ export function useVoiceAgent() {
 
     ws.onopen = () => {
       console.log("[VoiceAgent] Gemini WebSocket opened, sending setup...");
-      ws.send(JSON.stringify(setup_message));
+      const setupPayload = JSON.stringify(setup_message);
+      console.log("[VoiceAgent] Setup message being sent:", setupPayload.substring(0, 500));
+      ws.send(setupPayload);
     };
 
     ws.onmessage = async (event) => {
