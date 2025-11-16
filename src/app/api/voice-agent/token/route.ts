@@ -247,9 +247,9 @@ export async function POST(request: NextRequest) {
           },
           turn_detection: {
             type: 'server_vad',
-            threshold: 0.5,
+            threshold: 0.6,           // Higher threshold = less sensitive (was 0.5)
             prefix_padding_ms: 300,
-            silence_duration_ms: 200
+            silence_duration_ms: 700  // Wait 700ms of silence before responding (was 200ms)
           },
           tools
         })
