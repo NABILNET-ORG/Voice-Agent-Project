@@ -607,6 +607,18 @@ export function useVoiceAgent() {
       const result = await response.json();
       console.log("[VoiceAgent] Function result:", result);
 
+      // Check if function execution had an error
+      let functionOutput;
+      if (result.error) {
+        console.error("[VoiceAgent] Function execution failed:", result.error);
+        functionOutput = JSON.stringify({
+          error: result.error,
+          message: "I couldn't complete that action. Could you please provide the specific date and time you'd like to check? For example, 'November 17, 2025 at 2:00 PM'."
+        });
+      } else {
+        functionOutput = JSON.stringify(result.result || result);
+      }
+
       // Send function output back to OpenAI using conversation.item.create
       if (websocketRef.current?.readyState === WebSocket.OPEN) {
         websocketRef.current.send(JSON.stringify({
@@ -614,7 +626,7 @@ export function useVoiceAgent() {
           item: {
             type: "function_call_output",
             call_id: callId,
-            output: JSON.stringify(result.result || result)
+            output: functionOutput
           }
         }));
 
@@ -627,7 +639,27 @@ export function useVoiceAgent() {
       setStatus('listening');
     } catch (error: any) {
       console.error("[VoiceAgent] Function execution error:", error);
-      toast.error(`Function execution failed: ${error.message}`);
+
+      // Send error to AI so it can inform the user
+      if (websocketRef.current?.readyState === WebSocket.OPEN) {
+        websocketRef.current.send(JSON.stringify({
+          type: "conversation.item.create",
+          item: {
+            type: "function_call_output",
+            call_id: callId,
+            output: JSON.stringify({
+              error: error.message,
+              message: "I encountered an error. Please try again or rephrase your request."
+            })
+          }
+        }));
+
+        websocketRef.current.send(JSON.stringify({
+          type: "response.create"
+        }));
+      }
+
+      toast.error(`Function failed: ${error.message}`);
     }
   };
 
