@@ -1,7 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { sendEmail, bookingConfirmationEmail, bookingReminderEmail, bookingCancellationEmail } from '@/lib/notifications/email';
-import { sendSMS, bookingConfirmationSMS, bookingReminderSMS, bookingCancellationSMS } from '@/lib/notifications/sms';
+import {
+  sendEmail,
+  renderBookingConfirmation,
+  renderBookingUpdate,
+  renderBookingCancellation,
+  type BookingEmailData
+} from '@/lib/email-service';
+import {
+  sendSMS,
+  renderBookingConfirmationSMS,
+  renderBookingUpdateSMS,
+  renderBookingCancellationSMS,
+  type BookingSMSData
+} from '@/lib/sms-service';
 
 /**
  * POST /api/notifications/send
@@ -21,7 +33,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { booking_id, type, channels } = body;
+    const { booking_id, type, channel } = body;
 
     if (!booking_id || !type) {
       return NextResponse.json(
@@ -45,150 +57,117 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get business info and API keys from database
-    const { data: businessInfo } = await supabase
+    // Get business config for API keys
+    const { data: config } = await supabase
       .from('business_config')
-      .select('business_name, phone_number, address, customer_notification_email, customer_notification_sms, resend_api_key, twilio_account_sid, twilio_auth_token, twilio_phone_number')
+      .select('resend_api_key, twilio_account_sid, twilio_auth_token, twilio_phone_number, customer_notification_email, customer_notification_sms')
       .eq('user_id', user.id)
       .single();
 
-    const results: any = {
-      email: null,
-      sms: null,
-    };
+    const results: any[] = [];
 
-    const errors: any = {};
+    // Send email if enabled
+    if ((channel === 'email' || channel === 'both') && config?.customer_notification_email) {
+      if (config.resend_api_key && booking.customer_email) {
+        try {
+          let emailHtml: string;
+          let emailSubject: string;
 
-    // Determine which channels to use
-    const sendEmail_flag = channels?.includes('email') || businessInfo?.customer_notification_email;
-    const sendSMS_flag = channels?.includes('sms') || businessInfo?.customer_notification_sms;
+          switch (type) {
+            case 'confirmation':
+              emailHtml = renderBookingConfirmation(booking as BookingEmailData);
+              emailSubject = 'Booking Confirmation';
+              break;
+            case 'update':
+              emailHtml = renderBookingUpdate(booking as BookingEmailData);
+              emailSubject = 'Booking Updated';
+              break;
+            case 'cancellation':
+              emailHtml = renderBookingCancellation(booking as BookingEmailData, booking.cancellation_reason);
+              emailSubject = 'Booking Cancelled';
+              break;
+            default:
+              throw new Error(`Unknown notification type: ${type}`);
+          }
 
-    // Send Email Notification
-    if (sendEmail_flag && booking.customer_email) {
-      try {
-        let emailContent;
+          const emailResult = await sendEmail(config.resend_api_key, {
+            to: booking.customer_email,
+            subject: emailSubject,
+            html: emailHtml
+          });
 
-        switch (type) {
-          case 'confirmation':
-            emailContent = bookingConfirmationEmail(booking, businessInfo);
-            break;
-          case 'reminder':
-            emailContent = bookingReminderEmail(booking, businessInfo);
-            break;
-          case 'cancellation':
-            emailContent = bookingCancellationEmail(booking, businessInfo);
-            break;
-          default:
-            throw new Error(`Unknown notification type: ${type}`);
+          results.push({ channel: 'email', status: 'sent', id: emailResult.data?.id });
+
+          console.log(`[Notification] Email sent to ${booking.customer_email}`);
+        } catch (error: any) {
+          console.error('[Notification] Email failed:', error);
+          results.push({ channel: 'email', status: 'failed', error: error.message });
         }
-
-        const emailResult = await sendEmail({
-          to: booking.customer_email,
-          ...emailContent,
-          resendApiKey: businessInfo?.resend_api_key,
+      } else {
+        results.push({
+          channel: 'email',
+          status: 'skipped',
+          reason: !config.resend_api_key ? 'Resend API key not configured' : 'No customer email'
         });
-
-        results.email = {
-          status: 'sent',
-          to: booking.customer_email,
-          result: emailResult,
-        };
-
-        // Update booking confirmation_sent flag
-        if (type === 'confirmation') {
-          await supabase
-            .from('bookings')
-            .update({ confirmation_sent: true })
-            .eq('id', booking_id);
-        }
-
-        // Update reminder_sent flag
-        if (type === 'reminder') {
-          await supabase
-            .from('bookings')
-            .update({ reminder_sent: true })
-            .eq('id', booking_id);
-        }
-
-      } catch (emailError: any) {
-        console.error('Email sending error:', emailError);
-        errors.email = emailError.message;
-        results.email = {
-          status: 'failed',
-          error: emailError.message,
-        };
       }
     }
 
-    // Send SMS Notification
-    if (sendSMS_flag && booking.customer_phone) {
-      try {
-        let smsContent;
+    // Send SMS if enabled
+    if ((channel === 'sms' || channel === 'both') && config?.customer_notification_sms) {
+      if (config.twilio_account_sid && config.twilio_auth_token && config.twilio_phone_number && booking.customer_phone) {
+        try {
+          let smsMessage: string;
 
-        switch (type) {
-          case 'confirmation':
-            smsContent = bookingConfirmationSMS(booking, businessInfo?.business_name || 'Business');
-            break;
-          case 'reminder':
-            smsContent = bookingReminderSMS(booking, businessInfo?.business_name || 'Business');
-            break;
-          case 'cancellation':
-            smsContent = bookingCancellationSMS(booking, businessInfo?.business_name || 'Business');
-            break;
-          default:
-            throw new Error(`Unknown notification type: ${type}`);
+          switch (type) {
+            case 'confirmation':
+              smsMessage = renderBookingConfirmationSMS(booking as BookingSMSData);
+              break;
+            case 'update':
+              smsMessage = renderBookingUpdateSMS(booking as BookingSMSData);
+              break;
+            case 'cancellation':
+              smsMessage = renderBookingCancellationSMS(booking as BookingSMSData, booking.cancellation_reason);
+              break;
+            default:
+              throw new Error(`Unknown notification type: ${type}`);
+          }
+
+          const smsResult = await sendSMS(
+            config.twilio_account_sid,
+            config.twilio_auth_token,
+            config.twilio_phone_number,
+            {
+              to: booking.customer_phone,
+              message: smsMessage
+            }
+          );
+
+          results.push({ channel: 'sms', status: 'sent', sid: smsResult.sid });
+
+          console.log(`[Notification] SMS sent to ${booking.customer_phone}`);
+        } catch (error: any) {
+          console.error('[Notification] SMS failed:', error);
+          results.push({ channel: 'sms', status: 'failed', error: error.message });
         }
-
-        const smsResult = await sendSMS({
-          to: booking.customer_phone,
-          ...smsContent,
-          twilioConfig: businessInfo?.twilio_account_sid ? {
-            account_sid: businessInfo.twilio_account_sid,
-            auth_token: businessInfo.twilio_auth_token,
-            phone_number: businessInfo.twilio_phone_number
-          } : undefined,
+      } else {
+        results.push({
+          channel: 'sms',
+          status: 'skipped',
+          reason: !config.twilio_account_sid ? 'Twilio not configured' : 'No customer phone'
         });
-
-        results.sms = {
-          status: 'sent',
-          to: booking.customer_phone,
-          result: smsResult,
-        };
-
-      } catch (smsError: any) {
-        console.error('SMS sending error:', smsError);
-        errors.sms = smsError.message;
-        results.sms = {
-          status: 'failed',
-          error: smsError.message,
-        };
       }
-    }
-
-    // Check if any notifications were sent
-    const sentCount = Object.values(results).filter((r: any) => r?.status === 'sent').length;
-
-    if (sentCount === 0) {
-      return NextResponse.json(
-        {
-          error: 'No notifications sent',
-          details: 'Either no channels were configured or all attempts failed',
-          errors,
-        },
-        { status: 500 }
-      );
     }
 
     return NextResponse.json({
-      message: `Sent ${sentCount} notification(s)`,
+      success: true,
       results,
-      errors: Object.keys(errors).length > 0 ? errors : undefined,
+      message: `Notifications processed for booking ${booking_id}`
     });
 
   } catch (error: any) {
-    console.error('Notification send error:', error);
+    console.error('[Notification API] Error:', error);
     return NextResponse.json(
-      { error: 'Failed to send notifications', details: error.message },
+      { error: 'Internal server error', details: error.message },
       { status: 500 }
     );
   }

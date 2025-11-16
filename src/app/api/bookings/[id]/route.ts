@@ -238,6 +238,36 @@ export async function PATCH(
       }
     }
 
+    // Send update notifications if status changed or date/time changed
+    const shouldNotify = updateData.status === 'cancelled' || updateData.date || updateData.time;
+    if (shouldNotify) {
+      try {
+        const baseUrl = request.url.split('/api')[0];
+        const notificationType = updateData.status === 'cancelled' ? 'cancellation' : 'update';
+
+        const notificationResponse = await fetch(`${baseUrl}/api/notifications/send`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Cookie': request.headers.get('cookie') || ''
+          },
+          body: JSON.stringify({
+            booking_id: data.id,
+            channel: 'both',
+            type: notificationType
+          })
+        });
+
+        if (notificationResponse.ok) {
+          const notificationResult = await notificationResponse.json();
+          console.log('[Update Booking] Notifications sent:', notificationResult);
+        }
+      } catch (notificationError) {
+        console.error('[Update Booking] Notification failed:', notificationError);
+        // Don't fail update if notification fails
+      }
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Booking updated successfully',

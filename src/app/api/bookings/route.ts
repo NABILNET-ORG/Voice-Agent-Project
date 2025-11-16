@@ -279,6 +279,33 @@ export async function POST(request: Request) {
       }
     }
 
+    // Send confirmation notifications (email/SMS)
+    if (booking && fullConfig) {
+      try {
+        const baseUrl = request.url.split('/api')[0];
+        const notificationResponse = await fetch(`${baseUrl}/api/notifications/send`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Cookie': request.headers.get('cookie') || ''
+          },
+          body: JSON.stringify({
+            booking_id: booking.id,
+            channel: 'both',
+            type: 'confirmation'
+          })
+        });
+
+        if (notificationResponse.ok) {
+          const notificationResult = await notificationResponse.json();
+          console.log('[Booking] Notifications sent:', notificationResult);
+        }
+      } catch (notificationError) {
+        console.error('[Booking] Notification failed:', notificationError);
+        // Don't fail booking if notification fails
+      }
+    }
+
     return NextResponse.json({
       success: true,
       booking: {
