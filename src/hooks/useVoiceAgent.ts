@@ -280,7 +280,24 @@ export function useVoiceAgent() {
   };
 
   const handleOpenAIMessage = (message: any) => {
+    console.log("[VoiceAgent] OpenAI message type:", message.type);
+
     switch (message.type) {
+      case "session.created":
+      case "session.updated":
+        console.log("[VoiceAgent] OpenAI session ready");
+        break;
+
+      case "input_audio_buffer.speech_stopped":
+        // User stopped speaking - trigger AI response
+        console.log("[VoiceAgent] Speech stopped, triggering response");
+        if (websocketRef.current?.readyState === WebSocket.OPEN) {
+          websocketRef.current.send(JSON.stringify({
+            type: "response.create"
+          }));
+        }
+        break;
+
       case "conversation.item.created":
         if (message.item.type === "message") {
           const content = message.item.content?.[0];
@@ -290,8 +307,19 @@ export function useVoiceAgent() {
         }
         break;
 
+      case "response.audio.delta":
+        // Play audio chunk from OpenAI
+        if (message.delta) {
+          console.log("[VoiceAgent] Playing OpenAI audio chunk");
+          playOpenAIAudio(message.delta);
+        }
+        break;
+
+      case "response.audio_transcript.delta":
       case "response.audio_transcript.done":
-        addMessage('assistant', message.transcript);
+        if (message.transcript) {
+          addMessage('assistant', message.transcript);
+        }
         break;
 
       case "response.function_call_arguments.done":
@@ -304,6 +332,64 @@ export function useVoiceAgent() {
         setError(message.error.message);
         toast.error(message.error.message);
         break;
+
+      default:
+        // Log unknown message types for debugging
+        if (!['input_audio_buffer.speech_started', 'input_audio_buffer.speech_stopped',
+              'input_audio_buffer.committed', 'response.created', 'response.done',
+              'response.output_item.added', 'response.output_item.done',
+              'response.content_part.added', 'response.content_part.done',
+              'rate_limits.updated'].includes(message.type)) {
+          console.log("[VoiceAgent] Unknown OpenAI message type:", message.type);
+        }
+    }
+  };
+
+  const playOpenAIAudio = (base64Audio: string) => {
+    try {
+      // Same buffering logic as Gemini
+      const binaryString = atob(base64Audio);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+
+      const pcm16 = new Int16Array(bytes.buffer);
+      const float32 = new Float32Array(pcm16.length);
+      for (let i = 0; i < pcm16.length; i++) {
+        float32[i] = pcm16[i] / (pcm16[i] < 0 ? 0x8000 : 0x7fff);
+      }
+
+      if (!audioContextRef.current) {
+        audioContextRef.current = new AudioContext({ sampleRate: 24000 });
+      }
+
+      const audioContext = audioContextRef.current;
+      const audioBuffer = audioContext.createBuffer(1, float32.length, 24000);
+      audioBuffer.getChannelData(0).set(float32);
+
+      const source = audioContext.createBufferSource();
+      source.buffer = audioBuffer;
+      source.connect(audioContext.destination);
+
+      const currentTime = audioContext.currentTime;
+      if (nextPlayTimeRef.current < currentTime) {
+        nextPlayTimeRef.current = currentTime;
+      }
+
+      source.start(nextPlayTimeRef.current);
+      nextPlayTimeRef.current += audioBuffer.duration;
+
+      source.onended = () => {
+        const index = audioQueueRef.current.indexOf(source);
+        if (index > -1) {
+          audioQueueRef.current.splice(index, 1);
+        }
+      };
+
+      audioQueueRef.current.push(source);
+    } catch (err) {
+      console.error("[VoiceAgent] Error playing OpenAI audio:", err);
     }
   };
 
