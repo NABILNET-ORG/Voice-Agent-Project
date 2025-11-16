@@ -1,17 +1,17 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Mic, MicOff, Phone, AlertCircle, Volume2, Calendar, Download } from "lucide-react";
+import { Mic, MicOff, Phone, AlertCircle, Volume2, Calendar, Download, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
-import { useRealtimeAPI } from "@/hooks/useRealtimeAPI";
+import { useVoiceAgent } from "@/hooks/useVoiceAgent";
 
 export default function LiveDemo() {
-  const { status, transcript, error, connect, disconnect, isConnected } = useRealtimeAPI();
+  const { status, transcript, error, connect, disconnect, isConnected, provider } = useVoiceAgent();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [volume, setVolume] = useState([80]);
   const [availableSlots, setAvailableSlots] = useState<Array<{time: string; available: boolean}>>([]);
@@ -93,8 +93,21 @@ export default function LiveDemo() {
       <div className="flex-1 space-y-6 p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-white">AI Business Assistant Demo</h1>
-            <p className="text-gray-400 mt-2">Experience the power of AI-powered booking and customer service</p>
+            <h1 className="text-3xl font-bold text-white flex items-center gap-3">
+              AI Business Assistant Demo
+              {provider && (
+                <Badge variant="outline" className="text-sm font-normal">
+                  {provider === 'gemini' && <Sparkles className="h-3 w-3 mr-1 inline" />}
+                  {provider === 'openai' ? 'OpenAI ($0.30/min)' : 'Gemini ($0.016/min - 19x cheaper!)'}
+                </Badge>
+              )}
+            </h1>
+            <p className="text-gray-400 mt-2">
+              Experience the power of AI-powered booking and customer service
+              {provider === 'gemini' && (
+                <span className="text-green-400 ml-2 font-medium">• Saving 94.7% with Gemini!</span>
+              )}
+            </p>
           </div>
           <Badge className={getStatusColor()}>
             {getStatusText()}

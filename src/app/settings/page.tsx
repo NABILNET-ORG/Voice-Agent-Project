@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { businessConfigApi, type BusinessConfig as DBBusinessConfig } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { KnowledgeBaseManager } from "@/components/KnowledgeBaseManager";
+import { VoiceAgentConfig } from "@/components/VoiceAgentConfig";
 import { Save, RotateCcw, TestTube, Upload, Download, Plus, Trash2, Check, X, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -124,6 +125,7 @@ const voicePersonalities = [
 
 export default function BusinessSettings() {
   const { user } = useAuth();
+  const [rawDbConfig, setRawDbConfig] = useState<DBBusinessConfig | null>(null);
   const [config, setConfig] = useState<BusinessConfig>({
     businessName: "My Business",
     businessType: "salon",
@@ -202,6 +204,9 @@ export default function BusinessSettings() {
       if (!id) return;
 
       const dbConfig = await businessConfigApi.get(id);
+
+      // Store raw DB config for VoiceAgentConfig component
+      setRawDbConfig(dbConfig);
 
       // Map database config to local config
       setConfig({
@@ -1184,81 +1189,22 @@ export default function BusinessSettings() {
 
         {/* Tab 4: AI Assistant Configuration */}
         <TabsContent value="ai-config">
+          {/* Voice Agent Configuration - NEW DEDICATED COMPONENT */}
+          <div className="mb-6">
+            <VoiceAgentConfig
+              businessConfig={rawDbConfig}
+              onSave={() => {
+                // Refresh config after save
+                fetchBusinessConfig();
+              }}
+            />
+          </div>
+
           <Card className="bg-[#1A1A1A] border-gray-800">
             <CardHeader>
-              <CardTitle className="text-white">AI Assistant Configuration</CardTitle>
+              <CardTitle className="text-white">General AI Configuration</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* AI Model Selection */}
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-4">AI Model Provider</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-gray-300">Provider</Label>
-                    <Select defaultValue="openai">
-                      <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-[#1A1A1A] border-gray-700">
-                        <SelectItem value="openai">OpenAI</SelectItem>
-                        <SelectItem value="gemini">Google Gemini</SelectItem>
-                        <SelectItem value="openrouter">OpenRouter</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-gray-300">Model</Label>
-                    <Select defaultValue="gpt-4o-realtime">
-                      <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-[#1A1A1A] border-gray-700">
-                        <SelectItem value="gpt-4o-realtime">GPT-4o Realtime</SelectItem>
-                        <SelectItem value="gemini-2.0-flash">Gemini 2.0 Flash (Coming Soon)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <p className="text-gray-500 text-sm mt-2">
-                  Note: Currently only OpenAI Realtime API is supported. Gemini and OpenRouter support coming soon.
-                </p>
-              </div>
-
-              <Separator className="bg-gray-800" />
-
-              {/* Voice & Personality */}
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-4">Voice & Personality</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="aiVoice" className="text-gray-300">AI Voice</Label>
-                    <Select value={config.aiVoice} onValueChange={(value) => setConfig(prev => ({ ...prev, aiVoice: value }))}>
-                      <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-[#1A1A1A] border-gray-700">
-                        {aiVoices.map(voice => (
-                          <SelectItem key={voice.value} value={voice.value}>{voice.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="aiVoicePersonality" className="text-gray-300">Voice Personality</Label>
-                    <Select value={config.aiVoicePersonality} onValueChange={(value) => setConfig(prev => ({ ...prev, aiVoicePersonality: value }))}>
-                      <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-[#1A1A1A] border-gray-700">
-                        {voicePersonalities.map(personality => (
-                          <SelectItem key={personality.value} value={personality.value}>{personality.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
               
               <Separator className="bg-gray-800" />
               
