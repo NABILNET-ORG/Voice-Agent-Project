@@ -139,6 +139,26 @@
 - Solution: Add key via Settings → Integrations UI
 - All debugging tools in place for production troubleshooting
 
-**Root Cause Found**: Voice agent returns 400/404 because `business_config.gemini_api_key` is NULL and `GEMINI_API_KEY` env var is not set.
+**Root Causes Found & Fixed**:
+1. ✅ Database column names (`openai_model_provider` → `ai_model_provider`)
+2. ✅ Model name (`gemini-2.0-flash-live-001` → `gemini-2.0-flash-exp`)
+3. ✅ Voice incompatibility (`alloy` → `Puck` for Gemini)
+4. ✅ Blob parsing (WebSocket Blob → text → JSON)
+5. ✅ API key quota (user added paid key)
 
-**Next Session**: Add Gemini API key via Settings UI, test voice agent end-to-end, deploy to production
+### 10. Gemini Voice Agent FULLY WORKING ✅ COMPLETE
+- WebSocket connection successful on `/voice-demo`
+- Setup complete, microphone active
+- Bidirectional audio streaming (16kHz in, 24kHz out)
+- Receiving PCM audio from Gemini
+- Cost: $0.016/min (94.7% cheaper than OpenAI!)
+- All 5 critical bugs fixed
+
+### 11. Phase 2/3 Architecture Plan ✅ READY
+- Database migration created (`20251116_voice_agent_architecture.sql`)
+- Dual API keys per provider (general + voice)
+- Voice agent config moves to AI Assistant Configuration tab
+- Implementation plan documented (`PHASE2_3_IMPLEMENTATION_PLAN.md`)
+- Estimated time: 5-6 hours
+
+**Next Session**: Implement Phase 2/3 architecture (dual API keys, voice config UI, consolidate to home page)
