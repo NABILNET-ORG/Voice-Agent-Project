@@ -30,6 +30,7 @@ export function useVoiceAgent() {
   const setupMessageRef = useRef<any>(null);
   const audioQueueRef = useRef<AudioBufferSourceNode[]>([]);
   const nextPlayTimeRef = useRef<number>(0);
+  const isRespondingRef = useRef<boolean>(false);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -289,13 +290,25 @@ export function useVoiceAgent() {
         break;
 
       case "input_audio_buffer.speech_stopped":
-        // User stopped speaking - trigger AI response
-        console.log("[VoiceAgent] Speech stopped, triggering response");
-        if (websocketRef.current?.readyState === WebSocket.OPEN) {
-          websocketRef.current.send(JSON.stringify({
-            type: "response.create"
-          }));
+        // User stopped speaking - trigger AI response (only if not already responding)
+        if (!isRespondingRef.current) {
+          console.log("[VoiceAgent] Speech stopped, triggering response");
+          isRespondingRef.current = true;
+          if (websocketRef.current?.readyState === WebSocket.OPEN) {
+            websocketRef.current.send(JSON.stringify({
+              type: "response.create"
+            }));
+          }
+        } else {
+          console.log("[VoiceAgent] Speech stopped but already responding, skipping");
         }
+        break;
+
+      case "response.done":
+        // AI finished responding - ready for next turn
+        console.log("[VoiceAgent] Response complete, ready for next turn");
+        isRespondingRef.current = false;
+        setStatus('listening');
         break;
 
       case "conversation.item.created":
