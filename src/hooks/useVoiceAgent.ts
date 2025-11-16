@@ -317,11 +317,19 @@ export function useVoiceAgent() {
     if (message.serverContent) {
       const content = message.serverContent;
 
-      // Extract text transcript
+      // Extract and play audio + text transcript
       if (content.modelTurn) {
         const parts = content.modelTurn.parts || [];
         console.log("[VoiceAgent] modelTurn parts:", parts.length, "parts");
 
+        // Extract and play audio
+        const audioPart = parts.find((p: any) => p.inlineData?.mimeType?.startsWith('audio/pcm'));
+        if (audioPart) {
+          console.log("[VoiceAgent] Playing audio chunk");
+          playGeminiAudio(audioPart.inlineData.data);
+        }
+
+        // Extract text transcript
         const textPart = parts.find((p: any) => p.text);
         if (textPart) {
           console.log("[VoiceAgent] Found text transcript:", textPart.text);
@@ -339,6 +347,39 @@ export function useVoiceAgent() {
           executeFunctionCall(call, ws);
         });
       }
+    }
+  };
+
+  const playGeminiAudio = (base64Audio: string) => {
+    try {
+      // Decode base64 to ArrayBuffer
+      const binaryString = atob(base64Audio);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+
+      // Convert PCM16 to Float32 for Web Audio API
+      const pcm16 = new Int16Array(bytes.buffer);
+      const float32 = new Float32Array(pcm16.length);
+      for (let i = 0; i < pcm16.length; i++) {
+        float32[i] = pcm16[i] / (pcm16[i] < 0 ? 0x8000 : 0x7fff);
+      }
+
+      // Create audio buffer and play (24kHz for Gemini output)
+      if (!audioContextRef.current) {
+        audioContextRef.current = new AudioContext({ sampleRate: 24000 });
+      }
+
+      const audioBuffer = audioContextRef.current.createBuffer(1, float32.length, 24000);
+      audioBuffer.getChannelData(0).set(float32);
+
+      const source = audioContextRef.current.createBufferSource();
+      source.buffer = audioBuffer;
+      source.connect(audioContextRef.current.destination);
+      source.start();
+    } catch (err) {
+      console.error("[VoiceAgent] Error playing audio:", err);
     }
   };
 
