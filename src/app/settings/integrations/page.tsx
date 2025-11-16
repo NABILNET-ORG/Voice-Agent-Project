@@ -95,9 +95,10 @@ export default function IntegrationsManagement() {
         connectedAt: config.openai_api_key ? new Date(config.updated_at) : undefined,
         settings: {
           apiKey: config.openai_api_key || "",
+          apiKeyGeneral: config.openai_api_key_general || config.openai_api_key || "",
+          apiKeyVoice: config.openai_api_key_voice || "",
           modelName: config.ai_model_name || "gpt-4o-realtime-preview-2024-12-17",
           provider: "openai",
-          useForVoiceAgent: config.ai_voice_agent_provider === 'openai' || !config.ai_voice_agent_provider,
           useForSummarization: config.ai_summarization_provider === 'openai' || !config.ai_summarization_provider,
           useForAnalytics: config.ai_analytics_provider === 'openai' || false,
           useForTranscription: config.ai_transcription_provider === 'openai' || false
@@ -118,11 +119,12 @@ export default function IntegrationsManagement() {
         connectedAt: config.gemini_api_key ? new Date(config.updated_at) : undefined,
         settings: {
           apiKey: config.gemini_api_key || "",
+          apiKeyGeneral: config.gemini_api_key_general || config.gemini_api_key || "",
+          apiKeyVoice: config.gemini_api_key_voice || "",
           modelName: (config.ai_voice_agent_provider === 'gemini' || config.ai_summarization_provider === 'gemini')
             ? (config.ai_model_name || "gemini-2.5-flash")
             : "gemini-2.5-flash",
           provider: "gemini",
-          useForVoiceAgent: config.ai_voice_agent_provider === 'gemini' || false,
           useForSummarization: config.ai_summarization_provider === 'gemini' || false,
           useForAnalytics: config.ai_analytics_provider === 'gemini' || false,
           useForTranscription: config.ai_transcription_provider === 'gemini' || false
@@ -358,14 +360,15 @@ export default function IntegrationsManagement() {
       // Save to database based on integration type
       if (integration.id === 'openai') {
         const updateData: any = {
-          openai_api_key: settings.apiKey,
-          ai_voice_agent_provider: settings.useForVoiceAgent ? 'openai' : businessConfig.ai_voice_agent_provider === 'openai' ? null : businessConfig.ai_voice_agent_provider,
+          openai_api_key: settings.apiKeyGeneral || settings.apiKey,
+          openai_api_key_general: settings.apiKeyGeneral || settings.apiKey,
+          openai_api_key_voice: settings.apiKeyVoice || null,
           ai_summarization_provider: settings.useForSummarization ? 'openai' : businessConfig.ai_summarization_provider === 'openai' ? null : businessConfig.ai_summarization_provider,
           ai_analytics_provider: settings.useForAnalytics ? 'openai' : businessConfig.ai_analytics_provider === 'openai' ? null : businessConfig.ai_analytics_provider,
           ai_transcription_provider: settings.useForTranscription ? 'openai' : businessConfig.ai_transcription_provider === 'openai' ? null : businessConfig.ai_transcription_provider
         };
         // Save model name if any feature is enabled for OpenAI
-        if (settings.useForVoiceAgent || settings.useForSummarization || settings.useForAnalytics || settings.useForTranscription) {
+        if (settings.useForSummarization || settings.useForAnalytics || settings.useForTranscription) {
           updateData.ai_model_name = settings.modelName;
         }
         await businessConfigApi.update(user!.id, updateData);
@@ -373,14 +376,15 @@ export default function IntegrationsManagement() {
         setTimeout(() => setStatusMessage(null), 3000);
       } else if (integration.id === 'gemini') {
         const updateData: any = {
-          gemini_api_key: settings.apiKey,
-          ai_voice_agent_provider: settings.useForVoiceAgent ? 'gemini' : businessConfig.ai_voice_agent_provider === 'gemini' ? null : businessConfig.ai_voice_agent_provider,
+          gemini_api_key: settings.apiKeyGeneral || settings.apiKey,
+          gemini_api_key_general: settings.apiKeyGeneral || settings.apiKey,
+          gemini_api_key_voice: settings.apiKeyVoice || null,
           ai_summarization_provider: settings.useForSummarization ? 'gemini' : businessConfig.ai_summarization_provider === 'gemini' ? null : businessConfig.ai_summarization_provider,
           ai_analytics_provider: settings.useForAnalytics ? 'gemini' : businessConfig.ai_analytics_provider === 'gemini' ? null : businessConfig.ai_analytics_provider,
           ai_transcription_provider: settings.useForTranscription ? 'gemini' : businessConfig.ai_transcription_provider === 'gemini' ? null : businessConfig.ai_transcription_provider
         };
         // Save model name if any feature is enabled for Gemini
-        if (settings.useForVoiceAgent || settings.useForSummarization || settings.useForAnalytics || settings.useForTranscription) {
+        if (settings.useForSummarization || settings.useForAnalytics || settings.useForTranscription) {
           updateData.ai_model_name = settings.modelName;
         }
         await businessConfigApi.update(user!.id, updateData);
@@ -767,15 +771,31 @@ function IntegrationConfig({
         return (
           <div className="space-y-6">
             <div className="space-y-2">
-              <Label className="text-gray-300">OpenAI API Key</Label>
+              <Label className="text-gray-300">General AI Key</Label>
               <Input
                 type="password"
-                value={settings.apiKey || ""}
-                onChange={(e) => setSettings(prev => ({ ...prev, apiKey: e.target.value }))}
+                value={settings.apiKeyGeneral || settings.apiKey || ""}
+                onChange={(e) => setSettings(prev => ({ ...prev, apiKeyGeneral: e.target.value }))}
                 className="bg-gray-800 border-gray-700 text-white"
                 placeholder="sk-..."
               />
-              <p className="text-xs text-gray-500">Get your API key from platform.openai.com</p>
+              <p className="text-xs text-gray-500">
+                For text AI features (summarization, analytics). Get from <a href="https://platform.openai.com/api-keys" target="_blank" className="text-blue-400 hover:underline">platform.openai.com</a>
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-gray-300">Voice Agent Key (Optional)</Label>
+              <Input
+                type="password"
+                value={settings.apiKeyVoice || ""}
+                onChange={(e) => setSettings(prev => ({ ...prev, apiKeyVoice: e.target.value }))}
+                className="bg-gray-800 border-gray-700 text-white"
+                placeholder="sk-... (leave empty to use General AI Key)"
+              />
+              <p className="text-xs text-gray-500">
+                Separate key for voice agent (Realtime API). Can be same as General AI Key or different for billing separation.
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -875,15 +895,31 @@ function IntegrationConfig({
         return (
           <div className="space-y-6">
             <div className="space-y-2">
-              <Label className="text-gray-300">Gemini API Key</Label>
+              <Label className="text-gray-300">General AI Key</Label>
               <Input
                 type="password"
-                value={settings.apiKey || ""}
-                onChange={(e) => setSettings(prev => ({ ...prev, apiKey: e.target.value }))}
+                value={settings.apiKeyGeneral || settings.apiKey || ""}
+                onChange={(e) => setSettings(prev => ({ ...prev, apiKeyGeneral: e.target.value }))}
                 className="bg-gray-800 border-gray-700 text-white"
                 placeholder="AI..."
               />
-              <p className="text-xs text-gray-500">Get your API key from aistudio.google.com</p>
+              <p className="text-xs text-gray-500">
+                For text AI features (summarization, analytics). Get from <a href="https://aistudio.google.com/apikey" target="_blank" className="text-blue-400 hover:underline">aistudio.google.com</a>
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-gray-300">Voice Agent Key (Optional)</Label>
+              <Input
+                type="password"
+                value={settings.apiKeyVoice || ""}
+                onChange={(e) => setSettings(prev => ({ ...prev, apiKeyVoice: e.target.value }))}
+                className="bg-gray-800 border-gray-700 text-white"
+                placeholder="AI... (leave empty to use General AI Key)"
+              />
+              <p className="text-xs text-gray-500">
+                Separate key for voice agent (Gemini Live API). Can be same as General AI Key or different for billing separation.
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -922,20 +958,14 @@ function IntegrationConfig({
               <p className="text-xs text-gray-500">Select a preset or enter a custom model identifier</p>
             </div>
 
+            <div className="rounded-lg bg-blue-900/20 border border-blue-700/50 p-4 mb-4">
+              <p className="text-sm text-blue-300">
+                <strong>Note:</strong> Voice agent provider is now configured in <strong>Settings → AI Assistant Configuration</strong>
+              </p>
+            </div>
+
             <div className="space-y-4 border-t border-gray-700 pt-4">
               <h3 className="text-sm font-medium text-gray-300">Use Gemini For:</h3>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label htmlFor="gemini-voice" className="text-gray-300 font-normal">Voice Agent</Label>
-                  <p className="text-xs text-gray-500">Real-time voice conversations with customers</p>
-                </div>
-                <Switch
-                  id="gemini-voice"
-                  checked={settings.useForVoiceAgent || false}
-                  onCheckedChange={(checked) => setSettings(prev => ({ ...prev, useForVoiceAgent: checked }))}
-                />
-              </div>
 
               <div className="flex items-center justify-between">
                 <div>

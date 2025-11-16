@@ -131,12 +131,15 @@ export function useVoiceAgent() {
     };
 
     ws.onmessage = async (event) => {
+      console.log("[VoiceAgent] Gemini message received, type:", typeof event.data, event.data instanceof Blob ? `Blob(${event.data.size})` : 'String');
       try {
         let messageText = event.data;
         if (event.data instanceof Blob) {
           messageText = await event.data.text();
+          console.log("[VoiceAgent] Blob converted to text:", messageText);
         }
         const message = JSON.parse(messageText);
+        console.log("[VoiceAgent] Parsed Gemini message:", message);
         handleGeminiMessage(message, ws);
       } catch (err) {
         console.error("[VoiceAgent] Failed to parse Gemini message:", err);
@@ -271,7 +274,10 @@ export function useVoiceAgent() {
   };
 
   const handleGeminiMessage = (message: any, ws: WebSocket) => {
+    console.log("[VoiceAgent] handleGeminiMessage called with:", Object.keys(message));
+
     if (message.setupComplete) {
+      console.log("[VoiceAgent] Setup complete received!");
       setIsConnected(true);
       setStatus('listening');
       const costSavings = provider === 'gemini' ? ' (19x cheaper!)' : '';
