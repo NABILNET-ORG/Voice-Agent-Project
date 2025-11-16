@@ -31,6 +31,8 @@ export function useVoiceAgent() {
   const audioQueueRef = useRef<AudioBufferSourceNode[]>([]);
   const nextPlayTimeRef = useRef<number>(0);
   const isRespondingRef = useRef<boolean>(false);
+  const currentTranscriptIndexRef = useRef<number>(-1);
+  const transcriptBufferRef = useRef<string>('');
 
   // Cleanup on unmount
   useEffect(() => {
@@ -339,10 +341,38 @@ export function useVoiceAgent() {
         break;
 
       case "response.audio_transcript.delta":
-      case "response.audio_transcript.done":
-        if (message.transcript) {
-          addMessage('assistant', message.transcript);
+        // Incremental transcript - append to current message
+        if (message.delta) {
+          transcriptBufferRef.current += message.delta;
+
+          // Update or create the transcript message
+          setTranscript(prev => {
+            const lastIndex = prev.length - 1;
+            const lastMsg = prev[lastIndex];
+
+            // If last message is from assistant and recent, update it
+            if (lastMsg && lastMsg.role === 'assistant' && Date.now() - lastMsg.timestamp < 5000) {
+              const updated = [...prev];
+              updated[lastIndex] = {
+                ...lastMsg,
+                text: transcriptBufferRef.current
+              };
+              return updated;
+            } else {
+              // Create new message
+              return [...prev, {
+                role: 'assistant',
+                text: transcriptBufferRef.current,
+                timestamp: Date.now()
+              }];
+            }
+          });
         }
+        break;
+
+      case "response.audio_transcript.done":
+        // Transcript complete - reset buffer for next response
+        transcriptBufferRef.current = '';
         break;
 
       case "response.function_call_arguments.done":
