@@ -85,12 +85,12 @@ export function buildGeminiSetupMessage(config: GeminiLiveConfig): any {
     }
   };
 
-  // Start with minimal setup
+  // Build setup message with full configuration
   const setupMessage: any = {
     setup: {
       model: `models/${config.model || 'gemini-2.0-flash-exp'}`,
       generationConfig: {
-        responseModalities: ['AUDIO'] // Start with just AUDIO, add TEXT later if this works
+        responseModalities: ['AUDIO', 'TEXT'] // Include TEXT for transcription
       }
     }
   };
