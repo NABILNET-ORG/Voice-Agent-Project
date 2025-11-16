@@ -68,7 +68,7 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key (optional, for admin operations)
 
 #### AI Services (Required for Voice Agent & Service Extraction)
 ```
-GEMINI_API_KEY=AIzaSyCYQytlO2c1Ahgu1pxqV0SjQcavlBlDPhQ
+GEMINI_API_KEY=your_gemini_api_key_here
 OPENAI_API_KEY=your_openai_api_key_here
 ```
 
@@ -122,9 +122,10 @@ curl https://your-domain.vercel.app/api
 
 ## 📦 REQUIRED API KEYS GUIDE
 
-### 1. Gemini API Key (Already Provided) ✅
-**Value:** AIzaSyCYQytlO2c1Ahgu1pxqV0SjQcavlBlDPhQ
+### 1. Gemini API Key
+**Get it from:** https://aistudio.google.com/app/apikey
 **Used for:** Service extraction from URLs
+**Add to Vercel:** `GEMINI_API_KEY=your_gemini_key_here`
 
 ---
 
