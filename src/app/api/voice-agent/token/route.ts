@@ -379,6 +379,22 @@ function buildInstructions(context: any): string {
       instructions += `Greeting: ${aiConfig.greetingTemplate}\n\n`;
     }
 
+    // Add date/time formatting instructions
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    instructions += `IMPORTANT - Date/Time Formatting:\n`;
+    instructions += `Today's date is: ${today.toISOString().split('T')[0]}\n`;
+    instructions += `Tomorrow's date is: ${tomorrow.toISOString().split('T')[0]}\n`;
+    instructions += `When user says "لبكرة" or "tomorrow", use: ${tomorrow.toISOString().split('T')[0]}\n`;
+    instructions += `When user says "اليوم" or "today", use: ${today.toISOString().split('T')[0]}\n`;
+    instructions += `Time format: Always use 24-hour format HH:MM (e.g., 14:30 for 2:30 PM)\n`;
+    instructions += `Examples:\n`;
+    instructions += `- "عشرة ونص صباح" = 10:30\n`;
+    instructions += `- "تلاتة بعد الظهر" = 15:00\n`;
+    instructions += `- "سبعة مسا" = 19:00\n\n`;
+
     // Append available services
     if (services.length > 0) {
       instructions += `Available Services:\n`;
