@@ -89,12 +89,12 @@ export function buildGeminiSetupMessage(config: GeminiLiveConfig): any {
     setup: {
       model: `models/${config.model || 'gemini-2.0-flash-exp'}`,
       generation_config: {
-        response_modalities: ['AUDIO', 'TEXT'] // Include TEXT for transcription
-      },
-      speech_config: {
-        voice_config: {
-          prebuilt_voice_config: {
-            voice_name: speechConfig.voiceConfig?.prebuiltVoiceConfig?.voiceName || 'Puck'
+        response_modalities: ['AUDIO', 'TEXT'], // Include TEXT for transcription
+        speech_config: {
+          voice_config: {
+            prebuilt_voice_config: {
+              voice_name: speechConfig.voiceConfig?.prebuiltVoiceConfig?.voiceName || 'Puck'
+            }
           }
         }
       }
