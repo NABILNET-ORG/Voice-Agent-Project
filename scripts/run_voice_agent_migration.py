@@ -25,7 +25,7 @@ def get_connection_string():
 
     password = os.getenv('SUPABASE_DB_PASSWORD')
     if not password:
-        print("❌ SUPABASE_DB_PASSWORD environment variable not set")
+        print(" SUPABASE_DB_PASSWORD environment variable not set")
         print()
         print("To find your database password:")
         print("1. Go to: https://supabase.com/dashboard/project/" + project_ref + "/settings/database")
@@ -42,7 +42,7 @@ def get_connection_string():
 
 def run_migration():
     """Execute the voice agent architecture migration"""
-    print("🔧 Voice Agent Architecture Migration")
+    print("[Migration] Voice Agent Architecture Migration")
     print("=" * 60)
     print()
 
@@ -56,25 +56,25 @@ def run_migration():
     try:
         with open(migration_file, 'r', encoding='utf-8') as f:
             migration_sql = f.read()
-        print(f"✅ Migration file loaded: {len(migration_sql)} characters")
+        print(f" Migration file loaded: {len(migration_sql)} characters")
         print(f"   - {migration_sql.count('ALTER TABLE')} ALTER TABLE statements")
         print(f"   - {migration_sql.count('UPDATE')} UPDATE statements")
         print(f"   - {migration_sql.count('COMMENT ON')} COMMENT statements")
         print()
     except FileNotFoundError:
-        print(f"❌ Migration file not found: {migration_file}")
+        print(f" Migration file not found: {migration_file}")
         return False
 
     # Connect to database
-    print("📡 Connecting to Supabase via Session Pooler...")
+    print(" Connecting to Supabase via Session Pooler...")
     try:
         conn = psycopg2.connect(conn_str)
         conn.autocommit = False  # Use transaction
         cursor = conn.cursor()
-        print("✅ Connected successfully")
+        print(" Connected successfully")
         print()
     except psycopg2.Error as e:
-        print(f"❌ Connection failed: {e}")
+        print(f" Connection failed: {e}")
         print()
         print("Troubleshooting:")
         print("1. Verify SUPABASE_DB_PASSWORD is correct")
@@ -84,7 +84,7 @@ def run_migration():
 
     # Execute migration
     try:
-        print("🚀 Executing migration...")
+        print(" Executing migration...")
         print()
 
         # Split into individual statements
@@ -104,33 +104,33 @@ def run_migration():
                 # Show progress for major statements
                 if 'ALTER TABLE' in stmt:
                     table = stmt.split('ALTER TABLE')[1].split()[0]
-                    print(f"   ✅ ALTER TABLE {table}")
+                    print(f"    ALTER TABLE {table}")
                 elif 'UPDATE business_config' in stmt:
                     rows = cursor.rowcount
-                    print(f"   ✅ UPDATE business_config ({rows} rows)")
+                    print(f"    UPDATE business_config ({rows} rows)")
                 elif 'ADD CONSTRAINT' in stmt:
-                    print(f"   ✅ ADD CONSTRAINT")
+                    print(f"    ADD CONSTRAINT")
                 elif 'COMMENT ON' in stmt:
                     pass  # Don't spam for comments
 
             except psycopg2.Error as e:
                 if 'already exists' in str(e):
-                    print(f"   ⚠️  {e} (skipping, already exists)")
+                    print(f"     {e} (skipping, already exists)")
                 else:
-                    print(f"   ❌ Error: {e}")
+                    print(f"    Error: {e}")
                     raise
 
         print()
-        print(f"✅ Executed {executed}/{total} statements successfully")
+        print(f" Executed {executed}/{total} statements successfully")
 
         # Commit transaction
         print()
-        print("💾 Committing transaction...")
+        print(" Committing transaction...")
         conn.commit()
-        print("✅ Migration committed successfully!")
+        print(" Migration committed successfully!")
 
     except psycopg2.Error as e:
-        print(f"❌ Migration failed: {e}")
+        print(f" Migration failed: {e}")
         print()
         print("Rolling back...")
         conn.rollback()
@@ -140,7 +140,7 @@ def run_migration():
 
     # Verify new columns
     print()
-    print("🔍 Verifying new columns...")
+    print(" Verifying new columns...")
     try:
         cursor.execute("""
             SELECT column_name, data_type, is_nullable
@@ -161,18 +161,18 @@ def run_migration():
 
         columns = cursor.fetchall()
         if len(columns) == 8:
-            print(f"✅ All {len(columns)} new columns exist:")
+            print(f" All {len(columns)} new columns exist:")
             for col in columns:
                 print(f"   - {col[0]}: {col[1]}")
         else:
-            print(f"⚠️  Found {len(columns)}/8 columns (some may have failed)")
+            print(f"  Found {len(columns)}/8 columns (some may have failed)")
 
     except psycopg2.Error as e:
-        print(f"❌ Verification failed: {e}")
+        print(f" Verification failed: {e}")
 
     # Check migrated data
     print()
-    print("📊 Checking migrated data...")
+    print(" Checking migrated data...")
     try:
         cursor.execute("""
             SELECT
@@ -188,14 +188,14 @@ def run_migration():
 
         result = cursor.fetchone()
         if result:
-            print(f"✅ Sample data from '{result[0]}':")
+            print(f" Sample data from '{result[0]}':")
             print(f"   - Old gemini_api_key exists: {result[1]}")
             print(f"   - New gemini_api_key_general exists: {result[2]}")
             print(f"   - voice_agent_provider: {result[3]}")
             print(f"   - voice_agent_model: {result[4]}")
             print(f"   - voice_agent_voice_name: {result[5]}")
     except psycopg2.Error as e:
-        print(f"⚠️  Could not check data: {e}")
+        print(f"  Could not check data: {e}")
 
     # Cleanup
     cursor.close()
@@ -203,12 +203,12 @@ def run_migration():
 
     print()
     print("=" * 60)
-    print("🎉 MIGRATION COMPLETE!")
+    print(" MIGRATION COMPLETE!")
     print("=" * 60)
     print()
     print("Next steps:")
     print("1. Restart dev server: npm run dev")
-    print("2. Go to Settings → AI Assistant Configuration")
+    print("2. Go to Settings  AI Assistant Configuration")
     print("3. See new VoiceAgentConfig component")
     print("4. Test voice agent on home page")
     print()
