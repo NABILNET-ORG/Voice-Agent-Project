@@ -399,8 +399,10 @@ export function useVoiceAgent() {
         break;
 
       case "response.function_call_arguments.done":
-        console.log("Function called:", message.name, message.arguments);
+        console.log("OpenAI function call:", message.name, message.arguments);
         setStatus('processing');
+        // Execute the function and send result back to OpenAI
+        executeOpenAIFunction(message.call_id, message.name, message.arguments);
         break;
 
       case "error":
@@ -586,6 +588,49 @@ export function useVoiceAgent() {
     }
   };
 
+  const executeOpenAIFunction = async (callId: string, functionName: string, args: any) => {
+    try {
+      console.log("[VoiceAgent] Executing OpenAI function:", functionName, args);
+
+      const response = await fetch("/api/voice-agent/session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          function_name: functionName,
+          arguments: args,
+          call_id: callId,
+        }),
+      });
+
+      const result = await response.json();
+      console.log("[VoiceAgent] Function result:", result);
+
+      // Send function output back to OpenAI using conversation.item.create
+      if (websocketRef.current?.readyState === WebSocket.OPEN) {
+        websocketRef.current.send(JSON.stringify({
+          type: "conversation.item.create",
+          item: {
+            type: "function_call_output",
+            call_id: callId,
+            output: JSON.stringify(result.result || result)
+          }
+        }));
+
+        // Trigger AI to continue with the function result
+        websocketRef.current.send(JSON.stringify({
+          type: "response.create"
+        }));
+      }
+
+      setStatus('listening');
+    } catch (error: any) {
+      console.error("[VoiceAgent] Function execution error:", error);
+      toast.error(`Function execution failed: ${error.message}`);
+    }
+  };
+
   const executeFunctionCall = async (call: any, ws: WebSocket) => {
     try {
       const response = await fetch("/api/voice-agent/session", {
@@ -602,6 +647,7 @@ export function useVoiceAgent() {
 
       const result = await response.json();
 
+      // For Gemini: Use tool_response format
       ws.send(
         JSON.stringify({
           tool_response: {
