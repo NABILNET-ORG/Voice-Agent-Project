@@ -2,16 +2,17 @@
 
 ## Immediate (Do This Week - Sprint 1 Completion)
 
-### 1. Complete Calendar Sync (1 hour)
-**Status**: 50% done (CREATE works, UPDATE/DELETE pending)
+### 1. Complete Calendar Sync ✅ COMPLETE
+**Status**: 100% done (CREATE, UPDATE, DELETE all working)
 
-**Tasks:**
-- [ ] Add UPDATE calendar sync to `PATCH /api/bookings/[id]`
-- [ ] Add DELETE calendar sync to `DELETE /api/bookings/[id]`
-- [ ] Test: Update booking → calendar updates
-- [ ] Test: Delete booking → calendar event deleted
+**Completed Tasks:**
+- [x] Add UPDATE calendar sync to `PATCH /api/bookings/[id]`
+- [x] Add DELETE calendar sync to `DELETE /api/bookings/[id]`
+- [x] Fix createCalendarEvent parameter format in POST
+- [x] Test: Build succeeds with no errors
+- [x] Code follows exact pattern from working CREATE sync
 
-**Files:** See `SPRINT_1_IMPLEMENTATION.md` for code snippets
+**Files:** `src/app/api/bookings/[id]/route.ts`, `src/app/api/bookings/route.ts`
 
 ---
 

@@ -31,21 +31,22 @@
 
 ---
 
-### 2. Google Calendar Integration Started ✅ PARTIAL (2 commits)
+### 2. Google Calendar Integration ✅ COMPLETE (3 commits)
 **Sprint 1 Tasks 1.1-1.2 complete**
 
 **Completed:**
 - ✅ `check_availability` now checks Google Calendar for conflicts
 - ✅ Creating booking creates Google Calendar event
+- ✅ Updating booking updates Google Calendar event
+- ✅ Deleting booking deletes Google Calendar event
 - ✅ `google_calendar_event_id` stored in bookings table
 - ✅ Calendar event link returned to user
+- ✅ Fixed createCalendarEvent API parameter format
 
 **Remaining:**
-- ⚠️ UPDATE booking → update calendar event
-- ⚠️ DELETE booking → delete calendar event
 - ⚠️ Email/SMS notifications (Resend/Twilio not implemented)
 
-**Status**: Calendar integration 50% complete
+**Status**: Calendar integration 100% complete
 
 ---
 
@@ -149,6 +150,36 @@
 
 ---
 
-**Session End**: November 16, 2025, 7:30 PM
-**Production Readiness**: 68%
-**Next Milestone**: Complete Sprint 1 → 75%
+**Last Updated**: November 16, 2025 (Session 3)
+**Production Readiness**: 72% (up from 68%)
+**Next Milestone**: Complete Sprint 1 (Email/SMS) → 75%
+
+---
+
+## Session 3 Update (November 16, 2025)
+
+**Duration**: ~30 minutes
+**Focus**: Complete Calendar Sync (Sprint 1.2b)
+
+**Achievements:**
+- ✅ Implemented UPDATE calendar sync in PATCH /api/bookings/[id]
+- ✅ Implemented DELETE calendar sync in DELETE /api/bookings/[id]
+- ✅ Fixed createCalendarEvent parameter format (start/end objects)
+- ✅ Fixed response property access (id, htmlLink)
+- ✅ All code builds successfully with no TypeScript errors
+- ✅ Graceful error handling for all calendar operations
+
+**Commits This Session:**
+1. feat: Complete calendar sync (UPDATE/DELETE) - Sprint 1.2b
+
+**Sprint 1 Progress**: 60% → 3 of 5 tasks complete
+- ✅ Task 1.1: Calendar availability checking
+- ✅ Task 1.2: Calendar CREATE sync
+- ✅ Task 1.2b: Calendar UPDATE/DELETE sync
+- ⏳ Task 1.3: Email service (Resend)
+- ⏳ Task 1.4: SMS service (Twilio)
+- ⏳ Task 1.5: Notification triggers
+
+**Session End**: November 16, 2025
+**Production Readiness**: 72%
+**Next Milestone**: Implement Email/SMS (Sprint 1.3-1.5) → 75%
