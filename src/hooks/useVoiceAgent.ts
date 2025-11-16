@@ -28,6 +28,8 @@ export function useVoiceAgent() {
   const audioContextRef = useRef<AudioContext | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const setupMessageRef = useRef<any>(null);
+  const audioQueueRef = useRef<AudioBufferSourceNode[]>([]);
+  const nextPlayTimeRef = useRef<number>(0);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -184,6 +186,18 @@ export function useVoiceAgent() {
       websocketRef.current = null;
     }
     stopAudioCapture();
+
+    // Stop all queued audio sources
+    audioQueueRef.current.forEach(source => {
+      try {
+        source.stop();
+      } catch (e) {
+        // Source may already be stopped
+      }
+    });
+    audioQueueRef.current = [];
+    nextPlayTimeRef.current = 0;
+
     setIsConnected(false);
     setStatus('ready');
     setProvider(null);
@@ -371,13 +385,37 @@ export function useVoiceAgent() {
         audioContextRef.current = new AudioContext({ sampleRate: 24000 });
       }
 
-      const audioBuffer = audioContextRef.current.createBuffer(1, float32.length, 24000);
+      const audioContext = audioContextRef.current;
+      const audioBuffer = audioContext.createBuffer(1, float32.length, 24000);
       audioBuffer.getChannelData(0).set(float32);
 
-      const source = audioContextRef.current.createBufferSource();
+      const source = audioContext.createBufferSource();
       source.buffer = audioBuffer;
-      source.connect(audioContextRef.current.destination);
-      source.start();
+      source.connect(audioContext.destination);
+
+      // Schedule playback for smooth continuous audio
+      const currentTime = audioContext.currentTime;
+
+      // If we haven't started playing yet, or if there's a gap, start immediately
+      if (nextPlayTimeRef.current < currentTime) {
+        nextPlayTimeRef.current = currentTime;
+      }
+
+      // Start this chunk at the scheduled time
+      source.start(nextPlayTimeRef.current);
+
+      // Update next play time to be right after this chunk finishes
+      nextPlayTimeRef.current += audioBuffer.duration;
+
+      // Clean up finished sources
+      source.onended = () => {
+        const index = audioQueueRef.current.indexOf(source);
+        if (index > -1) {
+          audioQueueRef.current.splice(index, 1);
+        }
+      };
+
+      audioQueueRef.current.push(source);
     } catch (err) {
       console.error("[VoiceAgent] Error playing audio:", err);
     }
