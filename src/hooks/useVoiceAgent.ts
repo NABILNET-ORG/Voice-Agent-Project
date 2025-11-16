@@ -322,6 +322,14 @@ export function useVoiceAgent() {
         }
         break;
 
+      case "conversation.item.input_audio_transcription.completed":
+        // User's speech transcription completed
+        if (message.transcript) {
+          console.log("[VoiceAgent] User said:", message.transcript);
+          addMessage('user', message.transcript);
+        }
+        break;
+
       case "response.audio.delta":
         // Play audio chunk from OpenAI
         if (message.delta) {
@@ -354,7 +362,10 @@ export function useVoiceAgent() {
               'input_audio_buffer.committed', 'response.created', 'response.done',
               'response.output_item.added', 'response.output_item.done',
               'response.content_part.added', 'response.content_part.done',
-              'rate_limits.updated'].includes(message.type)) {
+              'rate_limits.updated', 'response.audio.done',
+              'conversation.item.input_audio_transcription.delta',
+              'conversation.item.input_audio_transcription.completed',
+              'response.function_call_arguments.delta'].includes(message.type)) {
           console.log("[VoiceAgent] Unknown OpenAI message type:", message.type);
         }
     }
