@@ -295,18 +295,8 @@ export function useVoiceAgent() {
         break;
 
       case "input_audio_buffer.speech_stopped":
-        // User stopped speaking - trigger AI response (only if not already responding)
-        if (!isRespondingRef.current) {
-          console.log("[VoiceAgent] Speech stopped, triggering response");
-          isRespondingRef.current = true;
-          if (websocketRef.current?.readyState === WebSocket.OPEN) {
-            websocketRef.current.send(JSON.stringify({
-              type: "response.create"
-            }));
-          }
-        } else {
-          console.log("[VoiceAgent] Speech stopped but already responding, skipping");
-        }
+        // Speech stopped - don't manually trigger, Server VAD handles it automatically
+        console.log("[VoiceAgent] Speech stopped detected (Server VAD will auto-respond)");
         break;
 
       case "response.created":
