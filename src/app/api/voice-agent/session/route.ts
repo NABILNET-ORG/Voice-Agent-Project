@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { listCalendarEvents } from '@/lib/google-calendar/client';
 
 /**
  * POST /api/voice-agent/session
@@ -74,7 +75,7 @@ async function checkAvailability(
 ): Promise<{ available: boolean; message: string }> {
   const { date, time } = args;
 
-  // Check if slot is already booked
+  // Check if slot is already booked in database
   const { data: existingBooking, error } = await supabase
     .from('bookings')
     .select('id, customer_name, service_or_item')
@@ -84,7 +85,7 @@ async function checkAvailability(
     .single();
 
   if (error && error.code !== 'PGRST116') {
-    console.error('Error checking availability:', error);
+    console.error('[Voice Agent] Error checking database availability:', error);
     return {
       available: false,
       message: 'Unable to check availability at this time'
@@ -98,9 +99,51 @@ async function checkAvailability(
     };
   }
 
-  // TODO: Check business hours
-  // TODO: Check if date is in the past
-  // TODO: Check min/max advance booking settings
+  // Check Google Calendar if enabled
+  const { data: config } = await supabase
+    .from('business_config')
+    .select('google_calendar_sync_enabled, google_calendar_id')
+    .eq('user_id', userId)
+    .single();
+
+  if (config?.google_calendar_sync_enabled) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('google_calendar_access_token, google_calendar_refresh_token')
+      .eq('id', userId)
+      .single();
+
+    if (profile?.google_calendar_access_token) {
+      try {
+        const startDateTime = `${date}T${time}:00`;
+        const endDateTime = new Date(new Date(startDateTime).getTime() + 60 * 60 * 1000).toISOString();
+
+        const calendarEvents = await listCalendarEvents(
+          profile.google_calendar_access_token,
+          profile.google_calendar_refresh_token,
+          config.google_calendar_id || 'primary',
+          {
+            timeMin: startDateTime,
+            timeMax: endDateTime,
+            maxResults: 10
+          }
+        );
+
+        if (calendarEvents && calendarEvents.length > 0) {
+          console.log('[Voice Agent] Calendar conflict found for', time, 'on', date);
+          return {
+            available: false,
+            message: `Sorry, ${time} on ${date} conflicts with an existing calendar event.`
+          };
+        }
+
+        console.log('[Voice Agent] Calendar checked - slot available:', time, 'on', date);
+      } catch (calendarError) {
+        console.error('[Voice Agent] Calendar check failed:', calendarError);
+        // Continue with database-only check
+      }
+    }
+  }
 
   return {
     available: true,
