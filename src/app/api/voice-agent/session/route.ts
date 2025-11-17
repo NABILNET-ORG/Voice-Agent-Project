@@ -20,7 +20,17 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { function_name, arguments: args, call_id } = body;
+    let { function_name, arguments: args, call_id } = body;
+
+    // CRITICAL FIX: Parse arguments if it's a JSON string
+    if (typeof args === 'string') {
+      try {
+        args = JSON.parse(args);
+        console.log('[Voice Agent Session] Parsed string arguments to object');
+      } catch (parseError) {
+        console.error('[Voice Agent Session] Failed to parse arguments:', parseError);
+      }
+    }
 
     if (!function_name) {
       return NextResponse.json(
