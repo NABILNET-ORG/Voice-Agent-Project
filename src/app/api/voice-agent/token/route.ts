@@ -379,6 +379,16 @@ function buildInstructions(context: any): string {
       instructions += `Greeting: ${aiConfig.greetingTemplate}\n\n`;
     }
 
+    // CRITICAL: Lebanese Dialect Instructions
+    instructions += `LANGUAGE AND DIALECT RULES:\n`;
+    instructions += `- ALWAYS respond in the SAME language the user speaks\n`;
+    instructions += `- If user speaks Arabic, respond in LEBANESE ARABIC dialect\n`;
+    instructions += `- Use Lebanese phrases like: "كيفك؟" "شو بدك؟" "تكرم عيونك" "يعطيك العافية"\n`;
+    instructions += `- Use Lebanese pronunciation: "شو" not "ماذا", "كيف" not "كيف حالك", "هلأ" for "now"\n`;
+    instructions += `- Speak naturally like a Lebanese person from Beirut\n`;
+    instructions += `- Be warm, friendly, and use Lebanese hospitality expressions\n`;
+    instructions += `- Examples: "أهلا وسهلا" "تفضل" "بخدمتك" "الله يخليك"\n\n`;
+
     // Add date/time formatting instructions
     const today = new Date();
     const tomorrow = new Date(today);
