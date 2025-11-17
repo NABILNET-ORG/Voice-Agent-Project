@@ -264,18 +264,31 @@ async function createBooking(
   }
 
   // Get service details, pricing, and calendar settings
-  const { data: config } = await supabase
+  const { data: config, error: configError } = await supabase
     .from('business_config')
     .select('services, tax_rate, service_fee_enabled, google_calendar_sync_enabled, google_calendar_id, timezone')
     .eq('user_id', userId)
     .single();
 
+  console.log('[Voice Agent] Config fetched:', {
+    hasConfig: !!config,
+    error: configError,
+    syncEnabled: config?.google_calendar_sync_enabled,
+    calendarId: config?.google_calendar_id
+  });
+
   // Get Google Calendar tokens for calendar sync
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('google_calendar_access_token, google_calendar_refresh_token')
     .eq('id', userId)
     .single();
+
+  console.log('[Voice Agent] Profile fetched:', {
+    hasProfile: !!profile,
+    error: profileError,
+    hasToken: !!profile?.google_calendar_access_token
+  });
 
   let basePrice = 0;
   let duration = 60;
