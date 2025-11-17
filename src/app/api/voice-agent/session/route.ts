@@ -137,13 +137,31 @@ async function checkAvailability(
 
   console.log('[Voice Agent] Checking availability:', { date, time, originalArgs: args });
 
-  // Check if slot is already booked in database
+  // Check if requested time is in the past (Issue #2 Fix)
+  const now = new Date();
+  const today = now.toISOString().split('T')[0];
+  const currentHour = now.getHours();
+  const currentMinute = now.getMinutes();
+  const [requestHour, requestMinute] = time.split(':').map(Number);
+
+  if (date === today) {
+    if (requestHour < currentHour || (requestHour === currentHour && requestMinute <= currentMinute)) {
+      console.log('[Voice Agent] Requested time is in the past:', time);
+      return {
+        available: false,
+        message: `Sorry, ${formatTime12Hour(time)} has already passed. Please choose a future time.`
+      };
+    }
+  }
+
+  // Check if slot is already booked in database (Issue #3 Fix: Exclude cancelled)
   const { data: existingBooking, error } = await supabase
     .from('bookings')
-    .select('id, customer_name, service_or_item')
+    .select('id, customer_name, service_or_item, status')
     .eq('user_id', userId)
     .eq('date', date)
     .eq('time', time)
+    .neq('status', 'cancelled')  // Exclude cancelled bookings
     .single();
 
   if (error && error.code !== 'PGRST116') {
@@ -155,6 +173,7 @@ async function checkAvailability(
   }
 
   if (existingBooking) {
+    console.log('[Voice Agent] Slot is booked:', existingBooking);
     return {
       available: false,
       message: `Sorry, ${formatTime12Hour(time)} on ${date} is already booked.`
