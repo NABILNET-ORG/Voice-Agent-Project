@@ -335,13 +335,24 @@ async function createBooking(
   }
 
   // Create Google Calendar event if sync is enabled
+  console.log('[Voice Agent] Calendar sync check:', {
+    hasBooking: !!booking,
+    syncEnabled: config?.google_calendar_sync_enabled,
+    hasToken: !!profile?.google_calendar_access_token,
+    calendarId: config?.google_calendar_id
+  });
+
   if (booking && config?.google_calendar_sync_enabled && profile?.google_calendar_access_token) {
+    console.log('[Voice Agent] ✅ Creating calendar event for booking:', booking.id);
+
     try {
       const startDateTime = `${date}T${time}:00Z`;
       const startDate = new Date(startDateTime);
       const endDate = new Date(startDate.getTime() + duration * 60 * 1000);
 
       const eventTitle = `${service_name} - ${customer_name}`;
+
+      console.log('[Voice Agent] Calendar event details:', { title: eventTitle, start: startDateTime, end: endDate.toISOString() });
 
       const calendarEvent = await createCalendarEvent(
         profile.google_calendar_access_token,
