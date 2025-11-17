@@ -227,11 +227,12 @@ export default function IntegrationsManagement() {
         name: "Zapier",
         description: "Connect with 5000+ apps",
         category: "other",
-        status: "disconnected",
+        status: config.zapier_api_key ? "connected" : "disconnected",
         icon: "⚡",
+        connectedAt: config.zapier_api_key ? new Date(config.updated_at) : undefined,
         settings: {
-          apiKey: "",
-          webhooks: []
+          apiKey: config.zapier_api_key || "",
+          webhookUrl: config.zapier_webhook_url || ""
         }
       },
       {
@@ -239,12 +240,13 @@ export default function IntegrationsManagement() {
         name: "Slack",
         description: "Team notifications and updates",
         category: "communication",
-        status: "pending",
+        status: config.slack_webhook_url ? "connected" : "disconnected",
         icon: "💬",
+        connectedAt: config.slack_webhook_url ? new Date(config.updated_at) : undefined,
         settings: {
-          webhookUrl: "",
-          channel: "#bookings",
-          notifications: ["new_booking", "cancellation"]
+          webhookUrl: config.slack_webhook_url || "",
+          botToken: config.slack_bot_token || "",
+          channelId: config.slack_channel_id || ""
         }
       },
       {
@@ -252,12 +254,12 @@ export default function IntegrationsManagement() {
         name: "QuickBooks",
         description: "Accounting and invoicing",
         category: "other",
-        status: "disconnected",
+        status: config.quickbooks_client_id ? "connected" : "disconnected",
         icon: "📈",
+        connectedAt: config.quickbooks_client_id ? new Date(config.updated_at) : undefined,
         settings: {
-          companyId: "",
-          accessToken: "",
-          syncInvoices: true
+          clientId: config.quickbooks_client_id || "",
+          clientSecret: config.quickbooks_client_secret || ""
         }
       }
     ];
@@ -433,6 +435,39 @@ export default function IntegrationsManagement() {
         });
 
         setStatusMessage({ type: 'success', text: 'Twilio settings updated successfully!' });
+        setTimeout(() => setStatusMessage(null), 3000);
+      } else if (integration.id === 'google-analytics') {
+        await businessConfigApi.update(user!.id, {
+          google_analytics_tracking_id: settings.trackingId,
+          google_analytics_measurement_id: settings.measurementId
+        });
+
+        setStatusMessage({ type: 'success', text: 'Google Analytics settings updated successfully!' });
+        setTimeout(() => setStatusMessage(null), 3000);
+      } else if (integration.id === 'slack') {
+        await businessConfigApi.update(user!.id, {
+          slack_webhook_url: settings.webhookUrl,
+          slack_bot_token: settings.botToken || null,
+          slack_channel_id: settings.channelId || null
+        });
+
+        setStatusMessage({ type: 'success', text: 'Slack settings updated successfully!' });
+        setTimeout(() => setStatusMessage(null), 3000);
+      } else if (integration.id === 'zapier') {
+        await businessConfigApi.update(user!.id, {
+          zapier_api_key: settings.apiKey,
+          zapier_webhook_url: settings.webhookUrl || null
+        });
+
+        setStatusMessage({ type: 'success', text: 'Zapier settings updated successfully!' });
+        setTimeout(() => setStatusMessage(null), 3000);
+      } else if (integration.id === 'quickbooks') {
+        await businessConfigApi.update(user!.id, {
+          quickbooks_client_id: settings.clientId,
+          quickbooks_client_secret: settings.clientSecret
+        });
+
+        setStatusMessage({ type: 'success', text: 'QuickBooks settings updated successfully!' });
         setTimeout(() => setStatusMessage(null), 3000);
       }
 
@@ -668,34 +703,34 @@ export default function IntegrationsManagement() {
               )}
 
               {/* Actions */}
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2 mt-4">
                 {integration.status === "connected" ? (
                   <>
                     <Button
                       variant="outline"
                       size="sm"
-                      className="border-gray-700 text-gray-300 hover:text-white"
-                      onClick={() => handleTest(integration.id)}
-                      disabled={testResults[integration.id] !== undefined}
-                    >
-                      <TestTube className="h-4 w-4 mr-1" />
-                      {testResults[integration.id] || "Test"}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="border-gray-700 text-gray-300 hover:text-white"
+                      className="flex-1 min-w-[80px] border-gray-700 text-gray-300 hover:text-white"
                       onClick={() => handleConnect(integration)}
                     >
                       <Settings className="h-4 w-4 mr-1" />
                       Configure
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 min-w-[80px] border-gray-700 text-gray-300 hover:text-white"
+                      onClick={() => handleTest(integration.id)}
+                      disabled={testResults[integration.id] !== undefined}
+                    >
+                      <TestTube className="h-4 w-4 mr-1" />
+                      Test
                     </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button
                           variant="outline"
                           size="sm"
-                          className="border-red-700 text-red-500 hover:text-red-400"
+                          className="flex-1 min-w-[80px] border-red-700 text-red-500 hover:text-red-400"
                         >
                           <Trash2 className="h-4 w-4 mr-1" />
                           Disconnect
@@ -722,7 +757,8 @@ export default function IntegrationsManagement() {
                   </>
                 ) : (
                   <Button
-                    className="bg-[#84CC16] text-black hover:bg-[#65A30D]"
+                    size="sm"
+                    className="w-full bg-[#84CC16] text-black hover:bg-[#65A30D]"
                     onClick={() => handleConnect(integration)}
                   >
                     <Plus className="h-4 w-4 mr-1" />
@@ -732,8 +768,8 @@ export default function IntegrationsManagement() {
               </div>
 
               {/* Test Result */}
-              {testResults[integration.id] && (
-                <div className="p-2 bg-gray-800 rounded text-sm">
+              {testResults[integration.id] && integration.status === "connected" && (
+                <div className="p-2 bg-gray-800 rounded text-sm text-center">
                   {testResults[integration.id]}
                 </div>
               )}
@@ -1308,6 +1344,115 @@ function IntegrationConfig({
                 onChange={(e) => setSettings(prev => ({ ...prev, fromName: e.target.value }))}
                 className="bg-gray-800 border-gray-700 text-white"
                 placeholder="Your Business"
+              />
+            </div>
+          </div>
+        );
+
+      case "google-analytics":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-gray-300">Tracking ID</Label>
+              <Input
+                value={settings.trackingId || ""}
+                onChange={(e) => setSettings(prev => ({ ...prev, trackingId: e.target.value }))}
+                className="bg-gray-800 border-gray-700 text-white"
+                placeholder="G-XXXXXXXXXX"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-gray-300">Measurement ID</Label>
+              <Input
+                value={settings.measurementId || ""}
+                onChange={(e) => setSettings(prev => ({ ...prev, measurementId: e.target.value }))}
+                className="bg-gray-800 border-gray-700 text-white"
+                placeholder="G-XXXXXXXXXX"
+              />
+            </div>
+          </div>
+        );
+
+      case "slack":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-gray-300">Webhook URL</Label>
+              <Input
+                value={settings.webhookUrl || ""}
+                onChange={(e) => setSettings(prev => ({ ...prev, webhookUrl: e.target.value }))}
+                className="bg-gray-800 border-gray-700 text-white"
+                placeholder="https://hooks.slack.com/services/..."
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-gray-300">Bot Token (Optional)</Label>
+              <Input
+                type="password"
+                value={settings.botToken || ""}
+                onChange={(e) => setSettings(prev => ({ ...prev, botToken: e.target.value }))}
+                className="bg-gray-800 border-gray-700 text-white"
+                placeholder="xoxb-..."
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-gray-300">Channel ID (Optional)</Label>
+              <Input
+                value={settings.channelId || ""}
+                onChange={(e) => setSettings(prev => ({ ...prev, channelId: e.target.value }))}
+                className="bg-gray-800 border-gray-700 text-white"
+                placeholder="C01234567"
+              />
+            </div>
+          </div>
+        );
+
+      case "zapier":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-gray-300">API Key</Label>
+              <Input
+                type="password"
+                value={settings.apiKey || ""}
+                onChange={(e) => setSettings(prev => ({ ...prev, apiKey: e.target.value }))}
+                className="bg-gray-800 border-gray-700 text-white"
+                placeholder="Your Zapier API key"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-gray-300">Webhook URL (Optional)</Label>
+              <Input
+                value={settings.webhookUrl || ""}
+                onChange={(e) => setSettings(prev => ({ ...prev, webhookUrl: e.target.value }))}
+                className="bg-gray-800 border-gray-700 text-white"
+                placeholder="https://hooks.zapier.com/..."
+              />
+            </div>
+          </div>
+        );
+
+      case "quickbooks":
+        return (
+          <div className="space-y-4">
+            <p className="text-sm text-gray-400">QuickBooks uses OAuth. Click "Connect" to authorize access.</p>
+            <div className="space-y-2">
+              <Label className="text-gray-300">Client ID</Label>
+              <Input
+                value={settings.clientId || ""}
+                onChange={(e) => setSettings(prev => ({ ...prev, clientId: e.target.value }))}
+                className="bg-gray-800 border-gray-700 text-white"
+                placeholder="Your QuickBooks Client ID"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-gray-300">Client Secret</Label>
+              <Input
+                type="password"
+                value={settings.clientSecret || ""}
+                onChange={(e) => setSettings(prev => ({ ...prev, clientSecret: e.target.value }))}
+                className="bg-gray-800 border-gray-700 text-white"
+                placeholder="Your QuickBooks Client Secret"
               />
             </div>
           </div>
