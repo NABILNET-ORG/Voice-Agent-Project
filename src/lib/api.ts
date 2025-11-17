@@ -97,37 +97,45 @@ export const bookingsApi = {
     return data as Booking
   },
 
-  // Cancel a booking
+  // Cancel a booking (uses API to trigger calendar sync)
   async cancel(id: string, reason?: string) {
-    const { data, error } = await supabase
-      .from('bookings')
-      .update({
+    const response = await fetch(`/api/bookings/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
         status: 'cancelled',
         cancellation_reason: reason,
         cancelled_at: new Date().toISOString(),
       })
-      .eq('id', id)
-      .select()
-      .single()
+    });
 
-    if (error) throw error
-    return data as Booking
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to cancel booking');
+    }
+
+    const result = await response.json();
+    return result.data as Booking;
   },
 
-  // Mark booking as completed
+  // Mark booking as completed (uses API to trigger calendar sync)
   async complete(id: string) {
-    const { data, error } = await supabase
-      .from('bookings')
-      .update({
+    const response = await fetch(`/api/bookings/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
         status: 'completed',
         completed_at: new Date().toISOString(),
       })
-      .eq('id', id)
-      .select()
-      .single()
+    });
 
-    if (error) throw error
-    return data as Booking
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to complete booking');
+    }
+
+    const result = await response.json();
+    return result.data as Booking;
   },
 
   // Delete a booking
