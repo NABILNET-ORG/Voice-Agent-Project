@@ -378,13 +378,25 @@ async function createBooking(
     console.log('[Voice Agent] ✅ Creating calendar event for booking:', booking.id);
 
     try {
-      const startDateTime = `${date}T${time}:00Z`;
-      const startDate = new Date(startDateTime);
+      // TIMEZONE FIX: Don't add Z suffix - let timezone parameter handle it
+      const startDateTime = `${date}T${time}:00`;  // No Z suffix
+      const [hours, minutes] = time.split(':').map(Number);
+      const startDate = new Date(date);
+      startDate.setHours(hours, minutes, 0, 0);
       const endDate = new Date(startDate.getTime() + duration * 60 * 1000);
+
+      // Format end time without Z
+      const endTime = `${endDate.getHours().toString().padStart(2, '0')}:${endDate.getMinutes().toString().padStart(2, '0')}:00`;
+      const endDateTime = `${date}T${endTime}`;
 
       const eventTitle = `${service_name} - ${customer_name}`;
 
-      console.log('[Voice Agent] Calendar event details:', { title: eventTitle, start: startDateTime, end: endDate.toISOString() });
+      console.log('[Voice Agent] Calendar event details:', {
+        title: eventTitle,
+        start: startDateTime,
+        end: endDateTime,
+        timezone: config.timezone || 'UTC'
+      });
 
       const calendarEvent = await createCalendarEvent(
         profile.google_calendar_access_token,
@@ -395,11 +407,11 @@ async function createBooking(
           description: `Booking ID: ${booking.id}\nBooked via voice agent`,
           start: {
             dateTime: startDateTime,
-            timeZone: config.timezone || 'UTC'
+            timeZone: config.timezone || 'Asia/Beirut'
           },
           end: {
-            dateTime: endDate.toISOString(),
-            timeZone: config.timezone || 'UTC'
+            dateTime: endDateTime,
+            timeZone: config.timezone || 'Asia/Beirut'
           },
           attendees: customer_email ? [{
             email: customer_email,
