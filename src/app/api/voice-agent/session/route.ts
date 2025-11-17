@@ -88,14 +88,20 @@ async function checkAvailability(
   userId: string,
   args: { date?: string; time?: string }
 ): Promise<{ available: boolean; message: string }> {
+  console.log('[checkAvailability] Function called with args:', JSON.stringify(args));
+  console.log('[checkAvailability] args.date:', args.date);
+  console.log('[checkAvailability] args.time:', args.time);
+
   // Default to today if date not provided or invalid
   let date = args.date;
   if (!date || date === 'undefined' || date === 'null') {
     date = new Date().toISOString().split('T')[0];
+    console.log('[checkAvailability] Date defaulted to today:', date);
   }
 
   // Validate time format
   let time = args.time;
+  console.log('[checkAvailability] Time value:', time, 'Type:', typeof time);
   if (!time || time === 'undefined' || time === 'null') {
     return {
       available: false,
