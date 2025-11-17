@@ -263,11 +263,18 @@ async function createBooking(
     };
   }
 
-  // Get service details and pricing
+  // Get service details, pricing, and calendar settings
   const { data: config } = await supabase
     .from('business_config')
-    .select('services, tax_rate, service_fee_enabled')
+    .select('services, tax_rate, service_fee_enabled, google_calendar_sync_enabled, google_calendar_id, timezone')
     .eq('user_id', userId)
+    .single();
+
+  // Get Google Calendar tokens for calendar sync
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('google_calendar_access_token, google_calendar_refresh_token')
+    .eq('id', userId)
     .single();
 
   let basePrice = 0;
