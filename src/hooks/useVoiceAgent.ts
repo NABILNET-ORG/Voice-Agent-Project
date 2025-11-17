@@ -297,16 +297,27 @@ export function useVoiceAgent() {
         break;
 
       case "input_audio_buffer.speech_started":
-        // User started speaking - if AI is responding, cancel it (interruption)
-        if (isRespondingRef.current && websocketRef.current?.readyState === WebSocket.OPEN) {
-          console.log("[VoiceAgent] User interrupted AI, canceling response");
-          websocketRef.current.send(JSON.stringify({
-            type: "response.cancel"
-          }));
+        // User started speaking - immediately stop AI and listen
+        console.log("[VoiceAgent] User started speaking");
+
+        if (isRespondingRef.current) {
+          console.log("[VoiceAgent] Interrupting AI response");
+
+          // Cancel the response if WebSocket is open
+          if (websocketRef.current?.readyState === WebSocket.OPEN) {
+            try {
+              websocketRef.current.send(JSON.stringify({
+                type: "response.cancel"
+              }));
+            } catch (e) {
+              console.log("[VoiceAgent] Response cancel failed (no active response)");
+            }
+          }
+
           isRespondingRef.current = false;
           setStatus('listening');
 
-          // Clear audio queue to stop playing
+          // Stop all queued and playing audio immediately
           audioQueueRef.current.forEach(source => {
             try {
               source.stop();
@@ -315,7 +326,9 @@ export function useVoiceAgent() {
             }
           });
           audioQueueRef.current = [];
-          nextPlayTimeRef.current = 0;
+          nextPlayTimeRef.current = audioContextRef.current?.currentTime || 0;
+
+          console.log("[VoiceAgent] Audio playback stopped, ready to listen");
         }
         break;
 

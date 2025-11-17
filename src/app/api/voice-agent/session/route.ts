@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { listCalendarEvents } from '@/lib/google-calendar/client';
+import { listCalendarEvents, createCalendarEvent } from '@/lib/google-calendar/client';
 
 /**
  * POST /api/voice-agent/session
@@ -157,7 +157,7 @@ async function checkAvailability(
   if (existingBooking) {
     return {
       available: false,
-      message: `Sorry, ${time} on ${date} is already booked.`
+      message: `Sorry, ${formatTime12Hour(time)} on ${date} is already booked.`
     };
   }
 
@@ -199,7 +199,7 @@ async function checkAvailability(
           console.log('[Voice Agent] Calendar conflict found for', time, 'on', date);
           return {
             available: false,
-            message: `Sorry, ${time} on ${date} conflicts with an existing calendar event.`
+            message: `Sorry, ${formatTime12Hour(time)} on ${date} conflicts with an existing calendar event.`
           };
         }
 
@@ -213,8 +213,18 @@ async function checkAvailability(
 
   return {
     available: true,
-    message: `Yes, ${time} on ${date} is available.`
+    message: `Yes, ${formatTime12Hour(time)} on ${date} is available.`
   };
+}
+
+/**
+ * Convert 24-hour time to 12-hour format
+ */
+function formatTime12Hour(time24: string): string {
+  const [hours, minutes] = time24.split(':').map(Number);
+  const period = hours >= 12 ? 'PM' : 'AM';
+  const hours12 = hours % 12 || 12;
+  return minutes > 0 ? `${hours12}:${minutes.toString().padStart(2, '0')} ${period}` : `${hours12} ${period}`;
 }
 
 /**
@@ -317,10 +327,56 @@ async function createBooking(
     };
   }
 
+  // Create Google Calendar event if sync is enabled
+  if (booking && config?.google_calendar_sync_enabled && profile?.google_calendar_access_token) {
+    try {
+      const startDateTime = `${date}T${time}:00Z`;
+      const startDate = new Date(startDateTime);
+      const endDate = new Date(startDate.getTime() + duration * 60 * 1000);
+
+      const eventTitle = `${service_name} - ${customer_name}`;
+
+      const calendarEvent = await createCalendarEvent(
+        profile.google_calendar_access_token,
+        profile.google_calendar_refresh_token,
+        config.google_calendar_id || 'primary',
+        {
+          summary: eventTitle,
+          description: `Booking ID: ${booking.id}\nBooked via voice agent`,
+          start: {
+            dateTime: startDateTime,
+            timeZone: config.timezone || 'UTC'
+          },
+          end: {
+            dateTime: endDate.toISOString(),
+            timeZone: config.timezone || 'UTC'
+          },
+          attendees: customer_email ? [{
+            email: customer_email,
+            displayName: customer_name
+          }] : []
+        }
+      );
+
+      // Update booking with calendar event ID
+      if (calendarEvent?.id) {
+        await supabase
+          .from('bookings')
+          .update({ google_calendar_event_id: calendarEvent.id })
+          .eq('id', booking.id);
+
+        console.log('[Voice Agent] Calendar event created:', calendarEvent.id);
+      }
+    } catch (calendarError) {
+      console.error('[Voice Agent] Calendar sync failed:', calendarError);
+      // Don't fail booking if calendar sync fails
+    }
+  }
+
   return {
     success: true,
     booking_id: booking.id,
-    message: `Perfect! I've confirmed your booking for ${service_name} on ${date} at ${time}. The total is $${totalAmount.toFixed(2)}. You'll receive a confirmation email at ${customer_email}.`
+    message: `Perfect! I've confirmed your booking for ${service_name} on ${date} at ${formatTime12Hour(time)}. The total is $${totalAmount.toFixed(2)}. You'll receive a confirmation email at ${customer_email}.`
   };
 }
 
