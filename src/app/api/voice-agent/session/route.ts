@@ -31,30 +31,45 @@ export async function POST(request: NextRequest) {
 
     let result;
 
-    switch (function_name) {
-      case 'check_availability':
-        result = await checkAvailability(supabase, user.id, args);
-        break;
+    console.log('[Voice Agent Session] Executing function:', function_name, 'with args:', args);
 
-      case 'create_booking':
-        result = await createBooking(supabase, user.id, args, call_id);
-        break;
+    try {
+      switch (function_name) {
+        case 'check_availability':
+          result = await checkAvailability(supabase, user.id, args);
+          break;
 
-      case 'get_available_services':
-        result = await getAvailableServices(supabase, user.id);
-        break;
+        case 'create_booking':
+          result = await createBooking(supabase, user.id, args, call_id);
+          break;
 
-      default:
-        return NextResponse.json(
-          { error: `Unknown function: ${function_name}` },
-          { status: 400 }
-        );
+        case 'get_available_services':
+          result = await getAvailableServices(supabase, user.id);
+          break;
+
+        default:
+          return NextResponse.json(
+            { error: `Unknown function: ${function_name}` },
+            { status: 400 }
+          );
+      }
+
+      console.log('[Voice Agent Session] Function result:', function_name, result);
+
+      return NextResponse.json({
+        call_id,
+        result
+      });
+    } catch (functionError: any) {
+      console.error('[Voice Agent Session] Function execution error:', functionError);
+      return NextResponse.json({
+        call_id,
+        result: {
+          available: false,
+          message: `Error: ${functionError.message || 'Function execution failed'}`
+        }
+      });
     }
-
-    return NextResponse.json({
-      call_id,
-      result
-    });
 
   } catch (error: any) {
     console.error('Unexpected error in POST /api/voice-agent/session:', error);
@@ -71,13 +86,40 @@ export async function POST(request: NextRequest) {
 async function checkAvailability(
   supabase: any,
   userId: string,
-  args: { date?: string; time: string }
+  args: { date?: string; time?: string }
 ): Promise<{ available: boolean; message: string }> {
-  // Default to today if date not provided
-  const date = args.date || new Date().toISOString().split('T')[0];
-  const { time } = args;
+  // Default to today if date not provided or invalid
+  let date = args.date;
+  if (!date || date === 'undefined' || date === 'null') {
+    date = new Date().toISOString().split('T')[0];
+  }
 
-  console.log('[Voice Agent] Checking availability:', { date, time });
+  // Validate time format
+  let time = args.time;
+  if (!time || time === 'undefined' || time === 'null') {
+    return {
+      available: false,
+      message: 'Please specify a time for the appointment.'
+    };
+  }
+
+  // Ensure time is in HH:MM format
+  if (!time.match(/^\d{1,2}:\d{2}$/)) {
+    // Try to parse common formats
+    const timeMatch = time.match(/(\d{1,2}):?(\d{2})?/);
+    if (timeMatch) {
+      const hours = timeMatch[1].padStart(2, '0');
+      const minutes = (timeMatch[2] || '00').padStart(2, '0');
+      time = `${hours}:${minutes}`;
+    } else {
+      return {
+        available: false,
+        message: 'Invalid time format. Please use format like 10:30 or 2:00 PM.'
+      };
+    }
+  }
+
+  console.log('[Voice Agent] Checking availability:', { date, time, originalArgs: args });
 
   // Check if slot is already booked in database
   const { data: existingBooking, error } = await supabase
