@@ -71,9 +71,13 @@ export async function POST(request: NextRequest) {
 async function checkAvailability(
   supabase: any,
   userId: string,
-  args: { date: string; time: string }
+  args: { date?: string; time: string }
 ): Promise<{ available: boolean; message: string }> {
-  const { date, time } = args;
+  // Default to today if date not provided
+  const date = args.date || new Date().toISOString().split('T')[0];
+  const { time } = args;
+
+  console.log('[Voice Agent] Checking availability:', { date, time });
 
   // Check if slot is already booked in database
   const { data: existingBooking, error } = await supabase
