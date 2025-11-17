@@ -266,7 +266,7 @@ async function createBooking(
   // Get service details, pricing, and calendar settings
   const { data: config, error: configError } = await supabase
     .from('business_config')
-    .select('services, tax_rate, service_fee_enabled, google_calendar_sync_enabled, google_calendar_id, timezone')
+    .select('services, google_calendar_sync_enabled, google_calendar_id, timezone')
     .eq('user_id', userId)
     .single();
 
@@ -308,11 +308,11 @@ async function createBooking(
     }
   }
 
-  // Calculate pricing
+  // Calculate pricing (simplified - tax_rate and service_fee_enabled don't exist)
   const subtotal = basePrice;
-  const serviceFee = config?.service_fee_enabled ? subtotal * 0.05 : 0;
-  const taxAmount = (subtotal + serviceFee) * (config?.tax_rate || 0.15);
-  const totalAmount = subtotal + serviceFee + taxAmount;
+  const serviceFee = 0; // No service fee column
+  const taxAmount = 0; // No tax rate column
+  const totalAmount = subtotal;
 
   // Create the booking
   const { data: booking, error } = await supabase
