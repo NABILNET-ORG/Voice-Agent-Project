@@ -54,6 +54,8 @@ export default function IntegrationsManagement() {
       setStatusMessage({ type: 'success', text: 'Google Calendar connected successfully!' });
       // Clean URL
       window.history.replaceState({}, '', '/settings/integrations');
+      // Clear any test results to avoid duplicate messages
+      setTestResults({});
       // Reload integrations immediately to show new status
       if (user?.id) {
         loadIntegrations();
@@ -213,11 +215,11 @@ export default function IntegrationsManagement() {
         name: "Google Analytics",
         description: "Track website and booking analytics",
         category: "analytics",
-        status: "error",
+        status: "disconnected",
         icon: "📊",
         settings: {
-          trackingId: "GA-XXXXXXXXX",
-          measurementId: "G-XXXXXXXXXX"
+          trackingId: "",
+          measurementId: ""
         }
       },
       {
