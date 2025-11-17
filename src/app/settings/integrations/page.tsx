@@ -169,12 +169,14 @@ export default function IntegrationsManagement() {
         name: "Stripe",
         description: "Accept online payments",
         category: "payment",
-        status: "disconnected",
+        status: config.stripe_secret_key && config.stripe_publishable_key ? "connected" : "disconnected",
         icon: "💳",
+        connectedAt: config.stripe_secret_key ? new Date(config.updated_at) : undefined,
         settings: {
-          publishableKey: "",
-          secretKey: "",
-          webhookUrl: ""
+          publishableKey: config.stripe_publishable_key || "",
+          secretKey: config.stripe_secret_key || "",
+          webhookSecret: config.stripe_webhook_secret || "",
+          webhookUrl: "https://voice-agent-project-snowy.vercel.app/api/payments/webhook"
         }
       },
       {
@@ -182,19 +184,14 @@ export default function IntegrationsManagement() {
         name: "Twilio",
         description: "Voice calls and SMS notifications",
         category: "communication",
-        status: "connected",
+        status: config.twilio_account_sid ? "connected" : "disconnected",
         icon: "📞",
-        connectedAt: new Date("2024-01-10"),
-        lastSync: new Date(),
+        connectedAt: config.twilio_account_sid ? new Date(config.updated_at) : undefined,
         settings: {
-          accountSid: "ACxxxxxxxxxx",
-          phoneNumber: "+1234567890",
-          voiceUrl: "https://your-domain.com/twilio-webhook"
-        },
-        usage: {
-          calls: 1247,
-          data: "15.7 MB",
-          lastUsed: new Date()
+          accountSid: config.twilio_account_sid || "",
+          authToken: config.twilio_auth_token || "",
+          phoneNumber: config.twilio_phone_number || "",
+          voiceUrl: "https://voice-agent-project-snowy.vercel.app/api/voice-agent/twilio-webhook"
         }
       },
       {
@@ -202,19 +199,13 @@ export default function IntegrationsManagement() {
         name: "Resend",
         description: "Email notifications and confirmations",
         category: "communication",
-        status: "connected",
+        status: config.resend_api_key ? "connected" : "disconnected",
         icon: "📧",
-        connectedAt: new Date("2024-01-12"),
-        lastSync: new Date(),
+        connectedAt: config.resend_api_key ? new Date(config.updated_at) : undefined,
         settings: {
-          apiKey: "re_xxxxxxxxxxxx",
-          fromEmail: "noreply@yourbusiness.com",
-          fromName: "Your Business"
-        },
-        usage: {
-          calls: 892,
-          data: "8.1 MB",
-          lastUsed: new Date()
+          apiKey: config.resend_api_key || "",
+          fromEmail: config.resend_from_email || "",
+          fromName: config.resend_from_name || ""
         }
       },
       {
@@ -413,6 +404,33 @@ export default function IntegrationsManagement() {
         });
 
         setStatusMessage({ type: 'success', text: 'Google Calendar settings updated successfully!' });
+        setTimeout(() => setStatusMessage(null), 3000);
+      } else if (integration.id === 'stripe') {
+        await businessConfigApi.update(user!.id, {
+          stripe_secret_key: settings.secretKey,
+          stripe_publishable_key: settings.publishableKey,
+          stripe_webhook_secret: settings.webhookSecret || null
+        });
+
+        setStatusMessage({ type: 'success', text: 'Stripe settings updated successfully!' });
+        setTimeout(() => setStatusMessage(null), 3000);
+      } else if (integration.id === 'resend') {
+        await businessConfigApi.update(user!.id, {
+          resend_api_key: settings.apiKey,
+          resend_from_email: settings.fromEmail || null,
+          resend_from_name: settings.fromName || null
+        });
+
+        setStatusMessage({ type: 'success', text: 'Resend settings updated successfully!' });
+        setTimeout(() => setStatusMessage(null), 3000);
+      } else if (integration.id === 'twilio') {
+        await businessConfigApi.update(user!.id, {
+          twilio_account_sid: settings.accountSid,
+          twilio_auth_token: settings.authToken || null,
+          twilio_phone_number: settings.phoneNumber
+        });
+
+        setStatusMessage({ type: 'success', text: 'Twilio settings updated successfully!' });
         setTimeout(() => setStatusMessage(null), 3000);
       }
 
@@ -1175,6 +1193,7 @@ function IntegrationConfig({
                 className="bg-gray-800 border-gray-700 text-white"
                 placeholder="pk_test_..."
               />
+              <p className="text-xs text-gray-500">Get from: dashboard.stripe.com/test/apikeys</p>
             </div>
             <div className="space-y-2">
               <Label className="text-gray-300">Secret Key</Label>
@@ -1185,15 +1204,32 @@ function IntegrationConfig({
                 className="bg-gray-800 border-gray-700 text-white"
                 placeholder="sk_test_..."
               />
+              <p className="text-xs text-gray-500">Click "Reveal test key" in Stripe Dashboard</p>
             </div>
             <div className="space-y-2">
-              <Label className="text-gray-300">Webhook URL</Label>
+              <Label className="text-gray-300">Webhook Signing Secret (Optional)</Label>
               <Input
-                value={settings.webhookUrl || ""}
-                onChange={(e) => setSettings(prev => ({ ...prev, webhookUrl: e.target.value }))}
+                type="password"
+                value={settings.webhookSecret || ""}
+                onChange={(e) => setSettings(prev => ({ ...prev, webhookSecret: e.target.value }))}
                 className="bg-gray-800 border-gray-700 text-white"
-                placeholder="https://your-domain.com/stripe-webhook"
+                placeholder="whsec_..."
               />
+              <p className="text-xs text-gray-500">From: dashboard.stripe.com/webhooks</p>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-gray-300">Webhook URL (Read-only)</Label>
+              <Input
+                value="https://voice-agent-project-snowy.vercel.app/api/payments/webhook"
+                readOnly
+                className="bg-gray-800 border-gray-700 text-gray-400"
+              />
+              <p className="text-xs text-gray-500">Configure this URL in Stripe Dashboard → Webhooks</p>
+            </div>
+            <div className="rounded-lg bg-blue-500/10 border border-blue-500/20 p-4">
+              <p className="text-sm text-gray-300">
+                <strong>Events to select:</strong> payment_intent.succeeded, payment_intent.payment_failed, payment_intent.canceled, charge.refunded
+              </p>
             </div>
           </div>
         );
@@ -1211,6 +1247,16 @@ function IntegrationConfig({
               />
             </div>
             <div className="space-y-2">
+              <Label className="text-gray-300">Auth Token</Label>
+              <Input
+                type="password"
+                value={settings.authToken || ""}
+                onChange={(e) => setSettings(prev => ({ ...prev, authToken: e.target.value }))}
+                className="bg-gray-800 border-gray-700 text-white"
+                placeholder="Your Twilio Auth Token"
+              />
+            </div>
+            <div className="space-y-2">
               <Label className="text-gray-300">Phone Number</Label>
               <Input
                 value={settings.phoneNumber || ""}
@@ -1220,13 +1266,13 @@ function IntegrationConfig({
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-gray-300">Voice Webhook URL</Label>
+              <Label className="text-gray-300">Voice Webhook URL (Read-only)</Label>
               <Input
-                value={settings.voiceUrl || ""}
-                onChange={(e) => setSettings(prev => ({ ...prev, voiceUrl: e.target.value }))}
-                className="bg-gray-800 border-gray-700 text-white"
-                placeholder="https://your-domain.com/twilio-webhook"
+                value="https://voice-agent-project-snowy.vercel.app/api/voice-agent/twilio-webhook"
+                readOnly
+                className="bg-gray-800 border-gray-700 text-gray-400"
               />
+              <p className="text-xs text-gray-500">Configure this in Twilio Console for your phone number</p>
             </div>
           </div>
         );
