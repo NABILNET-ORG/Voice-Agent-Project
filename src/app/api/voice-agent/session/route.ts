@@ -177,8 +177,12 @@ async function checkAvailability(
 
     if (profile?.google_calendar_access_token) {
       try {
-        const startDateTime = `${date}T${time}:00`;
-        const endDateTime = new Date(new Date(startDateTime).getTime() + 60 * 60 * 1000).toISOString();
+        const startDateTime = `${date}T${time}:00Z`;
+        const startDate = new Date(startDateTime);
+        const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
+        const endDateTime = endDate.toISOString();
+
+        console.log('[Voice Agent] Calendar check params:', { startDateTime, endDateTime });
 
         const calendarEvents = await listCalendarEvents(
           profile.google_calendar_access_token,
@@ -285,7 +289,7 @@ async function createBooking(
     .from('bookings')
     .insert({
       user_id: userId,
-      call_log_id: callId || null,
+      call_log_id: null, // Web voice agent doesn't have call log UUID
       customer_name,
       customer_email,
       customer_phone: customer_phone || null,
