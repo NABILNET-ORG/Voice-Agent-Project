@@ -185,8 +185,8 @@ export async function PATCH(
       );
     }
 
-    // Sync to Google Calendar if date/time/duration changed and has calendar event
-    if ((updateData.date || updateData.time || updateData.duration_minutes) && data.google_calendar_event_id) {
+    // Sync to Google Calendar if status/date/time/duration changed and has calendar event
+    if (data.google_calendar_event_id) {
       const { data: profile } = await supabase
         .from("profiles")
         .select("google_calendar_access_token, google_calendar_refresh_token")
@@ -201,36 +201,57 @@ export async function PATCH(
 
       if (profile?.google_calendar_access_token) {
         try {
-          // Calculate start and end times
-          const startDateTime = `${data.date}T${data.time}:00`;
-          const startTime = new Date(startDateTime);
-          const endTime = new Date(startTime.getTime() + data.duration_minutes * 60000);
+          // If cancelled, delete the calendar event
+          if (updateData.status === 'cancelled') {
+            await deleteCalendarEvent(
+              profile.google_calendar_access_token,
+              profile.google_calendar_refresh_token,
+              config?.google_calendar_id || 'primary',
+              data.google_calendar_event_id
+            );
+            console.log('[Update Booking] Calendar event deleted (booking cancelled)');
+          }
+          // If completed or other status/time changes, update the event
+          else if (updateData.status === 'completed' || updateData.date || updateData.time || updateData.duration_minutes) {
+            // Calculate start and end times
+            const startDateTime = `${data.date}T${data.time}:00`;
+            const startTime = new Date(startDateTime);
+            const endTime = new Date(startTime.getTime() + data.duration_minutes * 60000);
 
-          // Format event title using template or default
-          const eventTitle = config?.calendar_event_title_template
-            ?.replace('{service}', data.service_or_item)
-            ?.replace('{customer_name}', data.customer_name)
-            || `${data.service_or_item} - ${data.customer_name}`;
+            // Format event title using template or default
+            const eventTitle = config?.calendar_event_title_template
+              ?.replace('{service}', data.service_or_item)
+              ?.replace('{customer_name}', data.customer_name)
+              || `${data.service_or_item} - ${data.customer_name}`;
 
-          await updateCalendarEvent(
-            profile.google_calendar_access_token,
-            profile.google_calendar_refresh_token,
-            config?.google_calendar_id || 'primary',
-            data.google_calendar_event_id,
-            {
+            // Add color for completed bookings (red = 11)
+            const eventUpdate: any = {
               summary: eventTitle,
               description: `Booking ID: ${data.id}${data.notes ? `\n\nNotes: ${data.notes}` : ''}`,
               start: {
                 dateTime: startDateTime,
-                timeZone: config?.timezone || 'UTC'
+                timeZone: config?.timezone || 'Asia/Beirut'
               },
               end: {
                 dateTime: endTime.toISOString().split('.')[0],
-                timeZone: config?.timezone || 'UTC'
+                timeZone: config?.timezone || 'Asia/Beirut'
               }
+            };
+
+            // Change color to red when completed
+            if (updateData.status === 'completed') {
+              eventUpdate.colorId = '11'; // Red color in Google Calendar
             }
-          );
-          console.log('[Update Booking] Calendar event updated:', data.google_calendar_event_id);
+
+            await updateCalendarEvent(
+              profile.google_calendar_access_token,
+              profile.google_calendar_refresh_token,
+              config?.google_calendar_id || 'primary',
+              data.google_calendar_event_id,
+              eventUpdate
+            );
+            console.log('[Update Booking] Calendar event updated:', data.google_calendar_event_id, updateData.status === 'completed' ? '(changed to red)' : '');
+          }
         } catch (calendarError) {
           console.error('[Update Booking] Calendar sync failed:', calendarError);
           // Continue with booking update even if calendar sync fails
